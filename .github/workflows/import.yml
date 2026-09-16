@@ -1,0 +1,59 @@
+name: Import verified delivery and publish Pages
+on:
+  push:
+    branches: [main]
+    paths: ['.import/**', '.github/workflows/import.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: initial-delivery
+  cancel-in-progress: false
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - name: Restore and verify original source and components
+        run: python .import/restore.py
+        env: {GH_TOKEN: '${{ github.token }}'}
+      - name: Commit complete application source
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app packages scripts tests docs vendor LICENSE THIRD_PARTY_NOTICES.md README.md package.json vendor-lock.json .gitignore
+          git diff --cached --quiet || git commit -m 'feat: import complete Counterform Studio delivery and ten pinned components'
+          git push origin HEAD:main
+      - run: npm test
+      - run: pip install fonttools==4.63.0 brotli
+      - run: npm run test:fonts
+      - run: npm run build
+      - run: npm run pack:all
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-delivery
+          path: |
+            dist
+            artifacts/npm
+            test-results/*.json
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: dist}
+  deploy:
+    needs: restore
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+        with: {enablement: true}
+      - id: deploy
+        uses: actions/deploy-pages@v4
