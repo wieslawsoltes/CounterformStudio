@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "retrieved": "2026-09-16",
+  "acquisition": "Authenticated GitHub Actions artifact downloads; GridWeb source snapshot, other inputs npm package artifacts.",
+  "policy": "Upstream implementation files are unmodified. Release assembly excludes font files, source maps and optional non-runtime assets. Archive hashes identify the downloaded inputs, not the pruned folders.",
+  "components": [
+    {
+      "repository": "wieslawsoltes/SkiaSharpWeb",
+      "folder": "vendor/skiasharpweb",
+      "version": "0.5.0",
+      "commit": "1f26ba6e5ab8731bdbd08d18a45e65c9763a57d3",
+      "artifactId": 10347461781,
+      "artifactArchiveSha256": "5fe6418a927aa1072eab256a3ce030498c20283457f73f4df8bbb75ca46d4999",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/Dockyard",
+      "folder": "vendor/dockyard",
+      "version": "0.1.0",
+      "commit": "7b2b56b281ccf71555c21a1bef4bdf38df67e034",
+      "artifactId": 10347630700,
+      "artifactArchiveSha256": "67c76e6d4e2e4092dd3833c776c41b5ec861bf1a0633bc48d556b062c90ea7ca",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/TreeDataGridWeb",
+      "folder": "vendor/treedatagridweb",
+      "version": "0.1.0",
+      "commit": "4fe97dc907cedb148639a456a3987125369f8f1c",
+      "artifactId": 10346804957,
+      "artifactArchiveSha256": "ea039c0a6c2965dc70ea68f025128f193b34370e1ca109e6448647905aa8c5f8",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/DynamicDataWeb",
+      "folder": "vendor/dynamicdataweb",
+      "version": "0.1.1",
+      "commit": "9c380c0814aca40a1e0e8c3756d1f9e1432195cb",
+      "artifactId": 10347655683,
+      "artifactArchiveSha256": "5d8d6c979a07132a62ff1590e8c56f383edc45c4e00d40ed2c3ee536f7098f13",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/RibbonWeb",
+      "folder": "vendor/ribbonweb",
+      "version": "0.1.1",
+      "commit": "d4f8f53c038e7b21e5942c8084eae211d3d4e4a1",
+      "artifactId": 10346349501,
+      "artifactArchiveSha256": "0adb79985902437dc2bba144dab188313595ecc7d2ce3ff44946c096733161a1",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/ReactiveWeb",
+      "folder": "vendor/reactiveweb",
+      "version": "0.2.0",
+      "commit": "de265a21b4c25f151ba6927064b2071eaa1b10d2",
+      "artifactId": 10347112094,
+      "artifactArchiveSha256": "987ccf6f76ac069b794086758b61ecaaca95d617e6ec9c4aa0f2354e63b46582",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/RBushWeb",
+      "folder": "vendor/rbushweb",
+      "version": "0.1.1",
+      "commit": "963819e8e8d34a12012efec9980bfd711a0f00da",
+      "artifactId": 10348140342,
+      "artifactArchiveSha256": "68c704d40a69327cc84a80faa1eda0a1cc7c007a6929bef07d8bf441f32d85bc",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/QuikGraphWeb",
+      "folder": "vendor/quikgraphweb",
+      "version": "0.2.0",
+      "commit": "8703c0c9590c367aaf061863181284bf2a3090d0",
+      "artifactId": 10348210061,
+      "artifactArchiveSha256": "704193cfc63ea48cf839e46bf6b69c71ec58a172979c9599454c43f08770e531",
+      "license": "MS-PL"
+    },
+    {
+      "repository": "wieslawsoltes/GridWeb",
+      "folder": "vendor/gridweb",
+      "version": "0.5.0",
+      "commit": "79fe32584e646a614a6549c8a14ea12e976b2e02",
+      "artifactId": 10347504626,
+      "artifactArchiveSha256": "ffca6a25df9aba04f90dd5e4d32302102bbe6f2bffb2dbe289db572f4d61b56b",
+      "license": "MIT"
+    },
+    {
+      "repository": "wieslawsoltes/RichTextWeb",
+      "folder": "vendor/richtextweb",
+      "version": "0.5.0",
+      "commit": "7f6242b6355b7448bf975a96f12aa18a161ea9a7",
+      "artifactId": 10365166573,
+      "artifactArchiveSha256": "56bcd463be98558b2e77efa172d37ed7243f926820ccb1617bb031506fba236f",
+      "license": "MIT"
+    }
+  ]
+}

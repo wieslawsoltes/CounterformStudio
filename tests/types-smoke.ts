@@ -1,0 +1,14 @@
+import {FontDocument,createDemoFont,createGlyph,FontSource} from '@wieslawsoltes/counterform-model';
+import {History} from '@wieslawsoltes/counterform-history';
+import {compileTrueType,compileOpenTypeCFF} from '@wieslawsoltes/counterform-font-io';
+import {compileVariableTrueType} from '@wieslawsoltes/counterform-variations';
+import {mountStudio} from '@wieslawsoltes/counterform-workbench';
+import {CoordinateCompute} from '@wieslawsoltes/counterform-compute';
+const doc:FontDocument=createDemoFont();
+const source:FontSource=doc.data;
+const glyph=createGlyph('custom',0xe000,source.masters);
+const history=new History(doc);
+history.execute('Create glyph',()=>doc.addGlyph(glyph));
+const a:Uint8Array=compileTrueType(doc), b:Uint8Array=compileOpenTypeCFF(doc), c:Uint8Array=compileVariableTrueType(doc);
+const compute=new CoordinateCompute();compute.interpolate([new Float64Array([1,2])],[1]);
+void mountStudio(document.createElement('div'),{document:doc,restore:false});

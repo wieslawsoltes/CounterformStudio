@@ -1,0 +1,33 @@
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __reExport = (target, mod, secondTarget) => (__copyProps(target, mod, "default"), secondTarget && __copyProps(secondTarget, mod, "default"));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var index_exports = {};
+module.exports = __toCommonJS(index_exports);
+__reExport(index_exports, require("./model.js"), module.exports);
+__reExport(index_exports, require("./engine.js"), module.exports);
+__reExport(index_exports, require("./formats.js"), module.exports);
+__reExport(index_exports, require("./control.js"), module.exports);
+__reExport(index_exports, require("./mvvm.js"), module.exports);
+__reExport(index_exports, require("./bridge.js"), module.exports);
+__reExport(index_exports, require("./document-features.js"), module.exports);
+__reExport(index_exports, require("./toolbar.js"), module.exports);
+__reExport(index_exports, require("./history.js"), module.exports);
+__reExport(index_exports, require("./collaboration.js"), module.exports);
+__reExport(index_exports, require("./equations.js"), module.exports);
+__reExport(index_exports, require("./equations-omml.js"), module.exports);
+__reExport(index_exports, require("./equation-control.js"), module.exports);
+__reExport(index_exports, require("./page-setup.js"), module.exports);
+__reExport(index_exports, require("./story-session.js"), module.exports);
+//# sourceMappingURL=index.js.map

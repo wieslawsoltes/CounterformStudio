@@ -1,0 +1,20 @@
+/** Generates only original test data into a caller-owned temporary directory. */
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {createDemoFont,createGlyph} from '@wieslawsoltes/counterform-model';
+import {compileTrueType,compileOpenTypeCFF,encodeWOFF} from '@wieslawsoltes/counterform-font-io';
+import {compileVariableTrueType,VariationModel} from '@wieslawsoltes/counterform-variations';
+import {exportUFO} from '@wieslawsoltes/counterform-ufo';
+const destination=process.argv[2];
+if(!destination) throw new Error('A temporary fixture output directory is required');
+await fs.mkdir(destination,{recursive:true});
+const d=createDemoFont();
+d.data.features='feature salt { sub A by V; } salt; feature liga { sub f i by m; } liga;';
+for(const l of d.glyph('A').layers)l.anchors.push({name:'top',x:320,y:700});
+const mark=createGlyph('acutecomb',0x301,d.data.masters);mark.category='Mark';for(const l of mark.layers){l.advanceWidth=0;l.anchors.push({name:'_top',x:0,y:0});}d.addGlyph(mark);
+const ttf=compileTrueType(d);
+for(const [name,data] of Object.entries({'static.ttf':ttf,'static.otf':compileOpenTypeCFF(d),'static.woff':encodeWOFF(ttf),'variable.ttf':compileVariableTrueType(d),'source.ufoz':exportUFO(d)}))await fs.writeFile(path.join(destination,name),data);
+const locations=[{}, {wght:-1},{wght:1},{wdth:1},{wght:1,wdth:1},{wght:.5,wdth:.5}],values=[0,10,20,40,80,120],queries=[{wght:.2,wdth:.8},{wght:.75,wdth:.25},{wght:-.5,wdth:.4},...locations];
+const model=new VariationModel(locations,['wght','wdth']);
+await fs.writeFile(path.join(destination,'variation-oracle.json'),JSON.stringify({locations,values,queries,results:queries.map(l=>model.interpolate(l,values))}));
+console.log('Original compiler fixtures generated in temporary directory');

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "upstreamCommit": "9cd6b49292e09041258708a37bed99c56177b0ef",
+  "scope": "Runtime-specific source tests without an executable JavaScript equivalent. MS-NRBF binary serialization tests now execute in test/nrbf-graphs.test.js and are checked against genuine .NET fixtures.",
+  "counts": {
+    "total": 1,
+    "dotnetBinaryFormatter": 0,
+    "reflectionEmit": 1
+  },
+  "tests": [
+    {
+      "id": "tests/QuikGraph.Serialization.Tests/GraphMLSerializationTests.cs::EmitValue_Throws",
+      "fixture": "GraphMLSerializerTests",
+      "method": "EmitValue_Throws",
+      "category": "dotnet-reflection-emit",
+      "disposition": "requires-host-runtime",
+      "reason": "The original test creates a System.Reflection.Emit.DynamicMethod, obtains its ILGenerator, and calls the internal ILHelpers.EmitValue helper with CLR PropertyInfo for a char property. This validates the .NET serializer code-generation backend rather than a public graph or XML wire-format operation.",
+      "sourceUrl": "https://github.com/KeRNeLith/QuikGraph/blob/9cd6b49292e09041258708a37bed99c56177b0ef/tests/QuikGraph.Serialization.Tests/GraphMLSerializationTests.cs#L501",
+      "implementationEvidence": [
+        "https://github.com/KeRNeLith/QuikGraph/blob/9cd6b49292e09041258708a37bed99c56177b0ef/tests/QuikGraph.Serialization.Tests/GraphMLSerializationTests.cs"
+      ]
+    }
+  ]
+}

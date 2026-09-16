@@ -1,0 +1,37 @@
+{
+  "name": "@wieslawsoltes/counterform-compute",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "WebGPU weighted coordinate interpolation with a Float64 CPU fallback.",
+  "main": "./src/index.js",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "types": "./types/index.d.ts",
+  "keywords": [
+    "font-editor",
+    "opentype",
+    "type-design",
+    "webgpu",
+    "counterform"
+  ]
+}

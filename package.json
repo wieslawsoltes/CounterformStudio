@@ -1,0 +1,29 @@
+{
+  "name": "counterform-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "bootstrap": "node scripts/bootstrap.mjs",
+    "test": "node scripts/bootstrap.mjs && node --test tests/*.test.mjs",
+    "test:browser": "python tests/browser.py",
+    "build": "node scripts/build.mjs",
+    "pack:all": "node scripts/pack.mjs",
+    "verify": "npm test && npm run test:types && npm run test:fonts && npm run test:browser && npm run build && npm run pack:all && npm run test:packages",
+    "test:fonts": "python tests/fonttools.py",
+    "test:types": "tsc -p tests/tsconfig.json",
+    "release:zip": "python scripts/archive.py",
+    "test:packages": "python tests/package-consumer.py"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

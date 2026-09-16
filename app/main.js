@@ -1,0 +1,4 @@
+import { mountStudio } from '@wieslawsoltes/counterform-workbench';
+const host=document.getElementById('app');
+try { const studio=await mountStudio(host,{restore:!new URLSearchParams(location.search).has('demo')});globalThis.counterform=studio;document.documentElement.dataset.ready='true'; }
+catch(error){console.error(error);host.replaceChildren();const section=document.createElement('section');section.style.cssText='max-width:720px;margin:12vh auto;padding:32px;font:14px/1.7 system-ui';const h=document.createElement('h1');h.textContent='Counterform could not start';const pre=document.createElement('pre');pre.textContent=error.stack||error.message;pre.style.whiteSpace='pre-wrap';const p=document.createElement('p');p.textContent='Run “node scripts/serve.mjs” and open the localhost address. This application requires HTTP(S), not file://.';section.append(h,p,pre);host.append(section);document.documentElement.dataset.error='true';}

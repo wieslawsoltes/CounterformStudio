@@ -1,0 +1,110 @@
+# Standalone package API examples
+
+The package scope is `@wieslawsoltes/counterform-`. The following examples run after workspace bootstrap or after installing the corresponding tarballs/dependencies.
+
+## Create, edit, undo and compile a font without the UI
+
+```js
+import { FontDocument, createFont, createGlyph } from '@wieslawsoltes/counterform-model';
+import { rectangle, ellipse, reverseContour } from '@wieslawsoltes/counterform-geometry';
+import { History } from '@wieslawsoltes/counterform-history';
+import { compileTrueType } from '@wieslawsoltes/counterform-font-io';
+
+const doc = new FontDocument(createFont('Counterform Example'));
+const history = new History(doc);
+history.execute('Create glyphs', () => {
+  doc.addGlyph(createGlyph('.notdef', null, doc.data.masters));
+  const glyph = createGlyph('O', 0x004f, doc.data.masters);
+  glyph.layers[0].contours = [ellipse(300,350,250,350), reverseContour(ellipse(300,350,170,270))];
+  glyph.layers[0].advanceWidth = 600;
+  doc.addGlyph(glyph);
+});
+const bytes = compileTrueType(doc); // Uint8Array; no browser, GPU or server required
+history.undo();
+history.redo();
+```
+
+`examples/compile.mjs` writes an original generated font to a path you explicitly provide. There are no fixture font files in the repository.
+
+## Mount only the editing surface
+
+```js
+import { initializeSkia, GlyphRenderer } from '@wieslawsoltes/counterform-renderer';
+import { GlyphEditor } from '@wieslawsoltes/counterform-editor';
+
+const S = await initializeSkia();
+const renderer = new GlyphRenderer(document.querySelector('#surface'), { S });
+const editor = new GlyphEditor(doc, history, renderer);
+editor.setGlyph(doc.glyph('O').id);
+renderer.fit();
+// At unmount, dispose editor before renderer.
+editor.dispose();
+renderer.dispose();
+```
+
+The renderer consumes unmodified SkiaSharpWeb APIs. Its native WASM asset directory must remain deployable according to the upstream package's asset-copy rules. The source workspace's import map already resolves these paths.
+
+## Mount the complete workspace
+
+```js
+import { mountStudio } from '@wieslawsoltes/counterform-workbench';
+import '@wieslawsoltes/counterform-workbench/styles.css';
+import '@wieslawsoltes/dockyard/styles.css';
+import '@wieslawsoltes/treedatagridweb/styles.css';
+
+const studio = await mountStudio(document.querySelector('#app'), { document: doc, restore: false });
+await studio.commands.run('view.kerning');
+// Later:
+studio.dispose();
+```
+
+Use the supplied root HTML/import map as the no-bundler reference. The app loads RichTextWeb's standalone global runtime and a narrow ESM bridge to avoid unresolved peer dependencies without modifying upstream code. In a normal npm/bundler application, install RichTextWeb's declared dependencies and consume its ESM exports directly. The public stylesheet exports above are required alongside the workbench stylesheet.
+
+## Variable geometry and binary export
+
+```js
+import { createDemoFont } from '@wieslawsoltes/counterform-model';
+import { instanceDocument, compileVariableTrueType } from '@wieslawsoltes/counterform-variations';
+const family = createDemoFont();
+const semibold = instanceDocument(family, { wght: 600 }, { name: 'Semibold' });
+const variableBytes = compileVariableTrueType(family);
+```
+
+Topology must match across masters. Do not approximate each master independently before generating gvar; use the shared subdivision implementation. No variable-kerning, CFF2 or hinting output is implied by this API.
+
+## Optional WebGPU compute
+
+```js
+import { CoordinateCompute } from '@wieslawsoltes/counterform-compute';
+const compute = new CoordinateCompute();
+await compute.initialize(); // false when WebGPU is unavailable
+const coordinates = await compute.interpolate(
+  [new Float64Array([0, 10, 20]), new Float64Array([100, 110, 120])],
+  [0.25, 0.75]
+);
+console.log(compute.backend, coordinates); // [75, 85, 95]
+compute.dispose();
+```
+
+CPU fallback is Float64; GPU output is Float32. Source coordinates are not replaced by GPU results. Compilation remains deterministic CPU code.
+
+## Package inventory
+
+- `automation` — Declarative, bounded font transformation recipes without arbitrary code execution.
+- `binary` — Bounded sfnt readers/writers, checksums, UTF-16BE and CRC32.
+- `commands` — Scoped keyboard routing, command palette search, enablement and configurable shortcuts.
+- `compute` — WebGPU weighted coordinate interpolation with a Float64 CPU fallback.
+- `editor` — Pointer and keyboard Bézier editing with RBush picking and atomic undo transactions.
+- `font-io` — TrueType/CFF OpenType compilation, WOFF containers and bounded font import.
+- `geometry` — Double-precision Bézier outlines, analytical bounds, winding, splitting and compatible quadratic conversion.
+- `history` — Atomic glyph-scoped and font-scoped undo/redo transactions with bounded history.
+- `integrations` — ReactiveWeb, DynamicDataWeb, RibbonWeb, TreeDataGridWeb, GridWeb and RichTextWeb adapters.
+- `model` — Serializable font documents, glyphs, masters, layers, components, anchors and source validation.
+- `opentype` — Strict OpenType feature parsing and GSUB, GPOS, GDEF and kerning table compilation.
+- `proofing` — Compiled-font live proofing via browser FontFace and OpenType shaping.
+- `renderer` — SkiaSharpWeb outline rendering, layered rulers/overlays, camera and native Boolean paths.
+- `storage` — IndexedDB font projects, debounced autosave and browser project file I/O.
+- `ufo` — UFO3/GLIF source interchange, plist XML and bounded ZIP archives.
+- `validation` — Font geometry, encoding, feature, topology and component graph diagnostics.
+- `variations` — Sparse design-space interpolation and real fvar/gvar/STAT TrueType variable export.
+- `workbench` — Counterform Studio dockable font-authoring workspace and application composition.

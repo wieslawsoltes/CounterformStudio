@@ -1,0 +1,115 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var helpers_exports = {};
+__export(helpers_exports, {
+  CryptoRandom: () => CryptoRandom,
+  EnumerableHelpers: () => EnumerableHelpers,
+  EquateGraphs: () => EquateGraphs,
+  HashCodeHelpers: () => HashCodeHelpers,
+  QuikGraphHelpers: () => QuikGraphHelpers
+});
+module.exports = __toCommonJS(helpers_exports);
+var import_equality = require("./equality.js");
+class CryptoRandom {
+  constructor(_ignoredSeed) {
+    this._buffer = new Uint32Array(1);
+  }
+  _uint() {
+    globalThis.crypto.getRandomValues(this._buffer);
+    return this._buffer[0];
+  }
+  Next(minValue, maxValue) {
+    if (arguments.length === 0) return this._uint() & 2147483647;
+    if (arguments.length === 1) {
+      maxValue = minValue;
+      minValue = 0;
+    }
+    if (!Number.isInteger(minValue) || !Number.isInteger(maxValue) || minValue < -2147483648 || maxValue > 2147483647 || minValue > maxValue) throw new RangeError("Expected ordered Int32 bounds.");
+    if (minValue === maxValue) return minValue;
+    const range = maxValue - minValue, limit = 4294967296 - 4294967296 % range;
+    let value;
+    do {
+      value = this._uint();
+    } while (value >= limit);
+    return minValue + value % range;
+  }
+  NextDouble() {
+    return this._uint() / 4294967296;
+  }
+  NextBytes(buffer) {
+    if (buffer == null) throw new TypeError("buffer is required.");
+    const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer.length);
+    for (let offset = 0; offset < bytes.length; offset += 65536) globalThis.crypto.getRandomValues(bytes.subarray(offset, offset + 65536));
+    if (bytes !== buffer) for (let i = 0; i < bytes.length; i++) buffer[i] = bytes[i];
+  }
+}
+const EquateGraphs = Object.freeze({
+  Equate(left, right, vertexEquality = import_equality.valueEquals, edgeEquality = import_equality.valueEquals) {
+    const comparer = (value, name) => {
+      if (typeof value === "function") return value;
+      if (typeof value?.Equals === "function") return value.Equals.bind(value);
+      throw new TypeError(`${name} is required.`);
+    };
+    const vertexEquals = comparer(vertexEquality, "vertexEquality"), edgeEquals = comparer(edgeEquality, "edgeEquality");
+    if (left == null) return right == null;
+    if (right == null) return false;
+    if (left === right) return true;
+    if (left.IsDirected !== right.IsDirected || left.VertexCount !== right.VertexCount || left.EdgeCount !== right.EdgeCount) return false;
+    const unmatchedVertices = [...right.Vertices];
+    for (const vertex of left.Vertices) {
+      const index = unmatchedVertices.findIndex((v) => vertexEquals(vertex, v));
+      if (index < 0) return false;
+      unmatchedVertices.splice(index, 1);
+    }
+    const unmatchedEdges = [...right.Edges];
+    for (const edge of left.Edges) {
+      const index = unmatchedEdges.findIndex((e) => edgeEquals(e, edge));
+      if (index < 0) return false;
+      unmatchedEdges.splice(index, 1);
+    }
+    return true;
+  }
+});
+const EnumerableHelpers = Object.freeze({ ForEach(values, action) {
+  if (values == null || typeof action !== "function") throw new TypeError("values and action are required.");
+  for (const value of values) action(value);
+} });
+const HashCodeHelpers = Object.freeze({
+  Combine(...values) {
+    if (values.length < 2 || values.length > 4) throw new RangeError("Two to four hashes expected.");
+    let hash = 2166136261 | 0;
+    for (const value of values) {
+      if (!Number.isInteger(value) || value < -2147483648 || value > 2147483647) throw new RangeError("Hash values must be Int32 integers.");
+      for (let shift = 0; shift < 32; shift += 8) hash = Math.imul(hash, 16777619) ^ value >>> shift & 255;
+    }
+    return hash;
+  }
+});
+const QuikGraphHelpers = Object.freeze({ ToTryFunc(fn) {
+  if (typeof fn !== "function") throw new TypeError("Function required.");
+  return (value) => fn(value) ?? void 0;
+} });
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  CryptoRandom,
+  EnumerableHelpers,
+  EquateGraphs,
+  HashCodeHelpers,
+  QuikGraphHelpers
+});
+//# sourceMappingURL=helpers.js.map

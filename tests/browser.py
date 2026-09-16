@@ -1,0 +1,220 @@
+"""Behavioral qualification; --isolated renders local assets without URL navigation.
+The isolated mode does NOT qualify secure-origin APIs (IndexedDB/WebGPU).
+Normal CI mode serves localhost and qualifies the backend the browser actually selects.
+"""
+from pathlib import Path
+from urllib.parse import urlsplit, unquote
+from playwright.sync_api import sync_playwright
+import argparse, json, mimetypes, os, subprocess, time, traceback
+
+def assert_empty(value):
+    assert not value, value
+
+root = Path(__file__).resolve().parents[1]
+parser = argparse.ArgumentParser()
+parser.add_argument('--isolated', action='store_true')
+parser.add_argument('--root', type=Path, default=root)
+args = parser.parse_args()
+assets = args.root.resolve()
+out = root / 'test-results'
+out.mkdir(exist_ok=True)
+report = {'mode': 'isolated-local-assets' if args.isolated else 'localhost', 'tests': [], 'pageErrors': []}
+server = None
+origin = 'http://127.0.0.1:4177'
+
+with sync_playwright() as p:
+    executable = os.environ.get('CHROMIUM_PATH') or ('/usr/bin/chromium' if Path('/usr/bin/chromium').exists() else None)
+    browser = p.chromium.launch(executable_path=executable, headless=True,
+        args=['--no-sandbox', '--use-angle=swiftshader', '--enable-webgl', '--enable-unsafe-swiftshader'])
+    page = browser.new_page(viewport={'width': 1600, 'height': 1000}, device_scale_factor=1)
+    page.on('pageerror', lambda e: report['pageErrors'].append(str(e)))
+    def check(name, run):
+        start = time.perf_counter()
+        try:
+            run()
+            report['tests'].append({'name': name, 'passed': True, 'ms': round((time.perf_counter()-start)*1000, 1)})
+            print('PASS', name, flush=True)
+        except Exception as e:
+            report['tests'].append({'name': name, 'passed': False, 'error': str(e)})
+            raise
+    def js(code): return page.evaluate(code)
+    def expect(code):
+        assert js(code), code
+    def close_dialog():
+        page.locator('dialog[open] .cf-close').click()
+    def activate(id):
+        js(f"counterform.activate('{id}')")
+        page.wait_for_timeout(120)
+    def coords(x, y):
+        return js(f"(()=>{{const e=counterform.renderer.overlay,r=e.getBoundingClientRect(),p=counterform.renderer.camera.screen({{x:{x},y:{y}}});return {{x:r.x+p.x,y:r.y+p.y}}}})()")
+    try:
+        if args.isolated:
+            def route(request):
+                path=(assets/unquote(urlsplit(request.request.url).path).lstrip('/')).resolve()
+                if not path.is_relative_to(assets) or not path.is_file():
+                    request.fulfill(status=404, body='Not found'); return
+                mime='text/javascript' if path.suffix in ['.js','.mjs'] else mimetypes.guess_type(path)[0] or 'application/octet-stream'
+                request.fulfill(status=200,body=path.read_bytes(),headers={'Content-Type':mime,'Access-Control-Allow-Origin':'*','Cross-Origin-Resource-Policy':'cross-origin'})
+            page.route(origin+'/**', route)
+            page.set_content((assets/'index.html').read_text().replace('<head>',f'<head><base href="{origin}/">'), wait_until='load')
+        else:
+            env={**os.environ,'PORT':'4177','CF_ROOT':str(assets)}
+            server=subprocess.Popen(['node',str(root/'scripts/serve.mjs')],cwd=root,env=env,stdout=subprocess.DEVNULL)
+            time.sleep(.8)
+            page.goto(origin+'/?demo',wait_until='load')
+        page.wait_for_function("document.documentElement.dataset.ready === 'true'",timeout=30000)
+        page.wait_for_function('!!counterform.proof.face',timeout=15000)
+        report['environment']=js("({secure:isSecureContext,webgpuExposed:!!navigator.gpu,renderer:counterform.renderer.backend,skia:!!counterform.S,userAgent:navigator.userAgent})")
+        check('workspace boot and real Skia surface',lambda:expect("counterform.S && counterform.renderer.backend !== 'initializing' && counterform.doc.data.glyphs.length===102"))
+        check('ten upstream components and 99 commands',lambda:expect("!!counterform.dock && !!counterform.table.source && !!counterform.state.glyphs && !!counterform.ribbon.model && !!counterform.editor.index && !!counterform.kerning.workbook && !!counterform.notes.element.Document && counterform.commands.commands.size===99"))
+        check('Ribbon has executable items',lambda:expect("counterform.ribbon.shadowRoot.querySelectorAll('button').length>10 && counterform.ribbon.shadowRoot.textContent.includes('Remove overlaps')"))
+        page.screenshot(path=str(out/'workspace.png'))
+        def drag_nodes():
+            js("counterform.selectGlyph(counterform.doc.glyph('O').id);counterform.renderer.fit();counterform.editor.setTool('select')")
+            page.wait_for_timeout(120)
+            node=js("(()=>{const n=counterform.editor.layer.contours[0].nodes[1];window.testNode={id:n.id,x:n.x,y:n.y};return n})()")
+            a=coords(node['x'],node['y']);page.mouse.move(a['x'],a['y']);page.mouse.down();page.mouse.move(a['x']+24,a['y']-12,steps=8);page.mouse.up()
+            expect("counterform.editor.findNode(testNode.id).node.x !== testNode.x && counterform.history.undoStack.length===1")
+            page.keyboard.press('Control+z');page.wait_for_timeout(100)
+            expect("counterform.editor.findNode(testNode.id).node.x===testNode.x")
+            page.keyboard.press('Control+Shift+z');page.wait_for_timeout(100)
+            expect("counterform.editor.findNode(testNode.id).node.x!==testNode.x")
+            js('counterform.history.undo()')
+        check('real pointer node drag is one undoable transaction',drag_nodes)
+        def handle_drag():
+            point=js("(()=>{const n=counterform.editor.layer.contours[0].nodes[0];window.testHandle={id:n.id,x:n.out.x,y:n.out.y};return n.out;})()")
+            a=coords(point['x'],point['y']);page.mouse.move(a['x'],a['y']);page.mouse.down();page.mouse.move(a['x']+13,a['y']+16,steps=5);page.mouse.up()
+            expect('counterform.editor.findNode(testHandle.id).node.out.x!==testHandle.x')
+            js('counterform.history.undo()')
+        check('Bézier handle drag and undo',handle_drag)
+        def shape(tool):
+            js(f"counterform.editor.setTool('{tool}');window.beforeContours=counterform.editor.layer.contours.length")
+            a=coords(130,160);b=coords(240,270)
+            page.mouse.move(a['x'],a['y']);page.mouse.down();page.mouse.move(b['x'],b['y'],steps=8);page.mouse.up()
+            expect('counterform.editor.layer.contours.length===beforeContours+1')
+            js('counterform.history.undo()')
+        check('rectangle tool writes editable source',lambda:shape('rectangle'))
+        check('ellipse tool writes cubic source',lambda:shape('ellipse'))
+        def nudge():
+            js("counterform.editor.setTool('select');counterform.editor.select([testNode.id]);counterform.renderer.overlay.focus();window.beforeX=counterform.editor.findNode(testNode.id).node.x")
+            page.keyboard.press('Shift+ArrowRight');page.wait_for_timeout(80)
+            expect('counterform.editor.findNode(testNode.id).node.x===beforeX+10')
+            js('counterform.history.undo()')
+        check('modifier-sensitive keyboard nudge',nudge)
+        def text_keys():
+            page.get_by_role('textbox',name='Search glyphs').fill('O')
+            page.get_by_role('textbox',name='Search glyphs').press('r')
+            expect("counterform.editor.tool==='select'")
+            page.get_by_role('textbox',name='Search glyphs').fill('')
+        check('typing in an input never invokes outline shortcuts',text_keys)
+        def boolean():
+            js("counterform.selectGlyph(counterform.doc.glyph('A').id);counterform.editor.clearSelection();counterform.editor.boolean('Simplify')")
+            expect('counterform.editor.layer.contours.length<3 && counterform.editor.layer.contours.length>0')
+            js('counterform.history.undo()')
+        check('native Skia overlap removal and undo',boolean)
+        def stroke():
+            js('counterform.editor.expandStroke(20)')
+            expect('counterform.editor.layer.contours.length>0')
+            js('counterform.history.undo()')
+        check('native Skia stroke expansion',stroke)
+        def metrics():
+            page.get_by_role('spinbutton',name='Advance',exact=True).fill('712')
+            page.get_by_role('spinbutton',name='Advance',exact=True).press('Tab')
+            page.wait_for_timeout(100)
+            expect('counterform.editor.layer.advanceWidth===712')
+            js('counterform.history.undo()')
+        check('inspector metric editing participates in history',metrics)
+        def table():
+            activate('catalog')
+            expect('counterform.table.source.Items.length===102')
+            assert page.locator('tree-data-grid').is_visible()
+            assert page.locator('tree-data-grid').get_by_role('columnheader',name='Unicode',exact=True).is_visible()
+        check('TreeDataGrid font inventory is live',table)
+        def matrix():
+            activate('kerning')
+            expect('counterform.kerning.workbook.ActiveWorksheet.GetCell(1,2).Value===-85')
+            js('counterform.kerning.workbook.ActiveWorksheet.GetCell(1,2).Input=-123')
+            page.wait_for_timeout(100)
+            expect('counterform.doc.data.kerning[counterform.editor.masterId][JSON.stringify(["A","V"]) ]===-123')
+            js('counterform.history.undo()')
+            page.wait_for_timeout(60)
+            expect('counterform.kerning.workbook.ActiveWorksheet.GetCell(1,2).Value===-85')
+        check('GridWeb kerning edit synchronizes source and undo',matrix)
+        def feature():
+            activate('features')
+            js("counterform.featureText.value='feature liga { sub f i by m; } liga;';counterform.applyFeatures()")
+            page.wait_for_timeout(550)
+            expect('counterform.doc.data.features.includes("sub f i by m") && !!counterform.proof.face')
+            js('counterform.history.undo()')
+        check('OpenType feature editing recompiles a real proof font',feature)
+        def native_import():
+            result=js("async()=>{const io=await import('@wieslawsoltes/counterform-font-io');const d=await io.importFont(io.compileOpenTypeCFF(counterform.doc),{skia:counterform.S});return {count:d.data.glyphs.length,contours:d.char('O').layers[0].contours.length}}")
+            assert result['count']==102 and result['contours']>0,result
+        check('SkiaSharp-compatible CFF import retrieves real outlines',native_import)
+        def notes():
+            activate('notes')
+            js("counterform.notes.element.Text='A production note from the RichTextWeb editor.';counterform.notes.flush()")
+            expect("counterform.doc.data.notes.includes('production note') && !!counterform.doc.data.richNotes")
+            js('counterform.history.undo()')
+        check('RichTextWeb notes persist editable rich-document source',notes)
+        def variable():
+            activate('glyph');activate('masters')
+            js("counterform.location={wght:600};counterform.applyInstancePreview()")
+            page.wait_for_timeout(450)
+            expect('counterform.editor.readOnly && counterform.proof.variable && counterform.renderer.scene.editable.length===0')
+            js("counterform.selectMaster(counterform.doc.data.masters[0].id)")
+            expect('!counterform.editor.readOnly && !counterform.proof.variable')
+        check('variable instance preview is read-only and reversible',variable)
+        def palette():
+            page.keyboard.press('Control+Shift+p');page.wait_for_timeout(100)
+            assert page.locator('dialog[open]').is_visible()
+            assert page.locator('dialog[open]').inner_text().find('Command')>=0
+            close_dialog()
+        check('command palette keyboard dispatch and focus dialog',palette)
+        def dialogs():
+            for method in ['showBindings','showValidation','showTables','showExport','showAbout']:
+                js(f'counterform.{method}()');page.wait_for_timeout(70)
+                assert page.locator('dialog[open]').is_visible(),method
+                close_dialog()
+        check('shortcuts, validation, tables, export and capability dialogs',dialogs)
+        def compute():
+            result=js('counterform.verifyCompute()')
+            assert result['result']==[75,85,95,105]
+            report['compute']=result
+        check('compute interface verifies numeric results on selected backend',compute)
+        def persist():
+            if args.isolated:
+                report['storage']='Not qualified: opaque-origin isolated rendering'
+                return
+            result=js('async()=>{await counterform.store.save(counterform.doc);const data=await counterform.store.load(counterform.doc.data.id);return data.glyphs.length;}')
+            assert result==102
+            report['storage']='IndexedDB save/load roundtrip passed'
+        check('storage capability qualification',persist)
+        def theme():
+            activate('glyph');activate('inspector')
+            js('counterform.toggleTheme()');page.wait_for_timeout(120)
+            assert js('counterform.theme')=='dark'
+            page.screenshot(path=str(out/'workspace-dark.png'))
+            js('counterform.toggleTheme()')
+        check('light and dark workspace appearance',theme)
+        # Restore source demonstration before the release screenshot.
+        js("async()=>{const m=await import('@wieslawsoltes/counterform-model');counterform.replaceDocument(m.createDemoFont());counterform.selectGlyph(counterform.doc.glyph('O').id);counterform.renderer.fit();counterform.editor.select([counterform.editor.layer.contours[0].nodes[0].id]);}")
+        page.wait_for_timeout(700)
+        page.screenshot(path=str(out/'outline-editor.png'))
+        check('no unhandled page exceptions',lambda: assert_empty(report['pageErrors']))
+        def dispose():
+            js('counterform.dispose()')
+            page.wait_for_timeout(100)
+            expect('!document.querySelector("skia-canvas")')
+        check('component lifetime disposes the complete workspace',dispose)
+    except Exception:
+        traceback.print_exc()
+        page.screenshot(path=str(out/'failure.png'))
+        report['failure']=traceback.format_exc()
+    finally:
+        (out/'browser-report.json').write_text(json.dumps(report,indent=2))
+        browser.close()
+        if server: server.terminate();server.wait(timeout=5)
+
+if report.get('failure') or report['pageErrors']: raise SystemExit(1)
+print(json.dumps(report['environment'],indent=2))

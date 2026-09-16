@@ -1,0 +1,40 @@
+{
+  "name": "@wieslawsoltes/counterform-model",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Serializable font documents, glyphs, masters, layers, components, anchors and source validation.",
+  "main": "./src/index.js",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "types": "./types/index.d.ts",
+  "dependencies": {
+    "@wieslawsoltes/counterform-geometry": "0.1.0"
+  },
+  "keywords": [
+    "font-editor",
+    "opentype",
+    "type-design",
+    "webgpu",
+    "counterform"
+  ]
+}

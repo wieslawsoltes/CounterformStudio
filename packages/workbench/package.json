@@ -1,0 +1,59 @@
+{
+  "name": "@wieslawsoltes/counterform-workbench",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Counterform Studio dockable font-authoring workspace and application composition.",
+  "main": "./src/index.js",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json",
+    "./styles.css": "./src/styles.css"
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "license": "MIT",
+  "sideEffects": [
+    "./src/styles.css"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "types": "./types/index.d.ts",
+  "dependencies": {
+    "@wieslawsoltes/counterform-integrations": "0.1.0",
+    "@wieslawsoltes/counterform-model": "0.1.0",
+    "@wieslawsoltes/counterform-history": "0.1.0",
+    "@wieslawsoltes/counterform-commands": "0.1.0",
+    "@wieslawsoltes/counterform-renderer": "0.1.0",
+    "@wieslawsoltes/counterform-editor": "0.1.0",
+    "@wieslawsoltes/dockyard": "0.1.0",
+    "@wieslawsoltes/counterform-proofing": "0.1.0",
+    "@wieslawsoltes/counterform-storage": "0.1.0",
+    "@wieslawsoltes/counterform-font-io": "0.1.0",
+    "@wieslawsoltes/counterform-variations": "0.1.0",
+    "@wieslawsoltes/counterform-validation": "0.1.0",
+    "@wieslawsoltes/counterform-ufo": "0.1.0",
+    "@wieslawsoltes/counterform-opentype": "0.1.0",
+    "@wieslawsoltes/counterform-automation": "0.1.0",
+    "@wieslawsoltes/counterform-compute": "0.1.0",
+    "@wieslawsoltes/counterform-geometry": "0.1.0"
+  },
+  "keywords": [
+    "font-editor",
+    "opentype",
+    "type-design",
+    "webgpu",
+    "counterform"
+  ]
+}
