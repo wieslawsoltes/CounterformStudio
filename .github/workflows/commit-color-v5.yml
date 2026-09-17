@@ -1,0 +1,64 @@
+name: Commit verified 0.5.0 color authoring delivery
+on:
+  push:
+    branches: [main]
+    paths: ['.delivery/color-v5.*.xzpart', '.delivery/restore-color-v5.py', '.github/workflows/commit-color-v5.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: counterform-color-delivery
+  cancel-in-progress: false
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - name: Verify every source file and apply release delta
+        run: python .delivery/restore-color-v5.py
+      - run: npm test
+      - name: Commit complete editable release source
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app packages scripts tests docs README.md CHANGELOG.md package.json .gitignore
+          git diff --cached --quiet || git commit -m 'feat: release 0.5.0 COLRv1 paint editor and named palettes'
+          git push origin HEAD:main
+      - run: python -m pip install -r tests/requirements.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: npx --yes --package=typescript@5.9.3 tsc -p tests/tsconfig.json
+      - run: npm run test:fonts
+      - run: npm run build
+      - run: npm run pack:all && npm run test:packages
+      - name: Browser source and distribution verification
+        run: |
+          python tests/browser.py --out-dir test-results/source
+          python tests/browser.py --root dist --out-dir test-results/distribution
+      - name: Commit fresh verified color-editor screenshots
+        run: |
+          mkdir -p docs/images
+          for name in color-paint-graph color-paint-composite color-paint-sweep; do
+            cp "test-results/distribution/$name.png" "docs/images/$name.png"
+          done
+          git add docs/images
+          git diff --cached --quiet || git commit -m 'docs: capture verified 0.5.0 paint-graph editor screenshots'
+          git push origin HEAD:main
+      - name: Dispatch normal release verification and Pages deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci.yml --ref main
+      - run: git archive --format=tar.gz HEAD -o CounterformStudio-source.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: counterform-v5-commit-verification
+          path: |
+            CounterformStudio-source.tar.gz
+            test-results
+            artifacts/npm
