@@ -153,16 +153,30 @@ export class GlyphRenderer {
         canvas.width = Math.round(w * dpr);
         canvas.height = Math.round(h * dpr);
     } const ctx = canvas.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); return { ctx, w, h, dpr }; }
-    draw() { const start = performance.now(); this.drawBackground(); this.drawOverlay(); if (this.S)
-        this.native.InvalidateSurface().catch(e => this.error.emit(e));
-    else
-        this.drawFallback(); this.drawCount++; this.frame.emit({ frames: this.drawCount, ms: performance.now() - start, backend: this.backend }); }
+    draw() {
+        if (this.disposed)
+            return;
+        const start = performance.now();
+        this.drawBackground();
+        this.drawOverlay();
+        if (this.S) {
+            // Invalidation is asynchronous and may coalesce. Only paintNative can
+            // announce a completed native frame and the selected surface backend.
+            this.native.InvalidateSurface().catch(e => { if (!this.disposed) this.error.emit(e); });
+        }
+        else {
+            this.drawFallback();
+            this.drawCount++;
+            this.frame.emit({ frames: this.drawCount, ms: performance.now() - start, backend: this.backend });
+        }
+    }
     pathCache() { if (!this.needsPaths)
         return; for (const p of this.paths)
         p.Dispose(); this.paths = [makePath(this.S, this.scene.contours), makePath(this.S, this.scene.editable), makePath(this.S, this.scene.ghost || []), ...(this.scene.colorLayers || []).map(layer => makePath(this.S,layer.contours))]; this.needsPaths = false; }
     paintNative({ Canvas, Info, Surface }) {
         if (this.disposed)
             return;
+        const start = performance.now();
         const S = this.S, c = Canvas, dpr = Info.Width / Math.max(1, this.host.clientWidth);
         this.pathCache();
         c.Clear(S.SKColors.Transparent);
@@ -209,6 +223,10 @@ export class GlyphRenderer {
             paint.Dispose();
             c.Restore();
         }
+        // Publish after successful drawing and cleanup, not after merely queuing
+        // it. This also covers paints initiated by the native element's resize.
+        this.drawCount++;
+        this.frame.emit({ frames: this.drawCount, ms: performance.now() - start, backend: this.backend });
     }
     drawFallback() { const { ctx } = this.size(this.native); ctx.save(); ctx.translate(this.camera.x, this.camera.y); ctx.scale(this.camera.scale, -this.camera.scale); trace(ctx, this.scene.contours); ctx.fillStyle = '#293847'; if (this.showFill || this.preview)
         { if (this.scene.colorLayers?.length) { for (const layer of this.scene.colorLayers) {trace(ctx,layer.contours);ctx.fillStyle=layer.color || '#293847';ctx.fill();} trace(ctx,this.scene.editable); } else {if(this.dimFill&&!this.preview)ctx.fillStyle=this.dark?'#4b4d50':'#e6e7e8';ctx.fill();} } if (!this.preview) {
@@ -394,4 +412,3 @@ export class GlyphRenderer {
     dispose() { this.colorFont?.font?.Dispose();this.colorFont?.face?.Dispose();this.colorFont=null;this.disposed = true; cancelAnimationFrame(this.pending); this.resizeObserver.disconnect(); this.native.removeEventListener('paintsurface', this.onPaint); this.native.removeEventListener('surfaceerror', this.onError); this.native.removeEventListener('devicelost', this.onLoss); for (const p of this.paths)
         p.Dispose(); this.host.replaceChildren(); this.changed.clear(); this.error.clear(); this.frame.clear(); }
 }
-
