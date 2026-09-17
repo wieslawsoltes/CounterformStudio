@@ -13,20 +13,25 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.13'}
       - run: pip install zstandard
-      - name: Decode recoverable records without changing application source
+      - name: Preserve recoverable stream and original blobs
         run: |
           mkdir -p recovery-output
           python - <<'PY'
           import pathlib, zstandard, json
           raw=b''.join(p.read_bytes() for p in sorted(pathlib.Path('.recovery').glob('round3.*.zstpart')))
           obj=zstandard.ZstdDecompressor().decompressobj()
-          data=obj.decompress(raw)
+          data=bytearray(); error=None
+          for i in range(len(raw)):
+            try: data.extend(obj.decompress(raw[i:i+1]))
+            except zstandard.ZstdError as e: error=str(e);break
           out=pathlib.Path('recovery-output')
           (out/'partial.json').write_bytes(data)
-          (out/'report.json').write_text(json.dumps({'compressedBytes':len(raw),'decodedBytes':len(data),'completeFrame':obj.eof}))
-          print(len(raw),len(data),obj.eof)
+          (out/'compressed.zst').write_bytes(raw)
+          (out/'report.json').write_text(json.dumps({'compressedBytes':len(raw),'decodedBytes':len(data),'completeFrame':obj.eof,'error':error,'offset':i}))
+          print(len(raw),len(data),obj.eof,error,i)
           print(data[:400])
           PY
+      - run: git archive --format=tar.gz HEAD -o recovery-output/remote-source.tar.gz
       - uses: actions/upload-artifact@v4
         with:
           name: recovered-authoring-source
