@@ -1,0 +1,17 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseFeatures,compileLayout} from '@wieslawsoltes/counterform-opentype';
+import {createDemoFont} from '@wieslawsoltes/counterform-model';
+import {Reader} from '@wieslawsoltes/counterform-binary';
+const font = source => { const d=createDemoFont();d.data.features=source;return d; };
+const compile = source => {const d=font(source);return compileLayout(d.data,d.data.glyphs,d.data.masters[0].id);};
+function lookups(table){const r=new Reader(table);r.seek(8);const ls=r.u16();r.seek(ls);return Array.from({length:r.u16()},()=>r.u16()).map(n=>new Reader(table).seek(ls+n));}
+test('FEA parses marked context with source coordinates',()=>{const p=parseFeatures("feature calt { sub a b' c by d; } calt;",['a','b','c','d']);const r=p.features[0].rules[0];assert.equal(r.type,'contextSub');assert.equal(r.first,1);assert.equal(r.last,1);});
+test('FEA multiple, alternate, deletion and reverse substitution compile',()=>{for(const src of ['sub a by b c;','sub a from [b c];','sub a by NULL;','rsub a b\' c by d;','sub a b\' by NULL;']){const r=compile(`feature calt { ${src} } calt;`);assert(r.tables.has('GSUB'));}});
+test('FEA named lookup calls compile and reject cycles, unknown and wrong-table references',()=>{compile("lookup Swap { sub b by c; } Swap; feature calt { sub a b' lookup Swap d; } calt;");for(const s of ["lookup A { lookup B; } A; lookup B { lookup A; } B; feature calt { lookup A; } calt;","feature calt { sub a b' lookup Missing; } calt;","lookup P { pos b 10; } P; feature calt { sub a b' lookup P; } calt;"])assert.throws(()=>compile(s),/lookup|Context/);});
+test('FEA ignore and matching contextual rules share the same ordered lookup',()=>{const ls=lookups(compile("feature calt { ignore sub a b' c; sub b' by d; } calt;").tables.get('GSUB'));const chain=ls.find(r=>r.view.getUint16(r.pos)===6);assert(chain);chain.skip(4);assert.equal(chain.u16(),2);});
+test('FEA supports complete numeric single/pair records and contextual positioning',()=>{const r=compile("valueRecordDef <3 -4 20 0> shift; feature kern { pos A <shift>; pos V <1 2 3 4> W <5 6 7 8>; pos a b' <0 0 25 0> c; } kern;");assert(r.tables.has('GPOS'));});
+test('FEA any four-character script/language tags, flags, required feature',()=>{const r=compile("languagesystem arab dflt; languagesystem latn TRK; feature locl { script latn; sub a by b; language TRK exclude_dflt required; lookupflag IgnoreMarks; sub a by c; } locl;");assert(r.tables.has('GSUB'));});
+test('FEA preserves class substitution correspondence, rejects cardinality and disjoint marked input',()=>{const r=parseFeatures('@a=[A V]; @b=[W X]; feature salt { sub @a by @b; } salt;',['A','V','W','X']);assert.deepEqual(r.features[0].rules.map(x=>[x.from,x.to]),[['A','W'],['V','X']]);assert.throws(()=>compile("feature calt { sub a' b c' by d; } calt;"),/contiguous/);assert.throws(()=>compile("feature salt { sub [a b] by [c d e]; } salt;"),/equal/);});
+test('FEA invalid numeric tokens and arbitrary executable syntax fail explicitly',()=>{for(const s of ['sub A;', 'pos A NaN;','pos A <0 0 40000 0>;','include(foo);','lookupflag UseMarkFilteringSet @Marks;'])assert.throws(()=>compile(`feature kern { ${s} } kern;`));});
+test('FEA large lookup payload uses 32-bit extension offsets',()=>{const source='feature kern { '+Array.from({length:3000},(_,i)=>`pos A <${i%20} 0 0 0>;`).join(' ')+' } kern;';const ls=lookups(compile(source).tables.get('GPOS'));assert.equal(ls[0].u16(),9);});

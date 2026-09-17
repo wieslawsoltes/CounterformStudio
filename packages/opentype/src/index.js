@@ -42,113 +42,8 @@ export function expandKerning(data, masterId, glyphs) {
     }
     return [...result.values()];
 }
-/** Deliberately strict Adobe FEA subset. Unsupported syntax is an error, never silently ignored. */
-export function parseFeatures(source, glyphNames = []) {
-    if (source.length > 2000000)
-        throw new RangeError('Feature source budget exceeded');
-    const clean = source.replace(/#[^\n]*/g, m => ' '.repeat(m.length));
-    const tokens = [...clean.matchAll(/@[A-Za-z_][\w.]*|[A-Za-z_.$][\w.$-]*|-?\d+|[{}\[\];=]|\S/g)].map(m => ({ value: m[0], offset: m.index }));
-    const classes = new Map(), features = [];
-    let i = 0;
-    const names = new Set(glyphNames);
-    const error = (message, t = tokens[i]) => { const offset = t?.offset ?? source.length, line = source.slice(0, offset).split('\n').length; const e = new SyntaxError(`${message} (line ${line})`); e.line = line; e.offset = offset; throw e; };
-    const peek = () => tokens[i]?.value, take = () => tokens[i++]?.value, expect = s => { if (take() !== s)
-        error(`Expected '${s}'`, tokens[i - 1]); };
-    const glyph = t => { if (names.size && !names.has(t))
-        error(`Unknown glyph '${t}'`, tokens[i - 1]); return t; };
-    const group = () => { const t = take(); if (!t)
-        error('Expected glyph'); if (t.startsWith('@')) {
-        if (!classes.has(t))
-            error(`Unknown class ${t}`);
-        return classes.get(t);
-    } if (t === '[') {
-        const a = [];
-        while (peek() !== ']') {
-            if (!peek())
-                error('Unclosed glyph class');
-            a.push(glyph(take()));
-        }
-        expect(']');
-        return a;
-    } return [glyph(t)]; };
-    while (i < tokens.length) {
-        const t = take();
-        if (t.startsWith('@')) {
-            expect('=');
-            const a = group();
-            expect(';');
-            if (classes.has(t))
-                error(`Duplicate class ${t}`);
-            classes.set(t, a);
-        }
-        else if (t === 'languagesystem') {
-            const script = take(), lang = take();
-            expect(';');
-            if (!['DFLT', 'latn'].includes(script) || lang !== 'dflt')
-                error('Only DFLT/latn dflt language declarations are currently compiled');
-        }
-        else if (t === 'feature') {
-            const tag = take();
-            if (!/^[\x20-\x7e]{4}$/.test(tag || ''))
-                error('Feature tags require four ASCII characters');
-            expect('{');
-            const rules = [];
-            while (peek() !== '}') {
-                if (!peek())
-                    error('Unclosed feature block');
-                const op = take();
-                if (op === 'sub' || op === 'substitute') {
-                    const input = [];
-                    while (peek() !== 'by') {
-                        if ([';', '}', undefined].includes(peek()))
-                            error("Expected 'by' in substitution");
-                        input.push(group());
-                    }
-                    expect('by');
-                    const output = group();
-                    expect(';');
-                    if (input.length === 1) {
-                        if (output.length !== 1 && output.length !== input[0].length)
-                            error('Substitution classes must have equal length');
-                        input[0].forEach((g, k) => rules.push({ type: 'single', from: g, to: output.length === 1 ? output[0] : output[k] }));
-                    }
-                    else {
-                        if (output.length !== 1)
-                            error('Ligature substitution needs one output glyph');
-                        let sequences = [[]];
-                        for (const a of input) {
-                            if (sequences.length * a.length > 4096)
-                                error('Ligature class expansion budget exceeded');
-                            sequences = sequences.flatMap(s => a.map(g => [...s, g]));
-                        }
-                        for (const sequence of sequences)
-                            rules.push({ type: 'ligature', input: sequence, output: output[0] });
-                    }
-                }
-                else if (op === 'pos' || op === 'position') {
-                    const left = group(), right = group(), value = Number(take());
-                    if (!Number.isInteger(value) || value < -32768 || value > 32767)
-                        error('Position must be an int16 xAdvance');
-                    expect(';');
-                    if (left.length * right.length > 500000)
-                        error('Position class expansion budget exceeded');
-                    for (const l of left)
-                        for (const r of right)
-                            rules.push({ type: 'pair', left: l, right: r, value });
-                }
-                else
-                    error(`Unsupported feature statement '${op}'`, tokens[i - 1]);
-            }
-            expect('}');
-            expect(tag);
-            expect(';');
-            features.push({ tag, rules });
-        }
-        else
-            error(`Unsupported feature syntax '${t}'`, tokens[i - 1]);
-    }
-    return { classes: Object.fromEntries(classes), features };
-}
+export {parseFeatures} from './fea.js';
+import {parseFeatures,compileFeatureLookups,buildLayoutTable} from './fea.js';
 const bytes = w => w.finish(), tagSort = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 function offset16(w, p, n) { if (n > 65535)
     throw new RangeError('OpenType layout offset exceeds 16 bits; split the lookup'); w.patch16(p, n); }
@@ -239,42 +134,13 @@ function markBaseLookup(glyphs, masterId, anchorVariation=()=>null) {
     } });
     return w.finish();
 }
-export function layoutTable(features, lookups) {
-    if (!lookups.length)
-        return null;
-    const fs = [...features].sort(([a], [b]) => tagSort(a, b)), w = new Writer().u32(0x10000).u16(10).u16(0).u16(0), scriptStart = w.pos;
-    // DFLT and latn share default feature selection. No implicit script-specific shaping claim.
-    w.u16(2).tag('DFLT').u16(14).tag('latn').u16(14);
-    w.u16(4).u16(0).u16(0).u16(0xffff).u16(fs.length);
-    for (let i = 0; i < fs.length; i++)
-        w.u16(i);
-    offset16(w, 6, w.pos);
-    const featureStart = w.pos;
-    w.u16(fs.length);
-    for (const [tag] of fs)
-        w.tag(tag).u16(0);
-    fs.forEach(([, ls], i) => { offset16(w, featureStart + 2 + i * 6 + 4, w.pos - featureStart); w.u16(0).u16(ls.length); for (const li of ls)
-        w.u16(li); });
-    offset16(w, 8, w.pos);
-    const lookupStart = w.pos;
-    w.u16(lookups.length).zeros(lookups.length * 2);
-    lookups.forEach((l, i) => { offset16(w, lookupStart + 2 + i * 2, w.pos - lookupStart); w.u16(l.type).u16(0).u16(1).u16(8).raw(l.bytes); });
-    return w.finish();
-}
+export function layoutTable(features,lookups,plan=null,which='sub'){return buildLayoutTable(features,lookups,plan,which);}
 export function compileLayout(data, glyphs, masterId, variationModel=null) {
-    const parsed = parseFeatures(data.features || '', glyphs.map(g => g.name)), ids = new Map(glyphs.map((g, i) => [g.name, i])), sub = [], pos = [], sf = new Map(), pf = new Map();
-    const add = (list, fs, tag, type, b) => { if (!b)
-        return; const index = list.push({ type, bytes: b }) - 1; if (!fs.has(tag))
-        fs.set(tag, []); fs.get(tag).push(index); };
-    for (const f of parsed.features) {
-        const single = f.rules.filter(r => r.type === 'single'), lig = f.rules.filter(r => r.type === 'ligature'), pairs = f.rules.filter(r => r.type === 'pair');
-        if (single.length)
-            add(sub, sf, f.tag, 1, singleLookup(single, ids));
-        if (lig.length)
-            add(sub, sf, f.tag, 4, ligatureLookup(lig, ids));
-        if (pairs.length)
-            add(pos, pf, f.tag, 2, pairLookup(pairs.map(p => ({ left: ids.get(p.left), right: ids.get(p.right), value: p.value }))));
-    }
+    const parsed=parseFeatures(data.features||'',glyphs.map(g=>g.name));
+    const {sub,pos,sf,pf,selections}=compileFeatureLookups(parsed,glyphs);
+    const add=(list,fs,tag,type,bytes)=>{if(!bytes)return;const i=list.push({type,bytes})-1;if(!fs.has(tag))fs.set(tag,[]);fs.get(tag).push(i);
+        for(const family of ['sub','pos'])if(selections[family].some(s=>s.tag===tag))selections[family].push({tag,index:i,scope:{script:null}});
+    };
     let kern = expandKerning(data, masterId, glyphs);
     const store=variationModel?new VariationStoreBuilder(data.axes,variationModel.supports.slice(1)):null;
     const deltaIndex=values=>store.add(variationModel.deltas(values.map(Math.round)).slice(1));
@@ -290,7 +156,7 @@ export function compileLayout(data, glyphs, masterId, variationModel=null) {
     if (kern.length)
         add(pos, pf, 'kern', 2, pairLookup(kern));
     add(pos, pf, 'mark', 4, markBaseLookup(glyphs, masterId, anchorVariation));
-    const result = new Map(), gsub = layoutTable(sf, sub), gpos = layoutTable(pf, pos);
+    const result = new Map(), gsub = layoutTable(sf,sub,{languages:parsed.languages,selections:selections.sub},'sub'), gpos = layoutTable(pf,pos,{languages:parsed.languages,selections:selections.pos},'pos');
     if (gsub)
         result.set('GSUB', gsub);
     if (gpos)
