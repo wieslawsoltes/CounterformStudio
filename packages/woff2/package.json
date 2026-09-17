@@ -1,0 +1,32 @@
+{
+  "name": "@wieslawsoltes/counterform-woff2",
+  "version": "0.3.0",
+  "description": "Portable WOFF2 container encoding",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./node": {
+      "types": "./types/node.d.ts",
+      "node": "./src/node.js"
+    }
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@wieslawsoltes/counterform-binary": "0.3.0"
+  }
+}

@@ -38,6 +38,8 @@
     "@wieslawsoltes/counterform-font-io": "0.3.0",
     "@wieslawsoltes/counterform-variations": "0.3.0",
     "@wieslawsoltes/counterform-validation": "0.3.0",
-    "@wieslawsoltes/counterform-ufo": "0.3.0"
+    "@wieslawsoltes/counterform-ufo": "0.3.0",
+    "@wieslawsoltes/counterform-cff2": "0.3.0",
+    "@wieslawsoltes/counterform-woff2": "0.3.0"
   }
 }

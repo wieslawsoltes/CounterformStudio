@@ -14,7 +14,7 @@
     "build": "node scripts/build.mjs",
     "pack:all": "node scripts/pack.mjs",
     "verify": "npm test && npm run test:types && npm run test:fonts && npm run test:browser && npm run build && npm run pack:all && npm run test:packages",
-    "test:fonts": "python tests/fonttools.py",
+    "test:fonts": "python tests/fonttools.py && python tests/export-fonttools.py",
     "test:types": "tsc -p tests/tsconfig.json",
     "release:zip": "python scripts/archive.py",
     "test:packages": "python tests/package-consumer.py"

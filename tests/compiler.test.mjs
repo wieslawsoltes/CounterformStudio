@@ -24,7 +24,7 @@ test('real worker snapshots source at enqueue and validates, inspects, recovers 
  const client=new CompilerClient({workerFactory}),d=createDemoFont();
  try{const expected=compileTrueType(d),job=client.compile(d);d.glyph('A').layers[0].advanceWidth+=100;assert.deepEqual((await job).bytes,expected);
   assert(Array.isArray((await client.validate(d)).issues));assert((await client.inspect(d)).report.tables.length>8);
-  await assert.rejects(client.compile(d,{format:'woff2'}),/Unsupported output/);
+  await assert.rejects(client.compile(d,{format:'unsupported-format'}),/Unsupported output/);
   assert((await client.compile(d)).bytes.length>1000);
  }finally{client.dispose();}
 });

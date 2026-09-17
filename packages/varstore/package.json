@@ -1,0 +1,28 @@
+{
+  "name": "@wieslawsoltes/counterform-varstore",
+  "version": "0.3.0",
+  "description": "OpenType item variation stores and index maps",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@wieslawsoltes/counterform-binary": "0.3.0"
+  }
+}

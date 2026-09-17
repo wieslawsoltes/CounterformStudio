@@ -30,3 +30,7 @@ export class VariationModel {
     interpolate(location: any, values: any): any;
 }
 import { FontDocument } from '@wieslawsoltes/counterform-model';
+
+export function variationMetadata(data:FontDocument["data"]):{tables:Map<string,Uint8Array>;names:[number,string][]};
+export function compileMetricVariations(doc:FontDocument,model:VariationModel,glyphs:FontDocument["data"]["glyphs"]):Map<string,Uint8Array>;
+export function masterInfo(doc:FontDocument,master:FontDocument["data"]["masters"][number]):FontDocument["info"];
