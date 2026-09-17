@@ -1,0 +1,12 @@
+{
+  "archivesVerified": 30,
+  "freshConsumer": true,
+  "fontFilesIncluded": false,
+  "checks": [
+    "Release version, archive inventory, SHA-256/SRI, dependencies, declarations, entrypoints and font-file exclusion",
+    "fresh extracted consumer TTF/CFF/variable TTF compilation",
+    "headless package imports with real vendor dependencies",
+    "real packaged Node-worker entry compiles byte-identical COLRv1/CPALv1 fonts"
+  ],
+  "stdout": "PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1 and CPALv1, real Node compiler worker and headless module imports\n"
+}

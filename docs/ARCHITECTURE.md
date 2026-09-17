@@ -16,7 +16,8 @@ flowchart TD
   Proof --> Compiler[compiler · bounded worker queue]
   Workbench --> Compiler
   Compiler --> IO[font-io · sfnt / TTF / CFF / WOFF]
-  IO --> Color[color · COLRv0 / CPALv0]
+  IO --> Color[color · COLRv0/1 / CPALv0/1]
+  Color --> Paint[colrv1 · bounded static paint graph]
   Model --> Color
   IO --> Layout[opentype · GSUB / GPOS / GDEF]
   IO --> Binary[binary · bounded table primitives]
@@ -32,7 +33,7 @@ The compute package is independently callable. The interactive source interpolat
 
 ## Coordinate and source contract
 
-The model is JSON-serializable: font metadata, masters and axis locations; glyph identities and Unicode scalars; source layers; contours and endpoint nodes; absolute incoming/outgoing cubic handles; component affine transforms; anchors; guides; groups and per-master kerning; feature source; notes and preserved metadata; ordered color-layer glyph IDs and equal-length RGBA palettes. Color layers reference monochrome outlines, not recursively rendered color glyphs.
+The model is JSON-serializable: font metadata, masters and axis locations; glyph identities and Unicode scalars; source layers; contours and endpoint nodes; absolute incoming/outgoing cubic handles; component affine transforms; anchors; guides; groups and per-master kerning; feature source; notes and preserved metadata; ordered color-layer glyph IDs and equal-length RGBA palettes. Legacy color layers reference monochrome outlines. Optional `colorPaint` trees use explicit glyph clips and COLRv1 color-glyph references with cycle validation. CPALv1 labels/types are coordinated with the font name table.
 
 Font coordinates are y-up and double precision. A contour edge uses its first node's outgoing handle and second node's incoming handle, falling back to endpoints when absent. The renderer applies y inversion exactly once. Camera offsets are CSS pixels; device pixel ratio is applied only at surface composition. The demo's uppercase O has editable cubic contours rather than an SVG thumbnail acting as the editing model.
 
@@ -67,7 +68,7 @@ The workbench owns subscriptions, resize observers, input AbortControllers, nati
 
 The virtual glyph library materializes visible rows. Canvas refreshes are frame-coalesced; paths are cached until geometry changes. Pointer motion changes only the current glyph transaction. Source projection uses DynamicData keys; proof compilation is debounced and a generation number rejects stale FontFace completions.
 
-Compilation, table inspection and full-document validation run through a shared worker queue by default. The compiler receives immutable snapshots, not live document references. Full snapshot cloning still occurs on the caller thread. Large CJK fonts, million-point contours, variable-font throughput, native memory soak and peak GPU memory are **not qualified**. The optional GPU compute service is separate from the CPU compiler worker. Storage is local IndexedDB plus explicit file downloads; no OPFS write-ahead journal, collaboration backend or crash-replay log exists yet.
+Compilation, table inspection and full-document validation run through a shared worker queue by default. The compiler receives immutable snapshots, not live document references. Full snapshot cloning still occurs on the caller thread. Large CJK fonts, million-point contours, variable-font throughput, native memory soak and peak GPU memory are **not qualified**. The optional GPU compute service is separate from the CPU compiler worker. Storage is local IndexedDB plus explicit file downloads; full-snapshot revision journals use SHA-256 chaining and IndexedDB atomic compare-and-swap. Corrupt tails can be recovered as a valid prefix. OPFS, incremental delta replay and collaboration are not implemented.
 
 ## Worker graph and cancellation
 
@@ -75,13 +76,15 @@ Compilation, table inspection and full-document validation run through a shared 
 
 FontProof shares the workspace compiler but owns its request key and FontFace lifecycle. Its generation increments as soon as an edit is scheduled, so a face from an already-obsolete source is never installed. Binary buffers transfer back; font source remains in the browser and no network compiler service is used. Inline mode is explicit and cannot preempt synchronous work.
 
-Because HTML import maps are not worker import maps, `scripts/worker-build.mjs` parses the pinned static dependency graph using Node's VM parser, mirrors its modules, rewrites static specifiers to relative URLs and rejects unresolved dependencies. Bootstrap/build generate `app/workers/compiler.js` plus a 31-module graph and hash manifest. Runtime packages retain their normal npm imports; only this generated application deployment graph is rewritten. No SkiaSharpWeb API changes are needed. The script is a linker for this static graph, not a general JavaScript bundler.
+Because HTML import maps are not worker import maps, `scripts/worker-build.mjs` parses the pinned static dependency graph using Node's VM parser, mirrors its modules, rewrites static specifiers to relative URLs and rejects unresolved dependencies. Bootstrap/build generate `app/workers/compiler.js` plus a 38-module graph and hash manifest. Runtime packages retain their normal npm imports; only this generated application deployment graph is rewritten. No SkiaSharpWeb API changes are needed. The script is a linker for this static graph, not a general JavaScript bundler.
 
 ## Color table ownership
 
-`color` depends only on bounded binary primitives. The model uses it for source validation; font-io supplies the exact final glyph order at compilation. COLRv0 base records are sorted by glyph ID; ordered layer records carry mapped glyph IDs and palette indexes. CPAL stores BGRA while source strings use CSS RGBA. The foreground sentinel remains 65535. Self references are allowed because layer glyphs use their monochrome outlines. References to excluded/deleted glyphs are rejected. The decoder bounds expanded palettes/layers as well as raw byte ranges, rejecting disproportionate shared-record expansion.
+`color` coordinates COLRv0/1, CPALv0/1 and palette name allocation; `colrv1` owns static paint encoding/decoding and bounded graph validation. Font compilation supplies final exported glyph order. Name allocation occurs after any variation/instance names, preventing CPAL/variation ID collisions. CFF2 reuses that allocation when replacing its name/variation tables.
 
-The editor's native Skia path projection draws every color layer back-to-front and keeps the base contour editable. Conversion to SkiaSharp's ARGB hexadecimal parsing stays inside the renderer adapter. Browser proof text is separately rendered from the compiled COLR/CPAL font, and tests examine actual pixel colors. Preview currently uses palette zero; palette-selection UI and CPALv1 metadata remain future work.
+`FontProof` publishes the successful immutable byte buffer with document/revision/master metadata. The workbench installs an `SKTypeface`/`SKFont` pair in `GlyphRenderer` only for a current static source-master compile. Paints render through the existing `SKCanvas.DrawGlyphs` API, not a second gradient renderer. Geometry/node overlays remain source projections. Stale native cache entries cannot render after a document, revision or master change. Replacing or disposing a cached font releases both native objects; failed replacement releases partial allocations.
+
+The graph dialog owns a separate keyed compiler request and FontFace. It works on a private snapshot with a temporary proof codepoint, suppresses unrelated layout features and swaps only the proof palette. No temporary mapping is added to editable source. Generation checks reject obsolete compilation/FontFace completion. Close/disposal cancels queued work, unsubscribes and uninstalls its face. Glyph-scoped history validates the entire source graph before commit while keeping its bounded glyph snapshot, so legal cross-glyph paint references survive ordinary geometry edits.
 
 ## Save completion and shutdown
 

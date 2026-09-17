@@ -15,6 +15,7 @@
   "include": [
     "types-smoke.ts",
     "export-consumer.ts",
-    "editing-consumer.ts"
+    "editing-consumer.ts",
+    "color-consumer.ts"
   ]
 }

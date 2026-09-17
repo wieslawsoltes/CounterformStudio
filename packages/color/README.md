@@ -1,19 +1,16 @@
 # @wieslawsoltes/counterform-color
 
-Independent COLRv0/CPAL v0 source validator, compiler, and bounded decoder. No DOM,
-Skia, or font-io dependency. Uses the caller's final exported glyph order.
+Standalone COLRv0/1 and CPALv0/1 source validation, table compilation and bounded decoding. No DOM, Skia or font-io dependency. Uses bounded binary primitives and the standalone `counterform-colrv1` codec. The caller supplies the exact exported glyph order.
 
 ```js
-import {compileColorTables} from '@wieslawsoltes/counterform-color';
-const tables = compileColorTables(source, exportedGlyphs); // COLR + CPAL
+import { compileColorTables, createPaletteNamePlan } from '@wieslawsoltes/counterform-color';
+const namePlan = createPaletteNamePlan(source, extraNames);
+const tables = compileColorTables(source, exportedGlyphs, {namePlan});
+// Add namePlan.names to the font name table using their allocated IDs.
 ```
 
-`glyph.colorLayers` stores ordered `{glyphId, paletteIndex}` records. Layers reference
-monochrome glyph outlines, not recursively evaluated color glyphs. `65535` is the
-foreground color. Palettes are equal-length arrays of `#RRGGBB` or `#RRGGBBAA`.
-Order is back-to-front. Duplicate layer references and self references are valid.
-Glyph deletion/export filtering must not invalidate references. Binary counts are
-bounded to 16-bit limits. Unsupported table versions are rejected on reconstruction.
+Normal Counterform font compilers coordinate the name plan automatically, including CFF2 variation/instance naming. `glyph.colorLayers` stores back-to-front `{glyphId, paletteIndex}` monochrome outlines. `glyph.colorPaint` stores a static COLRv1 graph; both can coexist as a v1 paint and a v0 fallback. Palette index 65535 means foreground color. Equal-length RGBA palettes use `#RRGGBB` or `#RRGGBBAA`. Optional `paletteLabels`, `paletteEntryLabels` and `paletteTypes` produce CPALv1 and named metadata.
 
-This is **not COLRv1**: no paint DAGs, gradients, SVG, bitmap tables, or palette labels.
-References: Microsoft OpenType COLR and CPAL specifications.
+`readColorTables(COLR, CPAL, glyphs, {names})` reconstructs supported static color sources; `names` is a map of name ID to decoded text. Without name text, returned numeric label IDs still identify metadata. Unsupported paint variations, variable clips or malformed/beyond-budget records fail explicitly. Semantic reconstruction is not byte-identical original-table preservation.
+
+For all 18 static paint kinds, compositing modes, numeric conventions and graph budgets see the companion codec's README. SVG/bitmap tables and animated/variable paint parameters are not included. Specifications: Microsoft OpenType COLR and CPAL.

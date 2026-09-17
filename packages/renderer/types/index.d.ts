@@ -77,6 +77,8 @@ export class GlyphRenderer {
     onLoss: () => void;
     resizeObserver: ResizeObserver;
     setScene(scene: any): void;
+    setCompiledColorFont(bytes:Uint8Array|null,options:{documentId:string;revision:number;masterId:string;glyphOrder:string[];unitsPerEm:number}):void;
+    currentColorFont():any;
     fit(): void;
     invalidate(): void;
     size(canvas: any): {

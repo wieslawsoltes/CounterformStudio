@@ -164,3 +164,41 @@ Only COLRv0/CPALv0 is reconstructed on supported TrueType imports. CFF native ou
 - `validation` — Font geometry, encoding, feature, topology and component graph diagnostics.
 - `variations` — Sparse design-space interpolation and real fvar/gvar/STAT TrueType variable export.
 - `workbench` — Counterform Studio dockable font-authoring workspace and application composition.
+
+## Static COLRv1 paints and named palettes
+
+```js
+import { createDemoFont } from '@wieslawsoltes/counterform-model';
+import { compileTrueType } from '@wieslawsoltes/counterform-font-io';
+import { validatePaintSource } from '@wieslawsoltes/counterform-colrv1';
+
+const colorDocument = createDemoFont();
+const a = colorDocument.glyph('A');
+colorDocument.data.palettes = [
+  ['#f24a30', '#3456ed'],
+  ['#ffffff', '#a8bbff']
+];
+colorDocument.data.paletteLabels = ['Day', 'Night'];
+colorDocument.data.paletteEntryLabels = ['Start', 'End'];
+colorDocument.data.paletteTypes = [1, 2]; // usable on light / dark backgrounds
+
+a.colorPaint = {
+  type: 'glyph', glyphId: a.id,
+  paint: {
+    type: 'linear',
+    x0: 0, y0: 0, x1: 600, y1: 0, x2: 0, y2: 700,
+    extend: 'pad',
+    stops: [
+      {offset: 0, paletteIndex: 0, alpha: 1},
+      {offset: 1, paletteIndex: 1, alpha: 1}
+    ]
+  }
+};
+validatePaintSource(colorDocument.data);
+const colorBytes = compileTrueType(colorDocument);
+// colorBytes contains coordinated COLRv1, CPALv1 and palette name records.
+```
+
+In the workbench, make these mutations inside `studio.history.execute(...)` so observers, dirty state, undo and proof recompilation remain coherent. `studio.showPaints()` opens the graph editor. The standalone codec exports `compileCOLRv1`, `readCOLRv1`, `paintTypes`, `compositeModes`, `extendModes`, `paintChildren`, `paintReferences` and `validatePaintSource`; see its declarations for the complete discriminated paint union.
+
+For custom native rendering, `GlyphRenderer.setCompiledColorFont(bytes, {documentId, revision, masterId, glyphOrder, unitsPerEm})` accepts a complete compiled static font; `glyphOrder` is an array of stable source IDs in binary glyph order. Pass `null` to release it. A scene must carry matching identity/revision/master information before the cache is used. Normal workbench integration supplies this automatically. It does not modify SkiaSharpWeb or its .NET-compatible public API.

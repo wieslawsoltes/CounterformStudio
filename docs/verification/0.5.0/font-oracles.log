@@ -1,0 +1,45 @@
+
+> counterform-studio@0.5.0 test:fonts
+> python tests/fonttools.py && python tests/export-fonttools.py && python tests/contextual-fonttools.py && python tests/colrv1-fonttools.py
+
+Original compiler fixtures generated in temporary directory
+PASS static.ttf: all tables independently decompile, names/cmap/metrics/outlines/layout match
+PASS static.otf: all tables independently decompile, names/cmap/metrics/outlines/layout match
+PASS static.woff: all tables independently decompile, names/cmap/metrics/outlines/layout match
+PASS variable.ttf: all tables independently decompile, names/cmap/metrics/outlines/layout match
+PASS color.ttf: independent COLRv0 layers, CPAL RGBA channels, palettes and foreground indices
+PASS color.otf: independent COLRv0 layers, CPAL RGBA channels, palettes and foreground indices
+PASS color-variable.ttf: independent COLRv0 layers, CPAL RGBA channels, palettes and foreground indices
+PASS variable color font: independent instantiation preserves palette alpha and layer references
+PASS gvar: 5 independently instantiated weights produce monotonically widening A outlines
+PASS sparse multi-axis interpolation matches fontTools at all reference locations
+PASS UFO3: independent layer/glyph/metrics/kerning reader accepts source archive
+PASS static-cff2.otf: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS static-cff2.otf.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS static-cff2.otf.compressed.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS variable-cff2.otf: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS variable-cff2.otf.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS variable-cff2.otf.compressed.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS metrics.ttf: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS metrics.ttf.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS metrics.ttf.compressed.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable
+PASS single : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS multiple : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS alternate : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS ligature : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS context : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS ignore : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS reverse : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS named : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS contextMultiple : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS contextLigature : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS singlePos : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS pairPos : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS contextPos : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS language : glyphs, clusters, advances and offsets match fontTools/HarfBuzz
+PASS ttf.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools
+PASS cff.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools
+PASS variable.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools
+PASS cff2.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools
+PASS cff2-variable.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools
+PASS color.woff2: all static paints, clip boxes, CPAL labels and metadata match fontTools

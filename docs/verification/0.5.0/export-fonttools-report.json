@@ -1,0 +1,14 @@
+{
+  "passed": 9,
+  "checks": [
+    "static-cff2.otf: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "static-cff2.otf.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "static-cff2.otf.compressed.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "variable-cff2.otf: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "variable-cff2.otf.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "variable-cff2.otf.compressed.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "metrics.ttf: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "metrics.ttf.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable",
+    "metrics.ttf.compressed.woff2: table bytes retained except mandated head normalization; CFF2/HVAR/MVAR/GPOS match seven source instances where variable"
+  ]
+}

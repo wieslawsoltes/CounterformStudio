@@ -132,6 +132,18 @@ export class GlyphRenderer {
         this.invalidate();
     }
     setScene(scene) { this.scene = { ...this.scene, ...scene }; this.needsPaths = true; this.invalidate(); }
+    /** Cache one actual compiled font. Revision/master guards prevent stale color artwork. */
+    setCompiledColorFont(bytes, {documentId,revision,masterId,glyphOrder,unitsPerEm}) {
+        if(this.disposed||!this.S)return;
+        let face,font;
+        try {
+            if(bytes){face=this.S.SKTypeface.FromData(bytes);if(!face)throw new Error('Skia rejected compiled color font');font=new this.S.SKFont(face,unitsPerEm);font.Hinting=this.S.SKFontHinting.None;font.LinearMetrics=true;}
+        } catch(error){font?.Dispose();face?.Dispose();throw error;}
+        this.colorFont?.font?.Dispose();this.colorFont?.face?.Dispose();
+        this.colorFont=font?{font,face,documentId,revision,masterId,ids:new Map(glyphOrder.map((id,i)=>[id,i]))}:null;
+        this.invalidate();
+    }
+    currentColorFont() { const a=this.colorFont,b=this.scene;return b.hasColorPaint&&a&&a.documentId===b.documentId&&a.revision===b.revision&&a.masterId===b.masterId&&a.ids.has(b.colorGlyphId)?a:null; }
     fit() { const r = this.host.getBoundingClientRect(); if (r.width < 100 || r.height < 100)
         return; this.camera.fit(this.scene.contours, r.width, r.height, this.scene.advanceWidth, this.scene.metrics.unitsPerEm); this.invalidate(); this.changed.emit(this.camera); }
     invalidate() { if (this.disposed || this.pending)
@@ -169,7 +181,12 @@ export class GlyphRenderer {
             if (this.showFill || this.preview) {
                 paint.Color = S.SKColor.Parse(this.preview ? '#18222e' : this.dark ? '#b9c4d4' : '#293847');
                 paint.Style = S.SKPaintStyle.Fill;
-                if (this.scene.colorLayers?.length) {
+                const compiled=this.currentColorFont();
+                this.native.dataset.colorPaint=compiled?'compiled':this.scene.hasColorPaint?'pending':'none';
+                if(compiled){
+                    // Native font glyphs are y-down; the editor camera is y-up.
+                    c.Save();try {c.Scale(1,-1);c.DrawGlyphs(new Uint16Array([compiled.ids.get(this.scene.colorGlyphId)]),[0,0],new S.SKPoint(0,0),compiled.font,paint);}finally{c.Restore();}
+                } else if (this.scene.colorLayers?.length) {
                     this.scene.colorLayers.forEach((layer,i) => {
                         // SKColor.Parse follows .NET/Skia ARGB; CSS/source colors are RGBA.
                         const rgba = layer.color;
@@ -373,7 +390,7 @@ export class GlyphRenderer {
         }
     }
     toSVG() { const m = this.scene.metrics; return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${-m.ascender} ${this.scene.advanceWidth} ${m.ascender - m.descender}"><path transform="scale(1,-1)" d="${toSVG(this.scene.contours)}"/></svg>`; }
-    dispose() { this.disposed = true; cancelAnimationFrame(this.pending); this.resizeObserver.disconnect(); this.native.removeEventListener('paintsurface', this.onPaint); this.native.removeEventListener('surfaceerror', this.onError); this.native.removeEventListener('devicelost', this.onLoss); for (const p of this.paths)
+    dispose() { this.colorFont?.font?.Dispose();this.colorFont?.face?.Dispose();this.colorFont=null;this.disposed = true; cancelAnimationFrame(this.pending); this.resizeObserver.disconnect(); this.native.removeEventListener('paintsurface', this.onPaint); this.native.removeEventListener('surfaceerror', this.onError); this.native.removeEventListener('devicelost', this.onLoss); for (const p of this.paths)
         p.Dispose(); this.host.replaceChildren(); this.changed.clear(); this.error.clear(); this.frame.clear(); }
 }
 

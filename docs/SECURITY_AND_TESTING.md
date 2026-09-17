@@ -10,13 +10,13 @@ These are application-level defenses, not a security audit or an assurance again
 
 ## Recorded tests
 
-`tests/core.test.mjs`: 36 Node tests for geometry, reversible source mutation, malformed-input rejection, binary checksums, source roundtrips, variation topology, commands, recipes and numerical compute fallback.
+`tests/core.test.mjs` and the additional Node suites cover geometry, reversible source mutation, malformed-input rejection, binary checksums, source roundtrips, variation topology, commands, recipes and numerical compute fallback.
 
 `tests/fonttools.py`: 11 independent checks, including COLRv0/CPALv0 channels and variable color instance preservation. All exported TTF/CFF/WOFF/variable tables decompile in fontTools; cmap/names/metrics/layout checks pass; variable outlines instantiate at 300/400/500/600/800; sparse multi-axis values agree with fontTools; UFO3 layers and source metrics are accepted by its UFO reader. Fixtures are original generated data in an automatically removed temporary directory.
 
-`tests/browser.py`: 28 behavioral checks per source/distribution run (27 pass locally; IndexedDB is explicitly skipped) including genuine pointer node and handle drags, single-transaction undo/redo, rectangle/ellipse creation, scoped key dispatch, native Skia overlap/stroke, source metrics, TreeDataGrid and GridWeb integration, feature proof recompilation, native CFF import, rich notes, variable preview, palette/dialogs, actual color font pixel sampling and disposal.
+`tests/browser.py`: source/distribution behavioral checks (secure-origin checks are explicitly skipped in isolated mode) including genuine pointer node and handle drags, single-transaction undo/redo, rectangle/ellipse creation, scoped key dispatch, native Skia overlap/stroke, source metrics, TreeDataGrid and GridWeb integration, feature proof recompilation, native CFF import, rich notes, variable preview, palette/dialogs, actual color font pixel sampling and disposal.
 
-`tests/color.test.mjs`, `tests/compiler.test.mjs` and `tests/storage.test.mjs` extend the original 36 cases to 60. Actual Node workers and the generated relative-URL browser graph execute, while cancellation/priority/timeout/error states have controlled worker tests. Autosave tests use delayed stores to prove in-flight/trailing flush ordering and failure handling. These delayed stores are not an IndexedDB engine qualification.
+`tests/color.test.mjs`, `tests/compiler.test.mjs` and `tests/storage.test.mjs` cover compiler, color and persistence behavior; exact current suite counts are in the release verification manifest. Actual Node workers and the generated relative-URL browser graph execute, while cancellation/priority/timeout/error states have controlled worker tests. Autosave tests use delayed stores to prove in-flight/trailing flush ordering and failure handling. These delayed stores are not an IndexedDB engine qualification.
 
 `tests/types-smoke.ts`: strict TypeScript consumer compilation for package imports. Declaration internals use `skipLibCheck` to avoid treating upstream declaration compatibility as Counterform certification. Some low-level APIs still expose `any`; source model interfaces are explicit.
 
@@ -28,6 +28,14 @@ The local browser uses explicit inline compilation. It does not qualify actual b
 
 ## Shipping checks
 
-`npm run build` copies pinned local runtime inputs, writes a SHA-256 asset manifest and uses relative import-map paths. `npm run pack:all` produces 20 source packages and package integrity records. `npm run release:zip` excludes font binaries, caches, symlinks and fixture files. Independent test reports and actual screenshots accompany the source.
+`npm run build` copies pinned local runtime inputs, writes a SHA-256 asset manifest and uses relative import-map paths. `npm run pack:all` produces 30 source packages and package integrity records. `npm run release:zip` excludes font binaries, caches, symlinks and fixture files. Independent test reports and actual screenshots accompany the source.
 
 COLR/CPAL import validates versions, record offsets, sorted base records, glyph references and palette indexes. Expanded source records are capped to avoid disproportionate shared-record allocation. Unsupported versions and beyond-budget inputs are rejected rather than silently truncated. Worker errors/cancellation are explicit; no automatic caller-thread fallback is hidden from the user. Original compile functions remain available as synchronous headless APIs.
+
+## COLRv1 and CPALv1 qualification
+
+`tests/colrv1.test.mjs` covers all 18 static formats, all 28 composite values, v0/v1 coexistence, nested layers, name allocation, glyph references/cycles, invalid source, budgets, every binary truncation, TrueType semantic import and re-encoding, scoped history rollback and duplicate self references. `tests/color-render-cache.test.mjs` checks document/revision/master identity and deterministic native resource cleanup, including failed allocation.
+
+`tests/colrv1-fonttools.py` independently builds expected paint tables with fontTools colorLib, normalizes them through independent serialization/decoding and compares all static paint kinds, clip boxes, CPAL labels/types and variation-name allocation across six file variants. `tests/color_browser.py`, called by the main browser suite, edits real GUI controls, samples compiled FontFace and native Skia pixels, exercises tree/stop/transform/composite/JSON operations and undo, loads eight export variants into Chromium's FontFace sanitizer, and checks cancellation/lifetime behavior. These tests do not establish pixel parity with FontLab or qualify all real-world fonts.
+
+Decoder defaults cap expanded paint nodes and stops at 65,535 each, depth at 64 and binary bytes at 16 MiB. Cycles, stale IDs, unsupported variable paints/stores, unsafe offsets, out-of-range numbers and unbounded roots without clips are rejected. JSON editing is capped at 1 MiB and parsed as data, never evaluated as code. Generated proof mappings and palette selection remain confined to snapshots. FontFace and SKTypeface buffers come from procedural or explicitly imported document data, never an installed-font directory.

@@ -9,7 +9,8 @@ export class History {
         throw new Error('Nested history transaction'); if (glyphId && !this.doc.glyph(glyphId))
         throw new Error('Unknown glyph transaction'); const before = structuredClone(glyphId ? this.doc.glyph(glyphId) : this.doc.data); this.active = { label, glyphId, before, revision: this.doc.revision }; return this.active; }
     commit() { const a = this.active; if (!a)
-        return false; validateDocumentShape(a.glyphId ? { ...this.doc.data, glyphs: [this.doc.glyph(a.glyphId)] } : this.doc.data); this.active = null; const after = structuredClone(a.glyphId ? this.doc.glyph(a.glyphId) : this.doc.data), b = JSON.stringify(a.before), n = JSON.stringify(after); if (b === n) {
+        return false; // Snapshot scope is not reference-validation scope: color graphs can reference other glyphs.
+        validateDocumentShape(this.doc.data); this.active = null; const after = structuredClone(a.glyphId ? this.doc.glyph(a.glyphId) : this.doc.data), b = JSON.stringify(a.before), n = JSON.stringify(after); if (b === n) {
         this.notify();
         return false;
     } this.undoStack.push({ ...a, after, bytes: (b.length + n.length) * 2 }); this.redoStack = []; while (this.undoStack.length > this.limit || this.undoStack.reduce((n, c) => n + c.bytes, 0) > this.byteLimit && this.undoStack.length > 1)

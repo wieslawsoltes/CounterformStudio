@@ -47,3 +47,40 @@
 .cf-guide-row{display:grid;grid-template-columns:80px repeat(3,1fr) 80px;align-items:end;gap:12px;padding:10px 0;border-bottom:1px solid #9aaac533}.cf-guide-row button{height:32px}.cf-guide-row strong{align-self:center}
 @media(max-width:1100px){.cf-topbar .cf-project-title{display:none}.cf-topbar .cf-save-status{display:none}.cf-menubar{overflow-x:auto;min-width:0;flex:1}.cf-menubar button{display:block!important;flex:none}.cf-top-actions{flex-shrink:0}}
 @media(max-width:700px){.cf-studio .cf-active-tool{display:none}.cf-tool-reference{grid-template-columns:1fr}.cf-guide-row{grid-template-columns:60px repeat(3,1fr)}.cf-guide-row button{grid-column:1/-1}.cf-studio .cf-menubar{display:flex!important}.cf-top-actions .cf-palette-toggle{display:none}}
+/* Paint graph: source structure first, numeric inspector second, compiled proof third. */
+.cf-dialog.cf-paint-dialog{width:min(1320px,96vw);max-width:96vw;height:min(850px,94vh)}
+.cf-paint-dialog .cf-dialog-body{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.cf-paint-dialog .cf-dialog-footer>span{margin-right:auto}
+.cf-paint-toolbar{display:flex;align-items:end;gap:8px;flex-wrap:wrap;padding:0 0 12px}
+.cf-paint-toolbar>.cf-field{min-width:160px;flex:1}
+.cf-paint-layout{display:grid;grid-template-columns:minmax(170px,.7fr) minmax(250px,1fr) minmax(300px,1.3fr);gap:16px;min-height:0;flex:1}
+.cf-paint-tree,.cf-paint-inspector{overflow:auto;min-width:0;padding:12px;border:1px solid var(--cf-border,#dce3ed);border-radius:10px}
+.cf-paint-tree{padding:6px;background:var(--cf-panel,#f7f9fc)}
+.cf-paint-tree [role=treeitem]{display:flex;gap:8px;width:100%;text-align:left;justify-content:space-between;border:0;border-radius:6px;background:transparent;min-height:36px;color:inherit}
+.cf-paint-tree [role=treeitem][aria-selected=true]{background:#357bf518;color:#2767d3}
+.cf-paint-tree [role=treeitem]:focus-visible{outline:2px solid #357bf5;outline-offset:-2px}
+.cf-paint-tree small{opacity:.65;font-size:11px;max-width:80px;overflow:hidden;text-overflow:ellipsis}
+.cf-paint-inspector>.cf-field{margin-bottom:10px}
+.cf-paint-inspector h3,.cf-paint-preview h3{margin:2px 0 14px}
+.cf-paint-inspector>button{margin:4px 6px 8px 0}
+.cf-paint-stop{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--cf-border,#dce3ed)}
+.cf-paint-stop button{align-self:end;margin-bottom:2px}
+.cf-paint-matrix,.cf-paint-clip{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cf-paint-clip{margin-top:14px;border-top:1px solid var(--cf-border,#dce3ed);padding-top:8px}
+.cf-paint-clip h4,.cf-paint-clip button{grid-column:1/-1}
+.cf-paint-preview{display:flex;flex-direction:column;min-width:0;overflow:auto;padding:12px;border:1px solid var(--cf-border,#dce3ed);border-radius:10px;background:var(--cf-panel,#fff)}
+.cf-paint-preview-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cf-paint-proof{display:block;text-align:center;font-size:360px;font-weight:400;line-height:1;min-height:0;overflow:auto;color:#18222e;background:#fff;font-feature-settings:'kern' 0,'liga' 0;flex:1}
+.cf-paint-proof[hidden]{display:none}
+.cf-paint-preview .cf-muted{margin-top:auto;padding-top:12px;font-size:12px}
+.cf-paint-error{color:#c33436;white-space:pre-wrap;margin-bottom:8px}
+.cf-paint-json{min-height:440px;width:100%;resize:vertical;font:13px/1.5 ui-monospace,monospace;padding:12px}
+@media(max-width:900px){.cf-paint-layout{grid-template-columns:160px 1fr}.cf-paint-preview{grid-column:1/-1;max-height:300px}.cf-paint-proof{min-height:180px}.cf-paint-dialog .cf-dialog-body{overflow:auto}.cf-paint-layout{min-height:600px}}
+
+.cf-paint-proof:not([hidden]){display:flex;align-items:center;justify-content:center}
+
+:root[data-cf-theme=dark] .cf-paint-dialog{--cf-bg:#202d3e;--cf-panel:#1c2837;--cf-line:#324259;--cf-text:#bacbdf;--cf-muted:#8ca2bd;--cf-soft:#263f60;background:var(--cf-bg);color:var(--cf-text);border-color:var(--cf-line)}
+:root[data-cf-theme=dark] .cf-paint-dialog :is(.cf-dialog-header,.cf-dialog-footer){background:var(--cf-panel);border-color:var(--cf-line)}
+:root[data-cf-theme=dark] .cf-paint-dialog :is(.cf-paint-tree,.cf-paint-inspector,.cf-paint-preview,.cf-paint-stop,.cf-paint-clip){border-color:var(--cf-line)}
+:root[data-cf-theme=dark] .cf-paint-dialog h3{color:#a7c8ef}
+:root[data-cf-theme=dark] .cf-paint-tree [aria-selected=true]{color:#a7c8ef;background:#2d4665}

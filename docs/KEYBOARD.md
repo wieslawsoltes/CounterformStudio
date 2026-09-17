@@ -1,6 +1,6 @@
 # Keyboard contract
 
-Bindings are command IDs rather than hardwired control actions. `Mod` means Command on macOS and Control elsewhere. The default map is inspired by the requested editor's workflows; it is **not a complete, verified copy of FontLab's native shortcut list**. Use Help → Keyboard shortcuts to inspect/remap/export/import the actual 100-command registry.
+Bindings are command IDs rather than hardwired control actions. `Mod` means Command on macOS and Control elsewhere. The default map is inspired by the requested editor's workflows; it is **not a complete, verified copy of FontLab's native shortcut list**. Use Help → Keyboard shortcuts to inspect/remap/export/import the actual 137-command registry.
 
 | Action | Default |
 |---|---|
@@ -39,3 +39,7 @@ Browser/OS-reserved key combinations cannot be guaranteed available on every bro
 L: Line; Shift+L: Polygon; Shift+O: Star; Shift+R: Rounded rectangle; Q: Lasso; D: Pencil; B: Pressure brush; K: Knife; C: Scissors; V: Move; T: Rotate; S: Scale; Y: Slant; Shift+A: Anchor; I: Guides; Z: Zoom; Shift+Enter: drawing options; Ctrl/Cmd+J: join endpoints; Ctrl/Cmd+Shift+A: invert selection. Shift+F1 opens the tool reference. All drawing shortcuts are editor-scoped and do not steal typing from inputs.
 
 F10 enters the menubar; arrows, Home/End and label typeahead navigate; Escape closes a menu and restores focus. The tool rail has roving tab stops and arrow navigation. Escape and Undo cancel active drawing before another edit can be applied. The complete current binding map is available through Help → Keyboard shortcuts, including remapping. These bindings are Counterform's contract, not an exhaustive verified native FontLab/macOS/Windows shortcut matrix.
+
+## Color paint graph
+
+Open `color.paint` from the OpenType ribbon, Font menu, Inspector or command search. It has no assigned global default shortcut. Within its tree, Up/Down select visible rows, Home/End select first/last, Right expands or enters a child, Left collapses or selects a parent, and Delete removes an optional selected layer. A required child or sole layer cannot be deleted into an invalid graph. The tree uses roving tab focus; the properties and preview use native form controls. Numeric edits and JSON replacement are source transactions. Undo/Redo use the document history and rerender the selected graph; text inputs retain native editing semantics. Escape closes the current dialog through the existing modal contract. Browser/assistive-technology certification beyond the recorded Chromium checks remains outstanding.

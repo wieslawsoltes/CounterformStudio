@@ -1,0 +1,197 @@
+{
+  "version": "0.5.0",
+  "date": "2026-09-17",
+  "publication": "locally committed patch; not pushed or deployed",
+  "remoteBaseline": "a24fdc3bdc0a321d6504fd4a387180b296e1104c",
+  "priorRemoteRun": 35249506480,
+  "priorRemoteRunQualifiesNewSource": false,
+  "implementationCommits": [
+    "499c8191533febb59ffccaadd86447e2d910291e",
+    "b6add87247f5187fc3016208ad67f0c0fc22c344"
+  ],
+  "core": {
+    "passed": 127,
+    "failed": 0,
+    "skipped": 0,
+    "log": "core.log"
+  },
+  "independentFontChecks": {
+    "passed": 40,
+    "basic": 11,
+    "export": 9,
+    "contextual": 14,
+    "staticCOLRv1": 6
+  },
+  "types": {
+    "passed": true
+  },
+  "npm": {
+    "packages": 30,
+    "freshConsumerPassed": true,
+    "realNodeWorkerPassed": true,
+    "registryPublished": false
+  },
+  "browser": {
+    "source": {
+      "passed": 57,
+      "failed": 0,
+      "skipped": [
+        {
+          "name": "archived original and metadata-only export load through browser sanitizer",
+          "passed": null,
+          "skipped": true,
+          "reason": "Opaque isolated origin has no Web Crypto/IndexedDB"
+        },
+        {
+          "name": "live journal verifies source snapshots and exposes recovery controls",
+          "passed": null,
+          "skipped": true,
+          "reason": "Opaque isolated origin has no Web Crypto/IndexedDB"
+        },
+        {
+          "name": "storage capability qualification",
+          "passed": null,
+          "skipped": true,
+          "reason": "Not qualified: opaque-origin isolated rendering"
+        }
+      ],
+      "environment": {
+        "secure": false,
+        "webgpuExposed": false,
+        "renderer": "canvas",
+        "compiler": "inline (explicit)",
+        "skia": true,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36"
+      },
+      "pageErrors": [],
+      "compiledColorPixels": {
+        "red": 7300,
+        "blue": 4239,
+        "mixed": 10130
+      },
+      "nativeSkiaColorPixels": {
+        "red": 6446,
+        "blue": 5056,
+        "mixed": 8862
+      },
+      "colorExports": [
+        {
+          "format": "ttf",
+          "status": "loaded"
+        },
+        {
+          "format": "otf",
+          "status": "loaded"
+        },
+        {
+          "format": "variable",
+          "status": "loaded"
+        },
+        {
+          "format": "cff2",
+          "status": "loaded"
+        },
+        {
+          "format": "variable-cff2",
+          "status": "loaded"
+        },
+        {
+          "format": "woff2",
+          "status": "loaded"
+        },
+        {
+          "format": "variable-woff2",
+          "status": "loaded"
+        },
+        {
+          "format": "cff2-woff2",
+          "status": "loaded"
+        }
+      ]
+    },
+    "distribution": {
+      "passed": 57,
+      "failed": 0,
+      "skipped": [
+        {
+          "name": "archived original and metadata-only export load through browser sanitizer",
+          "passed": null,
+          "skipped": true,
+          "reason": "Opaque isolated origin has no Web Crypto/IndexedDB"
+        },
+        {
+          "name": "live journal verifies source snapshots and exposes recovery controls",
+          "passed": null,
+          "skipped": true,
+          "reason": "Opaque isolated origin has no Web Crypto/IndexedDB"
+        },
+        {
+          "name": "storage capability qualification",
+          "passed": null,
+          "skipped": true,
+          "reason": "Not qualified: opaque-origin isolated rendering"
+        }
+      ],
+      "environment": {
+        "secure": false,
+        "webgpuExposed": false,
+        "renderer": "canvas",
+        "compiler": "inline (explicit)",
+        "skia": true,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36"
+      },
+      "pageErrors": [],
+      "compiledColorPixels": {
+        "red": 7300,
+        "blue": 4239,
+        "mixed": 10130
+      },
+      "nativeSkiaColorPixels": {
+        "red": 6446,
+        "blue": 5056,
+        "mixed": 8862
+      },
+      "colorExports": [
+        {
+          "format": "ttf",
+          "status": "loaded"
+        },
+        {
+          "format": "otf",
+          "status": "loaded"
+        },
+        {
+          "format": "variable",
+          "status": "loaded"
+        },
+        {
+          "format": "cff2",
+          "status": "loaded"
+        },
+        {
+          "format": "variable-cff2",
+          "status": "loaded"
+        },
+        {
+          "format": "woff2",
+          "status": "loaded"
+        },
+        {
+          "format": "variable-woff2",
+          "status": "loaded"
+        },
+        {
+          "format": "cff2-woff2",
+          "status": "loaded"
+        }
+      ]
+    }
+  },
+  "fontFilesDistributed": false,
+  "qualificationBoundaries": [
+    "Local browser uses explicitly selected inline compiler and native Skia raster in isolated-assets mode.",
+    "New-source browser worker startup, IndexedDB/recovery/original-preservation secure-origin paths are not qualified by local browser runs.",
+    "Prior remote baseline did pass workers, persistence, Pages subpath and live HTTPS.",
+    "No physical WebGPU, Safari/Firefox, native FontLab parity or assistive-technology certification."
+  ]
+}

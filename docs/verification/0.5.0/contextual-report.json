@@ -1,0 +1,21 @@
+{
+  "passed": 14,
+  "checks": [
+    "single",
+    "multiple",
+    "alternate",
+    "ligature",
+    "context",
+    "ignore",
+    "reverse",
+    "named",
+    "contextMultiple",
+    "contextLigature",
+    "singlePos",
+    "pairPos",
+    "contextPos",
+    "language"
+  ],
+  "harfbuzz": "10.2.0",
+  "oracle": "fontTools FEA compilation + native HarfBuzz"
+}

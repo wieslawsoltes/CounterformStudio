@@ -8,7 +8,7 @@ export class FontProof {
     constructor(host, doc, { masterId = doc.data.masters[0].id, delay = 350, compiler = null } = {}) { this.host = host; this.doc = doc; this.ownsCompiler = !compiler; this.compiler = compiler || new CompilerClient(); this.masterId = masterId; this.delay = delay; this.family = `CounterformProof${++instance}`; this.generation = 0; this.text = 'Hamburgefontsiv AVATAR'; this.size = 66; this.features = '"kern" 1, "liga" 1'; this.variable = false; this.location = {}; this.tracking = 0; this.waterfall = false; this.disposed = false; host.classList.add('cf-proof'); this.content = document.createElement('div'); this.content.className = 'cf-proof-content'; this.content.setAttribute('aria-label', 'Compiled font proof'); host.append(this.content); this.off = doc.changed.subscribe(e => { if (e.kind !== 'saved')
         this.schedule(); }); this.schedule(0); }
     schedule(delay = this.delay) { if (this.disposed) return; this.generation++; this.compiler.cancelKey(this.family); clearTimeout(this.timer); this.timer = setTimeout(() => this.compile(), delay); }
-    async compile() { if (this.disposed) return; const generation = ++this.generation, variable = this.variable; try {
+    async compile() { if (this.disposed) return; const generation = ++this.generation, variable = this.variable, revision=this.doc.revision, documentId=this.doc.data.id, masterId=this.masterId; try {
         const {bytes} = await this.compiler.compile(this.doc, {format: variable ? 'variable' : 'ttf', masterId:this.masterId}, {key:this.family,priority:10});
         if (this.disposed || generation !== this.generation) return;
         const axis = this.doc.data.axes.find(a => a.tag === 'wght');
@@ -20,7 +20,7 @@ export class FontProof {
         this.face = face;
         document.fonts.add(face);
         this.render();
-        this.changed.emit({ bytes: bytes.byteLength, family: this.family });
+        this.changed.emit({ bytes: bytes.byteLength, data:bytes, family: this.family, revision, documentId, masterId, variable });
     }
     catch (error) {
         if (!this.disposed && generation === this.generation && error.name !== 'AbortError') this.errors.emit(error);

@@ -26,7 +26,6 @@ export function field(label, value, { type = 'text', min, max, step, placeholder
 else {
     input = el('input');
     input.type = type;
-    input.value = value ?? '';
     input.placeholder = placeholder;
     if (min !== undefined)
         input.min = min;
@@ -34,6 +33,7 @@ else {
         input.max = max;
     if (step !== undefined)
         input.step = step;
+    input.value = value ?? '';
 } input.setAttribute('aria-label', label); wrapper.append(caption, input); return { element: wrapper, input }; }
 export function section(title, { extra = null } = {}) { const block = el('section', 'cf-inspector-section'), head = el('div', 'cf-section-heading'); head.append(el('h3', '', title)); if (extra)
     head.append(extra); block.append(head); return { element: block, head }; }

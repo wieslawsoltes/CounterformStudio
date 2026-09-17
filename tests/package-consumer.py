@@ -61,9 +61,11 @@ import {Worker} from 'node:worker_threads';
 const doc=createDemoFont(); assert.equal(doc.data.glyphs.length,102);
 for(const compile of [compileTrueType,compileOpenTypeCFF,compileVariableTrueType])assert(compile(doc).byteLength>1000);
 assert(new History(doc));
-for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction','modifiers','journal','preservation','cff2','woff2','varstore'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
+for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction','colrv1','modifiers','journal','preservation','cff2','woff2','varstore'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
 doc.glyph('A').colorLayers=[{glyphId:doc.glyph('O').id,paletteIndex:1}];
-assert(compileColorTables(doc.data,doc.data.glyphs).has('COLR'));
+doc.glyph('A').colorPaint={type:'glyph',glyphId:doc.glyph('A').id,paint:{type:'linear',x0:0,y0:0,x1:600,y1:0,x2:0,y2:700,stops:[{offset:0,paletteIndex:0},{offset:1,paletteIndex:1}]}};
+doc.data.paletteLabels=['Day'];doc.data.paletteEntryLabels=doc.data.palettes[0].map((_,i)=>'Color '+i);
+assert.equal(new DataView(compileColorTables(doc.data,doc.data.glyphs).get('COLR').buffer).getUint16(0),1);
 const compiler=new CompilerClient({workerFactory:()=>new Worker(new URL(import.meta.resolve('@wieslawsoltes/counterform-compiler/node-worker')))});
 try {
     const {bytes}=await compiler.compile(doc,{format:'ttf'});
@@ -73,7 +75,7 @@ try {
     const {captureOriginal,restoreOriginal}=await import('@wieslawsoltes/counterform-preservation');const archive=await captureOriginal(bytes,doc.data);assert.deepEqual(await restoreOriginal(archive),bytes);
     const {RevisionJournal,MemoryJournalBackend}=await import('@wieslawsoltes/counterform-journal');const j=new RevisionJournal(new MemoryJournalBackend());await j.append(doc.data);assert.equal((await j.recover(doc.data.id)).issue,null);await j.close();
 } finally {compiler.dispose();}
-console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0, real Node compiler worker and headless module imports');
+console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1 and CPALv1, real Node compiler worker and headless module imports');
 ''')
     result = subprocess.run(['node','consumer.mjs'],cwd=base,text=True,capture_output=True)
     print(result.stdout, end='')
@@ -85,5 +87,5 @@ console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TT
         'checks':['Release version, archive inventory, SHA-256/SRI, dependencies, declarations, entrypoints and font-file exclusion',
                   'fresh extracted consumer TTF/CFF/variable TTF compilation',
                   'headless package imports with real vendor dependencies',
-                  'real packaged Node-worker entry compiles byte-identical color fonts'],
+                  'real packaged Node-worker entry compiles byte-identical COLRv1/CPALv1 fonts'],
         'stdout':result.stdout},indent=2)+'\n')

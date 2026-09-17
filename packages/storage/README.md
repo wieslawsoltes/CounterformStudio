@@ -2,12 +2,12 @@
 
 IndexedDB font projects, debounced autosave and browser project file I/O.
 
-Version **0.2.0**. ES modules with TypeScript declarations. No application-global singleton is required by the pure authoring engines. The renderer/editor/workbench packages require a browser DOM.
+Version **0.5.0**. ES modules with TypeScript declarations. No application-global singleton is required by the pure authoring engines. The renderer/editor/workbench packages require a browser DOM.
 
 ## Install
 
 ```sh
-npm install ./wieslawsoltes-counterform-storage-0.2.0.tgz
+npm install ./wieslawsoltes-counterform-storage-0.5.0.tgz
 ```
 
 Install the companion Counterform tarballs together when using unpublished packages. Package manifests declare the exact source dependencies; no implementation is hidden in the application entry point. `npm run bootstrap` links the supplied workspace and vendor snapshots for offline development.

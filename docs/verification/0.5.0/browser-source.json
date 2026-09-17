@@ -1,0 +1,1727 @@
+{
+  "mode": "isolated-local-assets",
+  "tests": [
+    {
+      "name": "workspace boot and real Skia surface",
+      "passed": true,
+      "ms": 6.6
+    },
+    {
+      "name": "ten upstream components and extensible commands",
+      "passed": true,
+      "ms": 6.2
+    },
+    {
+      "name": "Ribbon has executable items",
+      "passed": true,
+      "ms": 1.6
+    },
+    {
+      "name": "real pointer node drag is one undoable transaction",
+      "passed": true,
+      "ms": 835.0
+    },
+    {
+      "name": "B\u00e9zier handle drag and undo",
+      "passed": true,
+      "ms": 293.1
+    },
+    {
+      "name": "rectangle tool writes editable source",
+      "passed": true,
+      "ms": 356.1
+    },
+    {
+      "name": "ellipse tool writes cubic source",
+      "passed": true,
+      "ms": 289.6
+    },
+    {
+      "name": "modifier-sensitive keyboard nudge",
+      "passed": true,
+      "ms": 219.0
+    },
+    {
+      "name": "typing in an input never invokes outline shortcuts",
+      "passed": true,
+      "ms": 99.7
+    },
+    {
+      "name": "native Skia overlap removal and undo",
+      "passed": true,
+      "ms": 138.5
+    },
+    {
+      "name": "native Skia stroke expansion",
+      "passed": true,
+      "ms": 209.7
+    },
+    {
+      "name": "compiler service returns byte-identical actual font data on its reported backend",
+      "passed": true,
+      "ms": 98.2
+    },
+    {
+      "name": "browser sanitizer loads five CFF2 and WOFF2 exports",
+      "passed": true,
+      "ms": 152.5
+    },
+    {
+      "name": "modifier UI preserves source, bypasses and bakes in one undo transaction",
+      "passed": true,
+      "ms": 1293.6
+    },
+    {
+      "name": "source-master vertical metrics dialog commits and undoes overrides",
+      "passed": true,
+      "ms": 427.4
+    },
+    {
+      "name": "archived original and metadata-only export load through browser sanitizer",
+      "passed": null,
+      "skipped": true,
+      "reason": "Opaque isolated origin has no Web Crypto/IndexedDB"
+    },
+    {
+      "name": "live journal verifies source snapshots and exposes recovery controls",
+      "passed": null,
+      "skipped": true,
+      "reason": "Opaque isolated origin has no Web Crypto/IndexedDB"
+    },
+    {
+      "name": "color layer editor, transactional RGBA validation, compiled color pixels and undo",
+      "passed": true,
+      "ms": 1995.7
+    },
+    {
+      "name": "palette duplication, equal-length entries, foreground, layer reorder and removal",
+      "passed": true,
+      "ms": 2739.0
+    },
+    {
+      "name": "COLRv1 graph editor creates real compiled red-to-blue gradient pixels without changing outlines",
+      "passed": true,
+      "ms": 961.3
+    },
+    {
+      "name": "editor native Skia DrawGlyphs renders actual COLRv1 artwork, not only the HTML proof",
+      "passed": true,
+      "ms": 52.8
+    },
+    {
+      "name": "gradient stop insertion, sorting, removal, alpha editing and invalid-input rollback are undoable",
+      "passed": true,
+      "ms": 1571.1
+    },
+    {
+      "name": "paint tree keyboard navigation, transform wrapping and composite mode editing update compiled source",
+      "passed": true,
+      "ms": 1423.6
+    },
+    {
+      "name": "linear, radial and sweep paint replacement, extension modes and graph-JSON validation work through UI",
+      "passed": true,
+      "ms": 2278.7
+    },
+    {
+      "name": "CPALv1 metadata survives palette structure changes and eight exports load through the browser sanitizer",
+      "passed": true,
+      "ms": 3252.3
+    },
+    {
+      "name": "closing paint editors cancels jobs, removes FontFaces and complete undo restores exact source",
+      "passed": true,
+      "ms": 922.2
+    },
+    {
+      "name": "inspector metric editing participates in history",
+      "passed": true,
+      "ms": 258.7
+    },
+    {
+      "name": "all 137 commands are available through nine menus and 24 vector tool buttons",
+      "passed": true,
+      "ms": 231.2
+    },
+    {
+      "name": "menubar F10, arrows, Home/End, typeahead, Escape and context focus restoration",
+      "passed": true,
+      "ms": 359.7
+    },
+    {
+      "name": "Line pointer tool creates an undoable open contour",
+      "passed": true,
+      "ms": 680.6
+    },
+    {
+      "name": "Polygon pointer tool creates six real vertices",
+      "passed": true,
+      "ms": 852.2
+    },
+    {
+      "name": "Star pointer tool creates alternating radius geometry",
+      "passed": true,
+      "ms": 831.8
+    },
+    {
+      "name": "Rounded rectangle pointer tool creates eight cubic tangent nodes",
+      "passed": true,
+      "ms": 808.0
+    },
+    {
+      "name": "Pencil freehand gesture simplifies into editable source",
+      "passed": true,
+      "ms": 771.4
+    },
+    {
+      "name": "Brush gesture creates a filled source outline",
+      "passed": true,
+      "ms": 835.6
+    },
+    {
+      "name": "Knife pointer tool splits actual contours and undo restores exact source",
+      "passed": true,
+      "ms": 568.4
+    },
+    {
+      "name": "Scissors pointer tool opens an outline at a inserted edge point",
+      "passed": true,
+      "ms": 430.5
+    },
+    {
+      "name": "Move pointer tool transforms source in one transaction",
+      "passed": true,
+      "ms": 657.8
+    },
+    {
+      "name": "Rotate pointer tool transforms source in one transaction",
+      "passed": true,
+      "ms": 734.2
+    },
+    {
+      "name": "Scale pointer tool transforms source in one transaction",
+      "passed": true,
+      "ms": 789.1
+    },
+    {
+      "name": "Slant pointer tool transforms source in one transaction",
+      "passed": true,
+      "ms": 976.3
+    },
+    {
+      "name": "Anchor and Guides pointer tools create undoable attachment geometry",
+      "passed": true,
+      "ms": 1569.5
+    },
+    {
+      "name": "Lasso selects enclosed nodes; Zoom changes only the camera",
+      "passed": true,
+      "ms": 723.6
+    },
+    {
+      "name": "Escape rolls back construction and source locks block mutation",
+      "passed": true,
+      "ms": 1272.1
+    },
+    {
+      "name": "Undo cancels a live gesture; unrelated pointer events cannot finish it",
+      "passed": true,
+      "ms": 491.5
+    },
+    {
+      "name": "Start point, open/join, line/cubic conversion and distribution commands edit geometry",
+      "passed": true,
+      "ms": 1716.5
+    },
+    {
+      "name": "Tool settings, guide table and gesture reference are functional dialogs",
+      "passed": true,
+      "ms": 1370.4
+    },
+    {
+      "name": "TreeDataGrid font inventory is live",
+      "passed": true,
+      "ms": 166.6
+    },
+    {
+      "name": "GridWeb kerning edit synchronizes source and undo",
+      "passed": true,
+      "ms": 370.8
+    },
+    {
+      "name": "OpenType feature editing recompiles a real proof font",
+      "passed": true,
+      "ms": 738.1
+    },
+    {
+      "name": "SkiaSharp-compatible CFF import retrieves real outlines",
+      "passed": true,
+      "ms": 182.0
+    },
+    {
+      "name": "RichTextWeb notes persist editable rich-document source",
+      "passed": true,
+      "ms": 236.0
+    },
+    {
+      "name": "variable instance preview is read-only and reversible",
+      "passed": true,
+      "ms": 769.4
+    },
+    {
+      "name": "command palette keyboard dispatch and focus dialog",
+      "passed": true,
+      "ms": 244.2
+    },
+    {
+      "name": "shortcuts, validation, tables, export and capability dialogs",
+      "passed": true,
+      "ms": 777.9
+    },
+    {
+      "name": "compute interface verifies numeric results on selected backend",
+      "passed": true,
+      "ms": 2.6
+    },
+    {
+      "name": "storage capability qualification",
+      "passed": null,
+      "skipped": true,
+      "reason": "Not qualified: opaque-origin isolated rendering"
+    },
+    {
+      "name": "light and dark workspace appearance",
+      "passed": true,
+      "ms": 433.3
+    },
+    {
+      "name": "no unhandled page exceptions",
+      "passed": true,
+      "ms": 0.0
+    },
+    {
+      "name": "component lifetime disposes the complete workspace",
+      "passed": true,
+      "ms": 114.0
+    }
+  ],
+  "pageErrors": [],
+  "environment": {
+    "secure": false,
+    "webgpuExposed": false,
+    "renderer": "canvas",
+    "compiler": "inline (explicit)",
+    "skia": true,
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36"
+  },
+  "compiler": {
+    "equal": true,
+    "backend": "inline (explicit)"
+  },
+  "exportFaces": [
+    {
+      "format": "cff2",
+      "bytes": 30832,
+      "status": "loaded"
+    },
+    {
+      "format": "variable-cff2",
+      "bytes": 60984,
+      "status": "loaded"
+    },
+    {
+      "format": "woff2",
+      "bytes": 29780,
+      "status": "loaded"
+    },
+    {
+      "format": "variable-woff2",
+      "bytes": 49364,
+      "status": "loaded"
+    },
+    {
+      "format": "cff2-woff2",
+      "bytes": 60824,
+      "status": "loaded"
+    }
+  ],
+  "colorPixels": {
+    "red": 5368,
+    "blue": 6807,
+    "tables": [
+      "COLR",
+      "CPAL",
+      "GDEF",
+      "GPOS",
+      "OS/2",
+      "cmap",
+      "gasp",
+      "glyf",
+      "head",
+      "hhea",
+      "hmtx",
+      "kern",
+      "loca",
+      "maxp",
+      "name",
+      "post"
+    ],
+    "sceneLayers": 2
+  },
+  "colrv1Pixels": {
+    "red": 7300,
+    "blue": 4239,
+    "mixed": 10130
+  },
+  "colrv1NativePixels": {
+    "red": 6446,
+    "blue": 5056,
+    "mixed": 8862
+  },
+  "colrv1Exports": [
+    {
+      "format": "ttf",
+      "status": "loaded"
+    },
+    {
+      "format": "otf",
+      "status": "loaded"
+    },
+    {
+      "format": "variable",
+      "status": "loaded"
+    },
+    {
+      "format": "cff2",
+      "status": "loaded"
+    },
+    {
+      "format": "variable-cff2",
+      "status": "loaded"
+    },
+    {
+      "format": "woff2",
+      "status": "loaded"
+    },
+    {
+      "format": "variable-woff2",
+      "status": "loaded"
+    },
+    {
+      "format": "cff2-woff2",
+      "status": "loaded"
+    }
+  ],
+  "authoring": {
+    "commands": [
+      {
+        "id": "color.edit",
+        "label": "Color layers & palettes",
+        "keys": [],
+        "icon": "palette"
+      },
+      {
+        "id": "color.paint",
+        "label": "Color paint graph",
+        "keys": [],
+        "icon": "paintGraph"
+      },
+      {
+        "id": "file.new",
+        "label": "New font",
+        "keys": [
+          "Mod+KeyN"
+        ],
+        "icon": "new"
+      },
+      {
+        "id": "file.open",
+        "label": "Open font / project",
+        "keys": [
+          "Mod+KeyO"
+        ],
+        "icon": "open"
+      },
+      {
+        "id": "file.save",
+        "label": "Save project",
+        "keys": [
+          "Mod+KeyS"
+        ],
+        "icon": "save"
+      },
+      {
+        "id": "file.export",
+        "label": "Export font",
+        "keys": [
+          "Mod+KeyE"
+        ],
+        "icon": "export"
+      },
+      {
+        "id": "file.recent",
+        "label": "Recent projects",
+        "keys": [],
+        "icon": "history"
+      },
+      {
+        "id": "file.demo",
+        "label": "Open demonstration",
+        "keys": [],
+        "icon": "font"
+      },
+      {
+        "id": "edit.undo",
+        "label": "Undo",
+        "keys": [
+          "Mod+KeyZ"
+        ],
+        "icon": "undo"
+      },
+      {
+        "id": "edit.redo",
+        "label": "Redo",
+        "keys": [
+          "Mod+Shift+KeyZ",
+          "Mod+KeyY"
+        ],
+        "icon": "redo"
+      },
+      {
+        "id": "edit.copy",
+        "label": "Copy contours",
+        "keys": [
+          "Mod+KeyC"
+        ],
+        "icon": "copy"
+      },
+      {
+        "id": "edit.cut",
+        "label": "Cut contours",
+        "keys": [
+          "Mod+KeyX"
+        ],
+        "icon": "scissors"
+      },
+      {
+        "id": "edit.paste",
+        "label": "Paste contours",
+        "keys": [
+          "Mod+KeyV"
+        ],
+        "icon": "paste"
+      },
+      {
+        "id": "edit.delete",
+        "label": "Delete selection",
+        "keys": [
+          "Delete",
+          "Backspace"
+        ],
+        "icon": "delete"
+      },
+      {
+        "id": "edit.selectAll",
+        "label": "Select all nodes",
+        "keys": [
+          "Mod+KeyA"
+        ],
+        "icon": "select"
+      },
+      {
+        "id": "edit.deselect",
+        "label": "Deselect / cancel gesture",
+        "keys": [
+          "Escape"
+        ],
+        "icon": "select"
+      },
+      {
+        "id": "tool.select",
+        "label": "Contour tool",
+        "keys": [
+          "KeyA",
+          "Digit1"
+        ],
+        "icon": "select"
+      },
+      {
+        "id": "tool.pen",
+        "label": "Pen tool",
+        "keys": [
+          "KeyP",
+          "Digit5"
+        ],
+        "icon": "pen"
+      },
+      {
+        "id": "tool.rectangle",
+        "label": "Rectangle tool",
+        "keys": [
+          "KeyR"
+        ],
+        "icon": "rectangle"
+      },
+      {
+        "id": "tool.ellipse",
+        "label": "Ellipse tool",
+        "keys": [
+          "KeyO"
+        ],
+        "icon": "ellipse"
+      },
+      {
+        "id": "tool.insert",
+        "label": "Insert point tool",
+        "keys": [
+          "KeyJ"
+        ],
+        "icon": "insert"
+      },
+      {
+        "id": "tool.eraser",
+        "label": "Eraser tool",
+        "keys": [
+          "Digit2"
+        ],
+        "icon": "eraser"
+      },
+      {
+        "id": "tool.measure",
+        "label": "Measure tool",
+        "keys": [
+          "KeyG"
+        ],
+        "icon": "measure"
+      },
+      {
+        "id": "tool.pan",
+        "label": "Hand tool",
+        "keys": [
+          "KeyH"
+        ],
+        "icon": "pan"
+      },
+      {
+        "id": "tool.line",
+        "label": "Line tool",
+        "keys": [
+          "KeyL"
+        ],
+        "icon": "line"
+      },
+      {
+        "id": "tool.polygon",
+        "label": "Polygon tool",
+        "keys": [
+          "Shift+KeyL"
+        ],
+        "icon": "polygon"
+      },
+      {
+        "id": "tool.star",
+        "label": "Star tool",
+        "keys": [
+          "Shift+KeyO"
+        ],
+        "icon": "star"
+      },
+      {
+        "id": "tool.rounded",
+        "label": "Rounded rectangle tool",
+        "keys": [
+          "Shift+KeyR"
+        ],
+        "icon": "rounded"
+      },
+      {
+        "id": "tool.lasso",
+        "label": "Lasso tool",
+        "keys": [
+          "KeyQ"
+        ],
+        "icon": "lasso"
+      },
+      {
+        "id": "tool.pencil",
+        "label": "Pencil tool",
+        "keys": [
+          "KeyD"
+        ],
+        "icon": "pencil"
+      },
+      {
+        "id": "tool.brush",
+        "label": "Pressure brush tool",
+        "keys": [
+          "KeyB"
+        ],
+        "icon": "brush"
+      },
+      {
+        "id": "tool.knife",
+        "label": "Knife tool",
+        "keys": [
+          "KeyK"
+        ],
+        "icon": "knife"
+      },
+      {
+        "id": "tool.scissors",
+        "label": "Scissors tool",
+        "keys": [
+          "KeyC"
+        ],
+        "icon": "scissors"
+      },
+      {
+        "id": "tool.move",
+        "label": "Move tool",
+        "keys": [
+          "KeyV"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "tool.rotate",
+        "label": "Rotate tool",
+        "keys": [
+          "KeyT"
+        ],
+        "icon": "rotate"
+      },
+      {
+        "id": "tool.scale",
+        "label": "Scale tool",
+        "keys": [
+          "KeyS"
+        ],
+        "icon": "scale"
+      },
+      {
+        "id": "tool.slant",
+        "label": "Slant tool",
+        "keys": [
+          "KeyY"
+        ],
+        "icon": "slant"
+      },
+      {
+        "id": "tool.anchor",
+        "label": "Anchor tool",
+        "keys": [
+          "Shift+KeyA"
+        ],
+        "icon": "anchor"
+      },
+      {
+        "id": "tool.guide",
+        "label": "Guides tool",
+        "keys": [
+          "KeyI"
+        ],
+        "icon": "guide"
+      },
+      {
+        "id": "tool.zoom",
+        "label": "Zoom tool",
+        "keys": [
+          "KeyZ"
+        ],
+        "icon": "zoom"
+      },
+      {
+        "id": "node.smooth",
+        "label": "Make smooth",
+        "keys": [
+          "Shift+KeyS"
+        ],
+        "icon": "smooth"
+      },
+      {
+        "id": "node.corner",
+        "label": "Make corner",
+        "keys": [
+          "Shift+KeyC"
+        ],
+        "icon": "corner"
+      },
+      {
+        "id": "node.alignX",
+        "label": "Align X",
+        "keys": [],
+        "icon": "alignX"
+      },
+      {
+        "id": "node.alignY",
+        "label": "Align Y",
+        "keys": [],
+        "icon": "alignY"
+      },
+      {
+        "id": "outline.reverse",
+        "label": "Reverse contours",
+        "keys": [],
+        "icon": "reverse"
+      },
+      {
+        "id": "outline.extrema",
+        "label": "Add extrema",
+        "keys": [],
+        "icon": "extrema"
+      },
+      {
+        "id": "outline.winding",
+        "label": "Correct winding",
+        "keys": [],
+        "icon": "reverse"
+      },
+      {
+        "id": "outline.round",
+        "label": "Round coordinates",
+        "keys": [],
+        "icon": "round"
+      },
+      {
+        "id": "outline.close",
+        "label": "Close contours",
+        "keys": [],
+        "icon": "close"
+      },
+      {
+        "id": "outline.overlap",
+        "label": "Remove overlaps",
+        "keys": [
+          "Mod+Shift+KeyO"
+        ],
+        "icon": "overlap"
+      },
+      {
+        "id": "outline.union",
+        "label": "Union",
+        "keys": [],
+        "icon": "overlap"
+      },
+      {
+        "id": "outline.difference",
+        "label": "Difference",
+        "keys": [],
+        "icon": "overlap"
+      },
+      {
+        "id": "outline.intersect",
+        "label": "Intersect",
+        "keys": [],
+        "icon": "overlap"
+      },
+      {
+        "id": "outline.xor",
+        "label": "Xor",
+        "keys": [],
+        "icon": "overlap"
+      },
+      {
+        "id": "outline.stroke",
+        "label": "Expand stroke",
+        "keys": [],
+        "icon": "brush"
+      },
+      {
+        "id": "outline.transform",
+        "label": "Transform\u2026",
+        "keys": [],
+        "icon": "scale"
+      },
+      {
+        "id": "outline.mirrorX",
+        "label": "Mirror horizontal",
+        "keys": [],
+        "icon": "mirror"
+      },
+      {
+        "id": "outline.mirrorY",
+        "label": "Mirror vertical",
+        "keys": [],
+        "icon": "mirror"
+      },
+      {
+        "id": "nudge.ArrowLeft",
+        "label": "Nudge Left 1 u",
+        "keys": [
+          "ArrowLeft"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Shift+ArrowLeft",
+        "label": "Nudge Left 10 u",
+        "keys": [
+          "Shift+ArrowLeft"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Alt+ArrowLeft",
+        "label": "Nudge Left 0.1 u",
+        "keys": [
+          "Alt+ArrowLeft"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.ArrowRight",
+        "label": "Nudge Right 1 u",
+        "keys": [
+          "ArrowRight"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Shift+ArrowRight",
+        "label": "Nudge Right 10 u",
+        "keys": [
+          "Shift+ArrowRight"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Alt+ArrowRight",
+        "label": "Nudge Right 0.1 u",
+        "keys": [
+          "Alt+ArrowRight"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.ArrowUp",
+        "label": "Nudge Up 1 u",
+        "keys": [
+          "ArrowUp"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Shift+ArrowUp",
+        "label": "Nudge Up 10 u",
+        "keys": [
+          "Shift+ArrowUp"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Alt+ArrowUp",
+        "label": "Nudge Up 0.1 u",
+        "keys": [
+          "Alt+ArrowUp"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.ArrowDown",
+        "label": "Nudge Down 1 u",
+        "keys": [
+          "ArrowDown"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Shift+ArrowDown",
+        "label": "Nudge Down 10 u",
+        "keys": [
+          "Shift+ArrowDown"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "nudge.Alt+ArrowDown",
+        "label": "Nudge Down 0.1 u",
+        "keys": [
+          "Alt+ArrowDown"
+        ],
+        "icon": "move"
+      },
+      {
+        "id": "glyph.new",
+        "label": "Add glyph",
+        "keys": [
+          "Mod+Shift+KeyN"
+        ],
+        "icon": "new"
+      },
+      {
+        "id": "glyph.duplicate",
+        "label": "Duplicate glyph",
+        "keys": [],
+        "icon": "copy"
+      },
+      {
+        "id": "glyph.delete",
+        "label": "Delete glyph",
+        "keys": [],
+        "icon": "delete"
+      },
+      {
+        "id": "glyph.center",
+        "label": "Center in advance",
+        "keys": [],
+        "icon": "alignX"
+      },
+      {
+        "id": "glyph.anchor",
+        "label": "Add anchor",
+        "keys": [],
+        "icon": "anchor"
+      },
+      {
+        "id": "glyph.component",
+        "label": "Add component",
+        "keys": [],
+        "icon": "layers"
+      },
+      {
+        "id": "glyph.decompose",
+        "label": "Decompose components",
+        "keys": [],
+        "icon": "layers"
+      },
+      {
+        "id": "glyph.svg",
+        "label": "Export glyph SVG",
+        "keys": [],
+        "icon": "export"
+      },
+      {
+        "id": "glyph.next",
+        "label": "Next glyph",
+        "keys": [
+          "BracketRight"
+        ],
+        "icon": "redo"
+      },
+      {
+        "id": "glyph.previous",
+        "label": "Previous glyph",
+        "keys": [
+          "BracketLeft"
+        ],
+        "icon": "undo"
+      },
+      {
+        "id": "font.info",
+        "label": "Font info",
+        "keys": [
+          "Mod+Alt+KeyI"
+        ],
+        "icon": "font"
+      },
+      {
+        "id": "font.validate",
+        "label": "Validate font",
+        "keys": [
+          "Mod+Shift+KeyV"
+        ],
+        "icon": "check"
+      },
+      {
+        "id": "font.tables",
+        "label": "Inspect compiled tables",
+        "keys": [],
+        "icon": "grid"
+      },
+      {
+        "id": "kern.pair",
+        "label": "Edit kerning pair",
+        "keys": [
+          "Mod+Alt+KeyK"
+        ],
+        "icon": "kern"
+      },
+      {
+        "id": "kern.groups",
+        "label": "Kerning groups",
+        "keys": [],
+        "icon": "layers"
+      },
+      {
+        "id": "master.add",
+        "label": "Add master",
+        "keys": [],
+        "icon": "layers"
+      },
+      {
+        "id": "axis.add",
+        "label": "Add axis",
+        "keys": [],
+        "icon": "axes"
+      },
+      {
+        "id": "master.compatibility",
+        "label": "Check compatibility",
+        "keys": [],
+        "icon": "check"
+      },
+      {
+        "id": "master.instance",
+        "label": "Generate static instance",
+        "keys": [],
+        "icon": "font"
+      },
+      {
+        "id": "view.glyph",
+        "label": "Outline editor",
+        "keys": [],
+        "icon": "pen"
+      },
+      {
+        "id": "view.catalog",
+        "label": "Font inventory",
+        "keys": [],
+        "icon": "grid"
+      },
+      {
+        "id": "view.kerning",
+        "label": "Kerning matrix",
+        "keys": [],
+        "icon": "kern"
+      },
+      {
+        "id": "view.features",
+        "label": "OpenType features",
+        "keys": [],
+        "icon": "code"
+      },
+      {
+        "id": "view.notes",
+        "label": "Design notes",
+        "keys": [],
+        "icon": "note"
+      },
+      {
+        "id": "view.masters",
+        "label": "Masters & axes",
+        "keys": [],
+        "icon": "axes"
+      },
+      {
+        "id": "view.proof",
+        "label": "Live proof",
+        "keys": [],
+        "icon": "preview"
+      },
+      {
+        "id": "view.output",
+        "label": "Output",
+        "keys": [],
+        "icon": "code"
+      },
+      {
+        "id": "view.inspector",
+        "label": "Inspector",
+        "keys": [],
+        "icon": "settings"
+      },
+      {
+        "id": "features.apply",
+        "label": "Apply features",
+        "keys": [],
+        "icon": "code"
+      },
+      {
+        "id": "view.fit",
+        "label": "Fit glyph",
+        "keys": [
+          "KeyF",
+          "Mod+Digit0"
+        ],
+        "icon": "fit"
+      },
+      {
+        "id": "view.zoomIn",
+        "label": "Zoom in",
+        "keys": [
+          "Mod+Equal"
+        ],
+        "icon": "zoom"
+      },
+      {
+        "id": "view.zoomOut",
+        "label": "Zoom out",
+        "keys": [
+          "Mod+Minus"
+        ],
+        "icon": "zoom"
+      },
+      {
+        "id": "view.grid",
+        "label": "Toggle grid",
+        "keys": [
+          "Mod+KeyG"
+        ],
+        "icon": "grid"
+      },
+      {
+        "id": "view.fill",
+        "label": "Toggle fill",
+        "keys": [
+          "Shift+KeyF"
+        ],
+        "icon": "fill"
+      },
+      {
+        "id": "view.nodes",
+        "label": "Toggle nodes",
+        "keys": [
+          "Shift+KeyN"
+        ],
+        "icon": "select"
+      },
+      {
+        "id": "view.guides",
+        "label": "Toggle guides",
+        "keys": [
+          "Mod+Shift+KeyG"
+        ],
+        "icon": "guide"
+      },
+      {
+        "id": "view.preview",
+        "label": "Clean preview",
+        "keys": [
+          "Tab"
+        ],
+        "icon": "preview"
+      },
+      {
+        "id": "view.snap",
+        "label": "Toggle snapping",
+        "keys": [
+          "Shift+KeyG"
+        ],
+        "icon": "snap"
+      },
+      {
+        "id": "view.theme",
+        "label": "Toggle appearance",
+        "keys": [],
+        "icon": "palette"
+      },
+      {
+        "id": "view.fullscreen",
+        "label": "Full screen",
+        "keys": [],
+        "icon": "fullscreen"
+      },
+      {
+        "id": "layout.undo",
+        "label": "Undo layout",
+        "keys": [],
+        "icon": "undo"
+      },
+      {
+        "id": "layout.redo",
+        "label": "Redo layout",
+        "keys": [],
+        "icon": "redo"
+      },
+      {
+        "id": "commands.palette",
+        "label": "Command palette",
+        "keys": [
+          "Mod+Shift+KeyP"
+        ],
+        "icon": "zoom"
+      },
+      {
+        "id": "commands.bindings",
+        "label": "Keyboard shortcuts",
+        "keys": [
+          "F1"
+        ],
+        "icon": "keyboard"
+      },
+      {
+        "id": "automation.recipe",
+        "label": "Run recipe",
+        "keys": [],
+        "icon": "play"
+      },
+      {
+        "id": "compute.verify",
+        "label": "Verify GPU interpolation",
+        "keys": [],
+        "icon": "check"
+      },
+      {
+        "id": "app.about",
+        "label": "About & capabilities",
+        "keys": [],
+        "icon": "help"
+      },
+      {
+        "id": "edit.invert",
+        "label": "Invert node selection",
+        "keys": [
+          "Mod+Shift+KeyA"
+        ],
+        "icon": "select"
+      },
+      {
+        "id": "node.distributeX",
+        "label": "Distribute horizontally",
+        "keys": [],
+        "icon": "distributeX"
+      },
+      {
+        "id": "node.distributeY",
+        "label": "Distribute vertically",
+        "keys": [],
+        "icon": "distributeY"
+      },
+      {
+        "id": "node.start",
+        "label": "Set contour start point",
+        "keys": [],
+        "icon": "anchor"
+      },
+      {
+        "id": "outline.join",
+        "label": "Join selected endpoints",
+        "keys": [
+          "Mod+KeyJ"
+        ],
+        "icon": "join"
+      },
+      {
+        "id": "outline.open",
+        "label": "Open contours at selection",
+        "keys": [],
+        "icon": "scissors"
+      },
+      {
+        "id": "outline.lines",
+        "label": "Convert segments to lines",
+        "keys": [],
+        "icon": "line"
+      },
+      {
+        "id": "outline.curves",
+        "label": "Convert segments to cubic",
+        "keys": [],
+        "icon": "smooth"
+      },
+      {
+        "id": "outline.clean",
+        "label": "Remove duplicate line nodes",
+        "keys": [],
+        "icon": "clean"
+      },
+      {
+        "id": "glyph.guides",
+        "label": "Edit glyph guides",
+        "keys": [],
+        "icon": "settings"
+      },
+      {
+        "id": "glyph.clearGuides",
+        "label": "Clear glyph guides",
+        "keys": [],
+        "icon": "guide"
+      },
+      {
+        "id": "glyph.lock",
+        "label": "Lock source layer",
+        "keys": [],
+        "icon": "lock"
+      },
+      {
+        "id": "tool.options",
+        "label": "Drawing tool options",
+        "keys": [
+          "Shift+Enter"
+        ],
+        "icon": "settings"
+      },
+      {
+        "id": "app.toolHelp",
+        "label": "Tool reference & gestures",
+        "keys": [
+          "Shift+F1"
+        ],
+        "icon": "settings"
+      },
+      {
+        "id": "outline.modifiers",
+        "label": "Non-destructive modifiers",
+        "keys": [],
+        "icon": "layers"
+      },
+      {
+        "id": "outline.bake",
+        "label": "Bake outline modifiers",
+        "keys": [],
+        "icon": "check"
+      },
+      {
+        "id": "file.original",
+        "label": "Download untouched original",
+        "keys": [],
+        "icon": "open"
+      },
+      {
+        "id": "file.metadataExport",
+        "label": "Lossless metadata-only export",
+        "keys": [],
+        "icon": "export"
+      },
+      {
+        "id": "file.recovery",
+        "label": "Recovery journal",
+        "keys": [],
+        "icon": "history"
+      },
+      {
+        "id": "master.metrics",
+        "label": "Master vertical metrics",
+        "keys": [],
+        "icon": "measure"
+      }
+    ],
+    "menus": [
+      {
+        "label": "File",
+        "items": [
+          "file.new",
+          "file.open",
+          "file.recent",
+          null,
+          "file.save",
+          "file.export",
+          "file.original",
+          "file.metadataExport",
+          "file.recovery",
+          "glyph.svg",
+          null,
+          "file.demo"
+        ]
+      },
+      {
+        "label": "Edit",
+        "items": [
+          "edit.undo",
+          "edit.redo",
+          null,
+          "edit.cut",
+          "edit.copy",
+          "edit.paste",
+          "edit.delete",
+          null,
+          "edit.selectAll",
+          "edit.deselect",
+          "edit.invert",
+          null,
+          "nudge.ArrowLeft",
+          "nudge.Shift+ArrowLeft",
+          "nudge.Alt+ArrowLeft",
+          "nudge.ArrowRight",
+          "nudge.Shift+ArrowRight",
+          "nudge.Alt+ArrowRight",
+          "nudge.ArrowUp",
+          "nudge.Shift+ArrowUp",
+          "nudge.Alt+ArrowUp",
+          "nudge.ArrowDown",
+          "nudge.Shift+ArrowDown",
+          "nudge.Alt+ArrowDown"
+        ]
+      },
+      {
+        "label": "View",
+        "items": [
+          "view.glyph",
+          "view.catalog",
+          "view.kerning",
+          "view.features",
+          "view.notes",
+          null,
+          "view.fit",
+          "view.zoomIn",
+          "view.zoomOut",
+          null,
+          "view.grid",
+          "view.fill",
+          "view.nodes",
+          "view.guides",
+          "view.preview",
+          "view.snap",
+          null,
+          "view.theme",
+          "view.fullscreen"
+        ]
+      },
+      {
+        "label": "Font",
+        "items": [
+          "font.info",
+          "glyph.new",
+          "master.add",
+          "axis.add",
+          "master.instance",
+          "master.compatibility",
+          "master.metrics",
+          null,
+          "kern.pair",
+          "kern.groups",
+          "color.paint",
+          "color.edit",
+          "features.apply",
+          null,
+          "font.validate",
+          "font.tables"
+        ]
+      },
+      {
+        "label": "Glyph",
+        "items": [
+          "glyph.new",
+          "glyph.duplicate",
+          "glyph.delete",
+          "glyph.previous",
+          "glyph.next",
+          null,
+          "glyph.center",
+          "glyph.anchor",
+          "glyph.guides",
+          "glyph.clearGuides",
+          "glyph.lock",
+          null,
+          "glyph.component",
+          "glyph.decompose"
+        ]
+      },
+      {
+        "label": "Contour",
+        "items": [
+          "node.smooth",
+          "node.corner",
+          "node.start",
+          "outline.extrema",
+          null,
+          "outline.join",
+          "outline.open",
+          "outline.close",
+          "outline.reverse",
+          "outline.winding",
+          null,
+          "outline.lines",
+          "outline.curves",
+          "outline.clean",
+          "outline.round",
+          "outline.modifiers",
+          "outline.bake",
+          null,
+          "outline.overlap",
+          "outline.union",
+          "outline.difference",
+          "outline.intersect",
+          "outline.xor",
+          "outline.stroke",
+          null,
+          "outline.transform",
+          "outline.mirrorX",
+          "outline.mirrorY",
+          "node.alignX",
+          "node.alignY",
+          "node.distributeX",
+          "node.distributeY"
+        ]
+      },
+      {
+        "label": "Tools",
+        "items": [
+          "tool.select",
+          "tool.pen",
+          "tool.rectangle",
+          "tool.ellipse",
+          "tool.insert",
+          "tool.eraser",
+          "tool.measure",
+          "tool.pan",
+          "tool.line",
+          "tool.polygon",
+          "tool.star",
+          "tool.rounded",
+          "tool.lasso",
+          "tool.pencil",
+          "tool.brush",
+          "tool.knife",
+          "tool.scissors",
+          "tool.move",
+          "tool.rotate",
+          "tool.scale",
+          "tool.slant",
+          "tool.anchor",
+          "tool.guide",
+          "tool.zoom",
+          null,
+          "tool.options",
+          "automation.recipe",
+          "compute.verify"
+        ]
+      },
+      {
+        "label": "Window",
+        "items": [
+          "view.inspector",
+          "view.masters",
+          "view.proof",
+          "view.output",
+          null,
+          "layout.undo",
+          "layout.redo"
+        ]
+      },
+      {
+        "label": "Help",
+        "items": [
+          "commands.palette",
+          "commands.bindings",
+          "app.toolHelp",
+          "app.about"
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "id": "select",
+        "label": "Contour",
+        "key": "A"
+      },
+      {
+        "id": "pen",
+        "label": "Pen",
+        "key": "P"
+      },
+      {
+        "id": "rectangle",
+        "label": "Rectangle",
+        "key": "R"
+      },
+      {
+        "id": "ellipse",
+        "label": "Ellipse",
+        "key": "O"
+      },
+      {
+        "id": "insert",
+        "label": "Insert point",
+        "key": "J"
+      },
+      {
+        "id": "eraser",
+        "label": "Eraser",
+        "key": "2"
+      },
+      {
+        "id": "measure",
+        "label": "Measure",
+        "key": "G"
+      },
+      {
+        "id": "pan",
+        "label": "Hand",
+        "key": "H"
+      },
+      {
+        "id": "line",
+        "label": "Line",
+        "key": "L"
+      },
+      {
+        "id": "polygon",
+        "label": "Polygon",
+        "key": "Shift+L"
+      },
+      {
+        "id": "star",
+        "label": "Star",
+        "key": "Shift+O"
+      },
+      {
+        "id": "rounded",
+        "label": "Rounded rectangle",
+        "key": "Shift+R"
+      },
+      {
+        "id": "lasso",
+        "label": "Lasso",
+        "key": "Q"
+      },
+      {
+        "id": "pencil",
+        "label": "Pencil",
+        "key": "D"
+      },
+      {
+        "id": "brush",
+        "label": "Pressure brush",
+        "key": "B"
+      },
+      {
+        "id": "knife",
+        "label": "Knife",
+        "key": "K"
+      },
+      {
+        "id": "scissors",
+        "label": "Scissors",
+        "key": "C"
+      },
+      {
+        "id": "move",
+        "label": "Move",
+        "key": "V"
+      },
+      {
+        "id": "rotate",
+        "label": "Rotate",
+        "key": "T"
+      },
+      {
+        "id": "scale",
+        "label": "Scale",
+        "key": "S"
+      },
+      {
+        "id": "slant",
+        "label": "Slant",
+        "key": "Y"
+      },
+      {
+        "id": "anchor",
+        "label": "Anchor",
+        "key": "Shift+A"
+      },
+      {
+        "id": "guide",
+        "label": "Guides",
+        "key": "I"
+      },
+      {
+        "id": "zoom",
+        "label": "Zoom",
+        "key": "Z"
+      }
+    ],
+    "iconCount": 68
+  },
+  "compute": {
+    "available": false,
+    "backend": "cpu-f64",
+    "result": [
+      75,
+      85,
+      95,
+      105
+    ]
+  },
+  "storage": "Not qualified: opaque-origin isolated rendering"
+}

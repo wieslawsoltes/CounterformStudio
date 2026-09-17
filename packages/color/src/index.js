@@ -1,3 +1,4 @@
+import { compileCOLRv1, readCOLRv1, validatePaintSource } from '@wieslawsoltes/counterform-colrv1';
 import { Reader, Writer } from '@wieslawsoltes/counterform-binary';
 
 /** CPAL foreground sentinel. Layer glyphs always use their monochrome outlines (no recursion). */
@@ -14,7 +15,7 @@ export function validateColorSource(source) {
         if (!glyph || glyph.colorLayers !== undefined && !Array.isArray(glyph.colorLayers))
             fail('colorLayers must be an array');
     }
-    const colored = source.glyphs.some(g => g.colorLayers?.length);
+    const colored = source.glyphs.some(g => g.colorLayers?.length || g.colorPaint);
     if (!colored && source.palettes === undefined) return source;
     const palettes = source.palettes;
     if (!Array.isArray(palettes) || !palettes.length || palettes.length > 65535) fail('at least one palette is required');
@@ -38,14 +39,20 @@ export function validateColorSource(source) {
             if (glyph.export !== false && ids.get(layer.glyphId).export === false) fail(`layer glyph in ${glyph.name} is excluded from export`);
         }
     }
+    for (const [key,length] of [['paletteLabels',palettes.length],['paletteEntryLabels',count],['paletteTypes',palettes.length]]) {
+        const a=source[key];if(a===undefined)continue;
+        if(!Array.isArray(a)||a.length!==length)fail(key+' length mismatch');
+        for(const v of a)if(key==='paletteTypes'?(!Number.isInteger(v)||v<0||v>3):(typeof v!=='string'||v.length>255))fail('invalid '+key);
+    }
+    validatePaintSource(source);
     return source;
 }
 /** Independent compiler: glyphOrder must be the exact order used by glyf/CFF and cmap. */
-export function compileColorTables(source, glyphOrder) {
+export function compileColorTables(source, glyphOrder, {namePlan=createPaletteNamePlan(source)} = {}) {
     validateColorSource(source);
     const ids = new Map(glyphOrder.map((g, i) => [g.id, i]));
     const bases = glyphOrder.map((g, id) => ({g, id})).filter(({g}) => g.colorLayers?.length);
-    if (!bases.length) return new Map();
+    if (!bases.length && !glyphOrder.some(g=>g.colorPaint)) return new Map();
     if (glyphOrder.length > 65535 || ids.size !== glyphOrder.length) fail('invalid export glyph order');
     const layers = [], records = [];
     for (const {g, id} of bases) {
@@ -60,20 +67,32 @@ export function compileColorTables(source, glyphOrder) {
     for (const record of records) colr.u16(record.id).u16(record.first).u16(record.count);
     for (const layer of layers) colr.u16(layer.gid).u16(layer.index);
     const palettes = source.palettes, count = palettes[0].length;
-    const cpal = new Writer().u16(0).u16(count).u16(palettes.length).u16(count * palettes.length).u32(12 + palettes.length * 2);
+    const v1=!!(source.paletteTypes||source.paletteLabels||source.paletteEntryLabels);
+    const cpal = new Writer().u16(v1?1:0).u16(count).u16(palettes.length).u16(count * palettes.length).u32(12 + palettes.length * 2+(v1?12:0));
     palettes.forEach((_, i) => cpal.u16(i * count));
+    const metadataAt=cpal.pos;if(v1)cpal.zeros(12);
     for (const palette of palettes) for (const color of palette) {
         const [red, green, blue, alpha] = parseColor(color);
         cpal.u8(blue).u8(green).u8(red).u8(alpha);
     }
-    return new Map([['COLR', colr.finish()], ['CPAL', cpal.finish()]]);
+    if(v1)for(const [i,key,values]of [[0,'paletteTypes',source.paletteTypes],[1,'paletteLabels',namePlan.paletteLabels],[2,'paletteEntryLabels',namePlan.paletteEntryLabels]]){
+        if(!source[key])continue;cpal.patch32(metadataAt+i*4,cpal.pos);for(const v of values)i===0?cpal.u32(v):cpal.u16(v);
+    }
+    return new Map([['COLR', compileCOLRv1(source,glyphOrder,{legacyCOLR:colr.finish()})], ['CPAL', cpal.finish()]]);
 }
-/** Decode COLRv0 and CPAL v0 only. Other versions are rejected, never claimed as reconstructed. */
-export function readColorTables(colrBytes, cpalBytes, glyphOrder) {
+/** Allocate labels after supplied variation names; callers merge names into the sfnt name table. */
+export function createPaletteNamePlan(source,extraNames=[]) {
+    let next=extraNames.reduce((n,[id])=>{if(!Number.isInteger(id)||id<0||id>32767)fail('invalid extra name ID');return Math.max(n,id);},255)+1;const names=[];
+    const allocate=values=>values?.map(label=>{if(!label)return 65535;if(next>32767)fail('palette name ID budget');const id=next++;names.push([id,label]);return id;});
+    return {names,paletteLabels:allocate(source.paletteLabels),paletteEntryLabels:allocate(source.paletteEntryLabels)};
+}
+
+/** Decode COLRv0/v1 and CPALv0/v1. Variable paint formats are explicitly rejected. */
+export function readColorTables(colrBytes, cpalBytes, glyphOrder, {names=new Map()} = {}) {
     const cpal = new Reader(cpalBytes), colr = new Reader(colrBytes);
-    if (cpal.u16() !== 0 || colr.u16() !== 0) fail('only COLRv0 and CPAL v0 are reconstructed');
+    const cv=cpal.u16(),lv=colr.u16();if(cv>1||lv>1)fail('unsupported COLR/CPAL version');
     const entries = cpal.u16(), paletteCount = cpal.u16(), colorCount = cpal.u16(), colorOffset = cpal.u32();
-    if (!entries || !paletteCount || entries * paletteCount > 65535 || colorOffset < 12 + paletteCount * 2) fail('invalid CPAL header or expanded palette budget');
+    if (!entries || !paletteCount || entries * paletteCount > 65535 || colorOffset < 12 + paletteCount * 2 + (cv?12:0)) fail('invalid CPAL header or expanded palette budget');
     cpal.need(colorCount * 4, colorOffset);
     const palettes = [];
     for (let i = 0; i < paletteCount; i++) {
@@ -86,8 +105,16 @@ export function readColorTables(colrBytes, cpalBytes, glyphOrder) {
         }
         palettes.push(palette);
     }
+    const metadata={};
+    if(cv){const offsets=[cpal.u32(),cpal.u32(),cpal.u32()];for(let i=0;i<3;i++){
+        const offset=offsets[i];if(!offset)continue;const n=i===2?entries:paletteCount,size=i===0?4:2;
+        if(offset<12+paletteCount*2+12)fail('invalid CPAL metadata offset');
+        const a=cpal.slice(offset,n*size),values=Array.from({length:n},()=>i===0?a.u32():a.u16());
+        if(i===0){if(values.some(v=>v>3))fail('unsupported palette type flags');metadata.paletteTypes=values;}
+        else {if(values.some(v=>v!==65535&&(v<256||v>32767)))fail('invalid CPAL label name ID');metadata[i===1?'paletteLabelIds':'paletteEntryLabelIds']=values;metadata[i===1?'paletteLabels':'paletteEntryLabels']=values.map(id=>id===65535?'':names.get(id)||'');}
+    }}
     const baseCount = colr.u16(), baseOffset = colr.u32(), layerOffset = colr.u32(), layerCount = colr.u16();
-    if ((baseCount && baseOffset < 14) || (layerCount && layerOffset < 14)) fail('invalid COLR offsets');
+    if ((baseCount && baseOffset < (lv?34:14)) || (layerCount && layerOffset < (lv?34:14))) fail('invalid COLR offsets');
     if (baseCount && layerCount && baseOffset < layerOffset + layerCount * 4 && layerOffset < baseOffset + baseCount * 6)
         fail('overlapping COLR arrays');
     const bases = colr.slice(baseOffset, baseCount * 6), layers = colr.slice(layerOffset, layerCount * 4);
@@ -106,5 +133,5 @@ export function readColorTables(colrBytes, cpalBytes, glyphOrder) {
         }
         colorLayers.set(glyphOrder[gid].id, result);
     }
-    return {palettes, colorLayers};
+    return {palettes, colorLayers, ...metadata, ...(lv?readCOLRv1(colrBytes,glyphOrder,{paletteEntries:entries}):{colorPaints:new Map(),colorClips:new Map()})};
 }

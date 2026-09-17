@@ -1,0 +1,780 @@
+
+> counterform-studio@0.5.0 test
+> node scripts/bootstrap.mjs && node --test tests/*.test.mjs
+
+Local workspace and vendor packages linked. No network/install scripts executed.
+(node:3146) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Built 38 relative-URL compiler worker modules.
+TAP version 13
+# Subtest: compiled color cache rejects other documents, revisions, masters and absent glyph IDs
+ok 1 - compiled color cache rejects other documents, revisions, masters and absent glyph IDs
+  ---
+  duration_ms: 0.651956
+  type: 'test'
+  ...
+# Subtest: color font replacement disposes native resources and preserves existing cache on allocation failure
+ok 2 - color font replacement disposes native resources and preserves existing cache on allocation failure
+  ---
+  duration_ms: 0.910507
+  type: 'test'
+  ...
+# Subtest: color parser preserves RGBA and rejects unsupported syntax
+ok 3 - color parser preserves RGBA and rejects unsupported syntax
+  ---
+  duration_ms: 2.028628
+  type: 'test'
+  ...
+# Subtest: COLRv0 and CPAL serialize exact layer order, foreground and BGRA bytes
+ok 4 - COLRv0 and CPAL serialize exact layer order, foreground and BGRA bytes
+  ---
+  duration_ms: 19.032743
+  type: 'test'
+  ...
+# Subtest: color tables compile in TTF, CFF and variable TrueType
+ok 5 - color tables compile in TTF, CFF and variable TrueType
+  ---
+  duration_ms: 195.985864
+  type: 'test'
+  ...
+# Subtest: TrueType import reconstructs supported color data with remapped stable IDs
+ok 6 - TrueType import reconstructs supported color data with remapped stable IDs
+  ---
+  duration_ms: 106.661238
+  type: 'test'
+  ...
+# Subtest: color source rejects missing, unexported and out-of-range references
+ok 7 - color source rejects missing, unexported and out-of-range references
+  ---
+  duration_ms: 43.398437
+  type: 'test'
+  ...
+# Subtest: bounded color decoder rejects truncation, invalid offsets and unsupported versions
+ok 8 - bounded color decoder rejects truncation, invalid offsets and unsupported versions
+  ---
+  duration_ms: 6.035888
+  type: 'test'
+  ...
+# Subtest: monochrome fonts do not gain color tables
+ok 9 - monochrome fonts do not gain color tables
+  ---
+  duration_ms: 12.351029
+  type: 'test'
+  ...
+# Subtest: malformed color arrays and expanded palette memory budgets are rejected
+ok 10 - malformed color arrays and expanded palette memory budgets are rejected
+  ---
+  duration_ms: 5.66628
+  type: 'test'
+  ...
+# Subtest: all static COLRv1 formats roundtrip, including sweep angle bias and transforms
+ok 11 - all static COLRv1 formats roundtrip, including sweep angle bias and transforms
+  ---
+  duration_ms: 20.042461
+  type: 'test'
+  ...
+# Subtest: v0 fallback arrays coexist with v1 base graphs and CPALv1 named palettes
+ok 12 - v0 fallback arrays coexist with v1 base graphs and CPALv1 named palettes
+  ---
+  duration_ms: 10.022377
+  type: 'test'
+  ...
+# Subtest: all composite mode encodings survive independent source reconstruction
+ok 13 - all composite mode encodings survive independent source reconstruction
+  ---
+  duration_ms: 26.546367
+  type: 'test'
+  ...
+# Subtest: nested layer groups retain independent stable layer-list ranges
+ok 14 - nested layer groups retain independent stable layer-list ranges
+  ---
+  duration_ms: 10.075397
+  type: 'test'
+  ...
+# Subtest: all font compilers preserve both color versions
+ok 15 - all font compilers preserve both color versions
+  ---
+  duration_ms: 214.270446
+  type: 'test'
+  ...
+# Subtest: TrueType import restores paint references and named palettes semantically
+ok 16 - TrueType import restores paint references and named palettes semantically
+  ---
+  duration_ms: 44.783988
+  type: 'test'
+  ...
+# Subtest: cycles, excluded references, invalid numeric values, variable paints and unbounded roots fail
+ok 17 - cycles, excluded references, invalid numeric values, variable paints and unbounded roots fail
+  ---
+  duration_ms: 68.117946
+  type: 'test'
+  ...
+# Subtest: COLRv1 decoder rejects every truncation, out-of-range offsets and variable stores
+ok 18 - COLRv1 decoder rejects every truncation, out-of-range offsets and variable stores
+  ---
+  duration_ms: 23.478626
+  type: 'test'
+  ...
+# Subtest: CPALv1 decoder rejects truncated metadata and invalid label offsets
+ok 19 - CPALv1 decoder rejects truncated metadata and invalid label offsets
+  ---
+  duration_ms: 6.913505
+  type: 'test'
+  ...
+# Subtest: glyph-scoped history validates color references against the complete source
+ok 20 - glyph-scoped history validates color references against the complete source
+  ---
+  duration_ms: 20.168693
+  type: 'test'
+  ...
+# Subtest: duplicating a color glyph remaps self-outline clips, preserving other references
+ok 21 - duplicating a color glyph remaps self-outline clips, preserving other references
+  ---
+  duration_ms: 7.758513
+  type: 'test'
+  ...
+# Subtest: real worker compiles TTF/CFF/variable/WOFF identical to synchronous compiler
+ok 22 - real worker compiles TTF/CFF/variable/WOFF identical to synchronous compiler
+  ---
+  duration_ms: 433.791433
+  type: 'test'
+  ...
+# Subtest: real worker snapshots source at enqueue and validates, inspects, recovers from errors
+ok 23 - real worker snapshots source at enqueue and validates, inspects, recovers from errors
+  ---
+  duration_ms: 327.222878
+  type: 'test'
+  ...
+# Subtest: priority queues retain FIFO ties and enforce an active-inclusive budget
+ok 24 - priority queues retain FIFO ties and enforce an active-inclusive budget
+  ---
+  duration_ms: 1.30242
+  type: 'test'
+  ...
+# Subtest: cancelling active work terminates worker and next task starts on a fresh worker
+ok 25 - cancelling active work terminates worker and next task starts on a fresh worker
+  ---
+  duration_ms: 1.218232
+  type: 'test'
+  ...
+# Subtest: keyed jobs supersede queued requests without dispatch and dispose settles all promises
+ok 26 - keyed jobs supersede queued requests without dispatch and dispose settles all promises
+  ---
+  duration_ms: 0.390019
+  type: 'test'
+  ...
+# Subtest: worker timeout kills stalled work and reports TimeoutError
+ok 27 - worker timeout kills stalled work and reports TimeoutError
+  ---
+  duration_ms: 25.055041
+  type: 'test'
+  ...
+# Subtest: worker load failure is explicit and never silently runs on caller thread
+ok 28 - worker load failure is explicit and never silently runs on caller thread
+  ---
+  duration_ms: 20.749421
+  type: 'test'
+  ...
+# Subtest: inline execution is explicit and pre-aborted work does not compile
+ok 29 - inline execution is explicit and pre-aborted work does not compile
+  ---
+  duration_ms: 50.462025
+  type: 'test'
+  ...
+# Subtest: progress exceptions cannot strand the worker and crashes reject active request
+ok 30 - progress exceptions cannot strand the worker and crashes reject active request
+  ---
+  duration_ms: 1.181737
+  type: 'test'
+  ...
+# Subtest: generated browser worker graph executes in a fresh directory without npm or import maps
+ok 31 - generated browser worker graph executes in a fresh directory without npm or import maps
+  ---
+  duration_ms: 407.448594
+  type: 'test'
+  ...
+# Subtest: original vector icon URLs are packaged, safe and cover all 24 tools
+ok 32 - original vector icon URLs are packaged, safe and cover all 24 tools
+  ---
+  duration_ms: 74.62991
+  type: 'test'
+  ...
+# Subtest: polygon and star topology, dimensions, limits and unique nodes
+ok 33 - polygon and star topology, dimensions, limits and unique nodes
+  ---
+  duration_ms: 0.50902
+  type: 'test'
+  ...
+# Subtest: rounded rectangles retain exact box, tangencies and bounded corner radius
+ok 34 - rounded rectangles retain exact box, tangencies and bounded corner radius
+  ---
+  duration_ms: 0.618616
+  type: 'test'
+  ...
+# Subtest: polyline simplification preserves endpoints, pressure and immutability
+ok 35 - polyline simplification preserves endpoints, pressure and immutability
+  ---
+  duration_ms: 1.717087
+  type: 'test'
+  ...
+# Subtest: pressure brush forms a closed bounded stroke with distinct widths
+ok 36 - pressure brush forms a closed bounded stroke with distinct widths
+  ---
+  duration_ms: 0.402068
+  type: 'test'
+  ...
+# Subtest: opening a cubic contour preserves every edge including closing edge
+ok 37 - opening a cubic contour preserves every edge including closing edge
+  ---
+  duration_ms: 0.628521
+  type: 'test'
+  ...
+# Subtest: scissors split an open cubic and reject endpoint no-ops
+ok 38 - scissors split an open cubic and reject endpoint no-ops
+  ---
+  duration_ms: 0.466726
+  type: 'test'
+  ...
+# Subtest: knife cuts rectangle into two real contours without losing area
+ok 39 - knife cuts rectangle into two real contours without losing area
+  ---
+  duration_ms: 0.806881
+  type: 'test'
+  ...
+# Subtest: knife bisects cubic arcs at computed intersections, not flattened segments
+ok 40 - knife bisects cubic arcs at computed intersections, not flattened segments
+  ---
+  duration_ms: 0.757175
+  type: 'test'
+  ...
+# Subtest: knife rejects vertex and incomplete crossings instead of corrupting geometry
+ok 41 - knife rejects vertex and incomplete crossings instead of corrupting geometry
+  ---
+  duration_ms: 0.724586
+  type: 'test'
+  ...
+# Subtest: endpoint joining orients contours and retains incoming cubic handles
+ok 42 - endpoint joining orients contours and retains incoming cubic handles
+  ---
+  duration_ms: 0.427627
+  type: 'test'
+  ...
+# Subtest: line/cubic conversion and distribution preserve unaffected geometry
+ok 43 - line/cubic conversion and distribution preserve unaffected geometry
+  ---
+  duration_ms: 0.329609
+  type: 'test'
+  ...
+# Subtest: tool options reject NaN, negative sizes and runaway sample geometry
+ok 44 - tool options reject NaN, negative sizes and runaway sample geometry
+  ---
+  duration_ms: 0.290929
+  type: 'test'
+  ...
+# Subtest: cubic conversion never straightens an existing Bézier
+ok 45 - cubic conversion never straightens an existing Bézier
+  ---
+  duration_ms: 0.129306
+  type: 'test'
+  ...
+# Subtest: zero corner radius is a clean four-node rectangle
+ok 46 - zero corner radius is a clean four-node rectangle
+  ---
+  duration_ms: 0.122585
+  type: 'test'
+  ...
+# Subtest: finite knife strokes ignore out-of-range tangent or collinear edges
+ok 47 - finite knife strokes ignore out-of-range tangent or collinear edges
+  ---
+  duration_ms: 0.210689
+  type: 'test'
+  ...
+# Subtest: scissors reject out-of-domain parameters
+ok 48 - scissors reject out-of-domain parameters
+  ---
+  duration_ms: 0.134223
+  type: 'test'
+  ...
+# Subtest: FEA parses marked context with source coordinates
+ok 49 - FEA parses marked context with source coordinates
+  ---
+  duration_ms: 2.643848
+  type: 'test'
+  ...
+# Subtest: FEA multiple, alternate, deletion and reverse substitution compile
+ok 50 - FEA multiple, alternate, deletion and reverse substitution compile
+  ---
+  duration_ms: 57.4742
+  type: 'test'
+  ...
+# Subtest: FEA named lookup calls compile and reject cycles, unknown and wrong-table references
+ok 51 - FEA named lookup calls compile and reject cycles, unknown and wrong-table references
+  ---
+  duration_ms: 27.863328
+  type: 'test'
+  ...
+# Subtest: FEA ignore and matching contextual rules share the same ordered lookup
+ok 52 - FEA ignore and matching contextual rules share the same ordered lookup
+  ---
+  duration_ms: 13.569242
+  type: 'test'
+  ...
+# Subtest: FEA supports complete numeric single/pair records and contextual positioning
+ok 53 - FEA supports complete numeric single/pair records and contextual positioning
+  ---
+  duration_ms: 7.61765
+  type: 'test'
+  ...
+# Subtest: FEA any four-character script/language tags, flags, required feature
+ok 54 - FEA any four-character script/language tags, flags, required feature
+  ---
+  duration_ms: 17.426755
+  type: 'test'
+  ...
+# Subtest: FEA preserves class substitution correspondence, rejects cardinality and disjoint marked input
+ok 55 - FEA preserves class substitution correspondence, rejects cardinality and disjoint marked input
+  ---
+  duration_ms: 14.526639
+  type: 'test'
+  ...
+# Subtest: FEA invalid numeric tokens and arbitrary executable syntax fail explicitly
+ok 56 - FEA invalid numeric tokens and arbitrary executable syntax fail explicitly
+  ---
+  duration_ms: 29.022902
+  type: 'test'
+  ...
+# Subtest: FEA large lookup payload uses 32-bit extension offsets
+ok 57 - FEA large lookup payload uses 32-bit extension offsets
+  ---
+  duration_ms: 46.110354
+  type: 'test'
+  ...
+# Subtest: cubic subdivision preserves every sampled point
+ok 58 - cubic subdivision preserves every sampled point
+  ---
+  duration_ms: 1.348109
+  type: 'test'
+  ...
+# Subtest: bounds use analytical curve extrema
+ok 59 - bounds use analytical curve extrema
+  ---
+  duration_ms: 0.415619
+  type: 'test'
+  ...
+# Subtest: flattening preserves collinear overshoot and rejects invalid tolerances
+ok 60 - flattening preserves collinear overshoot and rejects invalid tolerances
+  ---
+  duration_ms: 0.479295
+  type: 'test'
+  ...
+# Subtest: winding alternates holes and reflection retains editable handles
+ok 61 - winding alternates holes and reflection retains editable handles
+  ---
+  duration_ms: 3.154591
+  type: 'test'
+  ...
+# Subtest: SVG cubic and quadratic paths roundtrip through source geometry
+ok 62 - SVG cubic and quadratic paths roundtrip through source geometry
+  ---
+  duration_ms: 0.883145
+  type: 'test'
+  ...
+# Subtest: curve insertion retains contour geometry
+ok 63 - curve insertion retains contour geometry
+  ---
+  duration_ms: 0.255717
+  type: 'test'
+  ...
+# Subtest: affine inverse composes to identity
+ok 64 - affine inverse composes to identity
+  ---
+  duration_ms: 0.215145
+  type: 'test'
+  ...
+# Subtest: quadratic conversion uses compatible point counts in every master
+ok 65 - quadratic conversion uses compatible point counts in every master
+  ---
+  duration_ms: 11.819115
+  type: 'test'
+  ...
+# Subtest: glyph-scoped history undoes/redoes one transaction
+ok 66 - glyph-scoped history undoes/redoes one transaction
+  ---
+  duration_ms: 11.710329
+  type: 'test'
+  ...
+# Subtest: history cancels failed, no-op and invalid mutations
+ok 67 - history cancels failed, no-op and invalid mutations
+  ---
+  duration_ms: 11.856751
+  type: 'test'
+  ...
+# Subtest: undo journal enforces transaction count budget
+ok 68 - undo journal enforces transaction count budget
+  ---
+  duration_ms: 36.178914
+  type: 'test'
+  ...
+# Subtest: component dependencies reject recursion
+ok 69 - component dependencies reject recursion
+  ---
+  duration_ms: 55.270878
+  type: 'test'
+  ...
+# Subtest: document schema rejects malformed scalar, transform, identity and Unicode inputs
+ok 70 - document schema rejects malformed scalar, transform, identity and Unicode inputs
+  ---
+  duration_ms: 44.852762
+  type: 'test'
+  ...
+# Subtest: bounded reader/writer preserve numeric widths and reject truncation
+ok 71 - bounded reader/writer preserve numeric widths and reject truncation
+  ---
+  duration_ms: 0.523541
+  type: 'test'
+  ...
+# Subtest: TTF binary checksums, cmap, outlines, names and metrics survive import
+ok 72 - TTF binary checksums, cmap, outlines, names and metrics survive import
+  ---
+  duration_ms: 38.692545
+  type: 'test'
+  ...
+# Subtest: CFF OpenType contains actual cubic charstrings and valid sfnt checksum
+ok 73 - CFF OpenType contains actual cubic charstrings and valid sfnt checksum
+  ---
+  duration_ms: 16.006257
+  type: 'test'
+  ...
+# Subtest: WOFF wraps and unwraps original font tables
+ok 74 - WOFF wraps and unwraps original font tables
+  ---
+  duration_ms: 23.465467
+  type: 'test'
+  ...
+# Subtest: supplementary Unicode cmap12 and zero-contour glyphs roundtrip
+ok 75 - supplementary Unicode cmap12 and zero-contour glyphs roundtrip
+  ---
+  duration_ms: 18.727772
+  type: 'test'
+  ...
+# Subtest: malformed font and compressed input are rejected
+ok 76 - malformed font and compressed input are rejected
+  ---
+  duration_ms: 0.800771
+  type: 'test'
+  ...
+# Subtest: strict FEA supports single substitution, ligatures and pair positioning
+ok 77 - strict FEA supports single substitution, ligatures and pair positioning
+  ---
+  duration_ms: 16.892317
+  type: 'test'
+  ...
+# Subtest: unknown FEA syntax fails rather than being silently dropped
+ok 78 - unknown FEA syntax fails rather than being silently dropped
+  ---
+  duration_ms: 0.26484
+  type: 'test'
+  ...
+# Subtest: mark-to-base attachment emits GPOS and GDEF
+ok 79 - mark-to-base attachment emits GPOS and GDEF
+  ---
+  duration_ms: 12.382616
+  type: 'test'
+  ...
+# Subtest: explicit kerning exceptions override class pairs
+ok 80 - explicit kerning exceptions override class pairs
+  ---
+  duration_ms: 3.496578
+  type: 'test'
+  ...
+# Subtest: variation weights exactly reproduce master values and interpolate
+ok 81 - variation weights exactly reproduce master values and interpolate
+  ---
+  duration_ms: 0.753279
+  type: 'test'
+  ...
+# Subtest: sparse two-axis variation supports reproduce each supplied master
+ok 82 - sparse two-axis variation supports reproduce each supplied master
+  ---
+  duration_ms: 0.553186
+  type: 'test'
+  ...
+# Subtest: static instance and genuine gvar/fvar/STAT variable export
+ok 83 - static instance and genuine gvar/fvar/STAT variable export
+  ---
+  duration_ms: 91.46208
+  type: 'test'
+  ...
+# Subtest: master topology divergence blocks variable export
+ok 84 - master topology divergence blocks variable export
+  ---
+  duration_ms: 13.91897
+  type: 'test'
+  ...
+# Subtest: CPU compute interpolation and optional-device fallback
+ok 85 - CPU compute interpolation and optional-device fallback
+  ---
+  duration_ms: 0.822464
+  type: 'test'
+  ...
+# Subtest: key normalization handles macOS, Windows, exact modifiers and text inputs
+ok 86 - key normalization handles macOS, Windows, exact modifiers and text inputs
+  ---
+  duration_ms: 0.549491
+  type: 'test'
+  ...
+# Subtest: command enablement, remapping conflicts, keymap and fuzzy search
+ok 87 - command enablement, remapping conflicts, keymap and fuzzy search
+  ---
+  duration_ms: 1.379917
+  type: 'test'
+  ...
+# Subtest: plist XML safely roundtrips dictionaries and rejects external entities
+ok 88 - plist XML safely roundtrips dictionaries and rejects external entities
+  ---
+  duration_ms: 1.343812
+  type: 'test'
+  ...
+# Subtest: GLIF cubic contours, anchors and Unicode survive source roundtrip
+ok 89 - GLIF cubic contours, anchors and Unicode survive source roundtrip
+  ---
+  duration_ms: 11.498029
+  type: 'test'
+  ...
+# Subtest: ZIP validates CRCs and rejects unsafe paths
+ok 90 - ZIP validates CRCs and rejects unsafe paths
+  ---
+  duration_ms: 0.859
+  type: 'test'
+  ...
+# Subtest: UFO uses actual GLIF edits, not stale embedded metadata
+ok 91 - UFO uses actual GLIF edits, not stale embedded metadata
+  ---
+  duration_ms: 264.562225
+  type: 'test'
+  ...
+# Subtest: recipe execution is declarative and undoable
+ok 92 - recipe execution is declarative and undoable
+  ---
+  duration_ms: 27.042457
+  type: 'test'
+  ...
+# Subtest: demo validates and serializes without runtime/font binary dependencies
+ok 93 - demo validates and serializes without runtime/font binary dependencies
+  ---
+  duration_ms: 50.618943
+  type: 'test'
+  ...
+# Subtest: modifier composition is pure, ordered and bypassable
+ok 94 - modifier composition is pure, ordered and bypassable
+  ---
+  duration_ms: 2.119716
+  type: 'test'
+  ...
+# Subtest: modifier origins, rotation, matrix and round preserve finite controls
+ok 95 - modifier origins, rotation, matrix and round preserve finite controls
+  ---
+  duration_ms: 0.503291
+  type: 'test'
+  ...
+# Subtest: repeat assigns deterministic distinct identities and enforces expansion budgets
+ok 96 - repeat assigns deterministic distinct identities and enforces expansion budgets
+  ---
+  duration_ms: 0.751246
+  type: 'test'
+  ...
+# Subtest: invalid and disabled malformed modifiers fail validation
+ok 97 - invalid and disabled malformed modifiers fail validation
+  ---
+  duration_ms: 0.272442
+  type: 'test'
+  ...
+# Subtest: modifiers resolve live, are undoable and export in both variable formats
+ok 98 - modifiers resolve live, are undoable and export in both variable formats
+  ---
+  duration_ms: 181.701276
+  type: 'test'
+  ...
+# Subtest: static instancing evaluates different modifier parameters per source master
+ok 99 - static instancing evaluates different modifier parameters per source master
+  ---
+  duration_ms: 59.729911
+  type: 'test'
+  ...
+# Subtest: journal captures input synchronously and writes in call order
+ok 100 - journal captures input synchronously and writes in call order
+  ---
+  duration_ms: 20.503407
+  type: 'test'
+  ...
+# Subtest: journal retention keeps an independently verifiable full checkpoint
+ok 101 - journal retention keeps an independently verifiable full checkpoint
+  ---
+  duration_ms: 5.427939
+  type: 'test'
+  ...
+# Subtest: journal rejects corrupted tail, never skipping over damage
+ok 102 - journal rejects corrupted tail, never skipping over damage
+  ---
+  duration_ms: 2.157043
+  type: 'test'
+  ...
+# Subtest: journal rejects missing/reordered revisions and damaged head
+ok 103 - journal rejects missing/reordered revisions and damaged head
+  ---
+  duration_ms: 3.480633
+  type: 'test'
+  ...
+# Subtest: journal CAS prevents stale tabs replacing newer edits
+ok 104 - journal CAS prevents stale tabs replacing newer edits
+  ---
+  duration_ms: 1.531936
+  type: 'test'
+  ...
+# Subtest: journal queue drains failures and enforces per-snapshot size
+ok 105 - journal queue drains failures and enforces per-snapshot size
+  ---
+  duration_ms: 0.709442
+  type: 'test'
+  ...
+# Subtest: journal bounds queued bytes and detects corrupted byte accounting
+ok 106 - journal bounds queued bytes and detects corrupted byte accounting
+  ---
+  duration_ms: 0.805999
+  type: 'test'
+  ...
+# Subtest: portable Brotli blocks decode independently across every block-size boundary
+ok 107 - portable Brotli blocks decode independently across every block-size boundary
+  ---
+  duration_ms: 33.135421
+  type: 'test'
+  ...
+# Subtest: UIntBase128 encodes canonical values and rejects unsafe lengths
+ok 108 - UIntBase128 encodes canonical values and rejects unsafe lengths
+  ---
+  duration_ms: 0.583923
+  type: 'test'
+  ...
+# Subtest: WOFF2 portable and compressed encoders write valid bounded headers without mutating source
+ok 109 - WOFF2 portable and compressed encoders write valid bounded headers without mutating source
+  ---
+  duration_ms: 50.908371
+  type: 'test'
+  ...
+# Subtest: CFF2 static and variable encoders write actual tables and valid whole-font checksum
+ok 110 - CFF2 static and variable encoders write actual tables and valid whole-font checksum
+  ---
+  duration_ms: 66.400149
+  type: 'test'
+  ...
+# Subtest: CFF2 rejects missing masters and incompatible topology rather than exporting corruption
+ok 111 - CFF2 rejects missing masters and incompatible topology rather than exporting corruption
+  ---
+  duration_ms: 20.257947
+  type: 'test'
+  ...
+# Subtest: variable metrics affect HVAR/MVAR and in-memory instances
+ok 112 - variable metrics affect HVAR/MVAR and in-memory instances
+  ---
+  duration_ms: 103.007881
+  type: 'test'
+  ...
+# Subtest: item variation stores reject malformed support/row arrays and deduplicate positioning deltas
+ok 113 - item variation stores reject malformed support/row arrays and deduplicate positioning deltas
+  ---
+  duration_ms: 0.433295
+  type: 'test'
+  ...
+# Subtest: real compiler worker supports every new export and validates unknown formats
+ok 114 - real compiler worker supports every new export and validates unknown formats
+  ---
+  duration_ms: 425.442868
+  type: 'test'
+  ...
+# Subtest: WOFF2 padding and known tags are canonical for every remainder; DSIG is excluded
+ok 115 - WOFF2 padding and known tags are canonical for every remainder; DSIG is excluded
+  ---
+  duration_ms: 56.760275
+  type: 'test'
+  ...
+# Subtest: original archive returns byte-identical source even after editing outlines
+ok 116 - original archive returns byte-identical source even after editing outlines
+  ---
+  duration_ms: 144.345277
+  type: 'test'
+  ...
+# Subtest: metadata-only export retains opaque tables and refuses metric edits
+ok 117 - metadata-only export retains opaque tables and refuses metric edits
+  ---
+  duration_ms: 114.284025
+  type: 'test'
+  ...
+# Subtest: archive integrity failure is detected before original download
+ok 118 - archive integrity failure is detected before original download
+  ---
+  duration_ms: 47.082454
+  type: 'test'
+  ...
+# Subtest: preservation ignores project identity and notes, not source edits
+ok 119 - preservation ignores project identity and notes, not source edits
+  ---
+  duration_ms: 87.780573
+  type: 'test'
+  ...
+# Subtest: format-1 names retain original language tags and untouched records
+ok 120 - format-1 names retain original language tags and untouched records
+  ---
+  duration_ms: 0.414006
+  type: 'test'
+  ...
+# Subtest: edited metadata removes invalidated signatures with an explicit warning
+ok 121 - edited metadata removes invalidated signatures with an explicit warning
+  ---
+  duration_ms: 98.906538
+  type: 'test'
+  ...
+# Subtest: autosave flush awaits the in-flight and trailing write without premature success
+ok 122 - autosave flush awaits the in-flight and trailing write without premature success
+  ---
+  duration_ms: 58.053847
+  type: 'test'
+  ...
+# Subtest: autosave snapshots are immutable while asynchronous persistence is running
+ok 123 - autosave snapshots are immutable while asynchronous persistence is running
+  ---
+  duration_ms: 30.320484
+  type: 'test'
+  ...
+# Subtest: autosave write failure is observable, retryable and does not strand flush callers
+ok 124 - autosave write failure is observable, retryable and does not strand flush callers
+  ---
+  duration_ms: 47.889854
+  type: 'test'
+  ...
+# Subtest: disposing autosave suppresses trailing work and status after shutdown
+ok 125 - disposing autosave suppresses trailing work and status after shutdown
+  ---
+  duration_ms: 27.615263
+  type: 'test'
+  ...
+# Subtest: reentrant autosave status observers do not create parallel writes
+ok 126 - reentrant autosave status observers do not create parallel writes
+  ---
+  duration_ms: 50.220119
+  type: 'test'
+  ...
+# Subtest: ProjectStore captures the exact input before awaiting database open
+ok 127 - ProjectStore captures the exact input before awaiting database open
+  ---
+  duration_ms: 12.373663
+  type: 'test'
+  ...
+1..127
+# tests 127
+# suites 0
+# pass 127
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2240.262189

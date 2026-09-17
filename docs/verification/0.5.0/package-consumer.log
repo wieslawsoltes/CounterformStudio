@@ -1,0 +1,5 @@
+
+> counterform-studio@0.5.0 test:packages
+> python tests/package-consumer.py
+
+PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1 and CPALv1, real Node compiler worker and headless module imports

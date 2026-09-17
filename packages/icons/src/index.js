@@ -1,5 +1,6 @@
 /** Original vector paths. No icon fonts, inline scripts, remote URLs or external artwork. */
 export const iconPaths = Object.freeze({
+  "paintGraph": "M3 3h18v10H3Z M6 5v6 M9 5v6 M12 5v6 M15 5v6 M18 5v6 M12 13v4 M5 17h14 M5 17v4 M19 17v4",
   "select": "M5 3v17l5-5 5 6 3-2-5-6 7-2Z",
   "pen": "m4 20 3-10L17 3l4 4-7 10Z M4 20l8-8 M9 9l6 6",
   "rectangle": "M4 4h16v16H4Z",
@@ -70,6 +71,7 @@ export const iconPaths = Object.freeze({
 });
 export const iconNames = Object.freeze(Object.keys(iconPaths));
 const iconURLs = Object.freeze({
+  "paintGraph": new URL("./assets/paintGraph.svg", import.meta.url).href,
     "select": new URL("./assets/select.svg", import.meta.url).href,
     "pen": new URL("./assets/pen.svg", import.meta.url).href,
     "rectangle": new URL("./assets/rectangle.svg", import.meta.url).href,
@@ -153,7 +155,7 @@ const commandIcons = Object.freeze({
  'node.smooth':'smooth','node.corner':'corner','node.alignX':'alignX','node.alignY':'alignY','node.distributeX':'distributeX','node.distributeY':'distributeY','node.start':'anchor',
  'outline.extrema':'extrema','outline.overlap':'overlap','outline.union':'overlap','outline.difference':'overlap','outline.intersect':'overlap','outline.xor':'overlap','outline.reverse':'reverse','outline.winding':'reverse','outline.close':'close','outline.open':'scissors','outline.join':'join','outline.round':'round','outline.stroke':'brush','outline.transform':'scale','outline.mirrorX':'mirror','outline.mirrorY':'mirror','outline.lines':'line','outline.curves':'smooth','outline.clean':'clean',
  'glyph.new':'new','glyph.duplicate':'copy','glyph.delete':'delete','glyph.center':'alignX','glyph.anchor':'anchor','glyph.component':'layers','glyph.decompose':'layers','glyph.svg':'export','glyph.next':'redo','glyph.previous':'undo','glyph.guide':'guide',
- 'font.info':'font','font.validate':'check','font.tables':'grid','kern.pair':'kern','kern.groups':'layers','color.edit':'palette','master.add':'layers','axis.add':'axes','master.instance':'font','master.compatibility':'check',
+ 'font.info':'font','font.validate':'check','font.tables':'grid','kern.pair':'kern','kern.groups':'layers','color.edit':'palette','color.paint':'paintGraph','master.add':'layers','axis.add':'axes','master.instance':'font','master.compatibility':'check',
  'view.glyph':'pen','view.catalog':'grid','view.kerning':'kern','view.features':'code','view.notes':'note','view.masters':'axes','view.proof':'preview','view.output':'code','view.inspector':'settings','view.fit':'fit','view.zoomIn':'zoom','view.zoomOut':'zoom','view.grid':'grid','view.fill':'fill','view.nodes':'select','view.guides':'guide','view.preview':'preview','view.snap':'snap','view.theme':'palette','view.fullscreen':'fullscreen',
  'layout.undo':'undo','layout.redo':'redo','commands.palette':'search','commands.bindings':'keyboard','automation.recipe':'play','compute.verify':'check','features.apply':'code','app.about':'help','tool.options':'settings','glyph.clearGuides':'guide','glyph.lock':'lock'
 });

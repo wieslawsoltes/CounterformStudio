@@ -1,0 +1,13 @@
+{
+  "passed": 6,
+  "checks": [
+    "ttf.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools",
+    "cff.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools",
+    "variable.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools",
+    "cff2.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools",
+    "cff2-variable.otf: all static paints, clip boxes, CPAL labels and metadata match fontTools",
+    "color.woff2: all static paints, clip boxes, CPAL labels and metadata match fontTools"
+  ],
+  "oracle": "fontTools colorLib builder and independent TTFont decoder",
+  "systemFontsRead": false
+}

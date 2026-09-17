@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-geometry",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "Double-precision B\u00e9zier outlines, analytical bounds, winding, splitting and compatible quadratic conversion.",
   "main": "./src/index.js",

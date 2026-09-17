@@ -1,4 +1,5 @@
 import {validateModifiers,evaluateModifiers} from '@wieslawsoltes/counterform-modifiers';
+import {paintChildren} from '@wieslawsoltes/counterform-colrv1';
 import { validateColorSource } from '@wieslawsoltes/counterform-color';
 import { uid, bounds, transformContours, rectangle, ellipse, reverseContour, node, contour } from '@wieslawsoltes/counterform-geometry';
 export class Signal {
@@ -136,7 +137,10 @@ export function validateDocumentShape(d) {
     validateColorSource(d);
     return d;
 }
-export function duplicateGlyph(g, newName) { const x = structuredClone(g); x.id = uid('g'); x.name = newName; x.unicodes = []; for (const l of x.layers) {
+export function duplicateGlyph(g, newName) { const x = structuredClone(g); x.id = uid('g'); x.name = newName; x.unicodes = [];
+    for(const layer of x.colorLayers||[])if(layer.glyphId===g.id)layer.glyphId=x.id;
+    function remap(p){if(!p)return;if(p.glyphId===g.id)p.glyphId=x.id;for(const c of paintChildren(p))remap(c);}remap(x.colorPaint);
+    for (const l of x.layers) {
     l.id = uid('layer');
     for (const c of l.contours) {
         c.id = uid('c');

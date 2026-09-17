@@ -2,11 +2,13 @@
 
 ### Make every curve count.
 
-**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.4.0.
+**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.5.0.
 
 This is an original implementation targeting the FontLab 8.4 workflow. **It is not a feature-complete FontLab replacement.** The implemented subset includes real outline editing, masters, kerning, OpenType compilation, source interchange and live proofing—not simulated export buttons. Read [the capability contract](docs/CAPABILITIES.md) before editing production fonts. Unreconstructed font tables can be lost on re-export; keep originals.
 
-[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.4.0 release notes](docs/RELEASE-0.4.0.md)
+[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.5.0 release notes](docs/RELEASE-0.5.0.md)
+
+![Color paint graph editor and actual compiled glyph](docs/images/color-paint-graph.png)
 
 ## Run offline from the source archive
 
@@ -26,9 +28,9 @@ The source archive includes pinned vendor runtime packages. Bootstrap creates lo
 
 The workspace uses real Dockyard docking, a RibbonWeb command ribbon, a virtual glyph library, a TreeDataGridWeb font inventory, a GridWeb kerning matrix and RichTextWeb notes. ReactiveWeb and DynamicDataWeb project the document state. Native Skia paths draw the font; RBushWeb accelerates node/handle picking, and QuikGraphWeb checks component dependency graphs.
 
-Use nine command-backed menus, 136 commands, 24 pointer tools and an original SVG-icon ribbon. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
+Use nine command-backed menus, 137 commands, 24 pointer tools and a ribbon with 68 original SVG icons. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
 
-Export real **TTF, CFF/CFF2 OTF, WOFF1/WOFF2, variable TTF/CFF2, UFO3 archives and Counterform source**. Supported layout compilation includes single substitutions, ligatures, pair kerning, mark-to-base attachment and GDEF classes. Variable export writes `fvar`, `STAT`, TrueType `gvar` or CFF2 blend programs, `HVAR`, optional `MVAR`, and GDEF/GPOS variations for kerning and mark-to-base anchors. Browser WOFF2 uses stored Brotli blocks; the standalone Node subpath provides size compression. These exports remain unhinted. COLRv0/CPALv0 output supports ordered monochrome glyph layers, multiple RGBA palettes and foreground color. Advanced COLRv1 paint graphs are not implemented. OpenType → Color layers & palettes (or the Inspector button) opens transactional color authoring.
+Export real **TTF, CFF/CFF2 OTF, WOFF1/WOFF2, variable TTF/CFF2, UFO3 archives and Counterform source**. Supported layout compilation includes single, multiple, alternate, ligature, chaining-context and reverse substitutions; single/pair/contextual positioning, named lookups and script/language selection; automatic mark-to-base attachment and GDEF classes. See the explicit [feature-language subset](docs/CONTEXTUAL-LAYOUT.md). Variable export writes `fvar`, `STAT`, TrueType `gvar` or CFF2 blend programs, `HVAR`, optional `MVAR`, and GDEF/GPOS variations for kerning and mark-to-base anchors. Browser WOFF2 uses stored Brotli blocks; the standalone Node subpath provides size compression. These exports remain unhinted. Color output supports COLRv0 fallback layers, all 18 static COLRv1 paint formats, all 28 compositing modes, and CPALv1 palette/entry labels and light/dark usability flags. OpenType → Color paint graph opens the transactional tree/property/proof editor for gradients, clipping, references and transforms. The compiled font renders in the browser proof and the native Skia source-master canvas; editable geometry remains separate. Variable outlines may carry static paints; PaintVar parameters, variable clip boxes, SVG and bitmap color tables are not supported.
 
 Non-destructive outline stacks preserve editable contours through ordered affine transforms, rounding, winding reversal and repeats. Recovery journals retain integrity-checked revisions with atomic IndexedDB writes and cross-tab conflict protection. Imported originals can be downloaded byte-exactly; a separate metadata-only export preserves unrelated tables and refuses structural edits. These do not claim arbitrary lossless source reconstruction.
 
@@ -36,7 +38,7 @@ Non-destructive outline stacks preserve editable contours through ordered affine
 
 ```text
 app/                   Application bootstrap; native browser import map
-packages/              29 independently packable @wieslawsoltes/counterform-* packages
+packages/              30 independently packable @wieslawsoltes/counterform-* packages
 vendor/                Pinned upstream source/runtime inputs
 scripts/               Offline bootstrap, server, static build, npm packing, archiving
 examples/              Headless font compiler example
@@ -55,17 +57,18 @@ npm run test:fonts
 npm run test:browser
 npm run build
 npm run pack:all
+npm run test:packages
 ```
 
 Python tests require `python -m pip install -r tests/requirements.txt`. Browser tests require Playwright Chromium (`python -m playwright install chromium`) or `CHROMIUM_PATH`. Type checking requires TypeScript (`tsc`). The app itself needs neither Python nor TypeScript.
 
-The release is tested with Node, independent fontTools instancing/table checks, typed consumers, all packed npm packages, and source/distribution browser tests. Browser tests also load all five new export formats through Chromium's font sanitizer, edit/bypass/bake modifiers, edit master metrics, and (on secure origins) verify original preservation and recovery revisions. Exact pass counts are in the commit-associated CI artifacts.
+The verification commands exercise Node, independent fontTools instancing/table checks, typed consumers, all packed npm packages, and source/distribution browser tests. Browser tests load eight color export variants through Chromium's font sanitizer; sample compiled gradients and native Skia pixels; exercise paint/stop/transform/composite editing and undo; edit/bypass/bake modifiers; edit master metrics; and (on secure origins) verify original preservation and recovery revisions. Exact pass counts are in the commit-associated CI artifacts.
 
-Local opaque-origin browser tests report inline compilation and secure-API skips explicitly. Real workers, IndexedDB, and the deployed Pages subpath are tested in CI; software-rendered Chromium does not qualify physical WebGPU, Safari/Firefox, mobile hardware or assistive technology. See [release boundaries](docs/RELEASE-0.4.0.md).
+Local opaque-origin browser tests report inline compilation and secure-API skips explicitly. Real workers, IndexedDB, and the deployed Pages subpath are tested in CI; software-rendered Chromium does not qualify physical WebGPU, Safari/Firefox, mobile hardware or assistive technology. See [release boundaries](docs/RELEASE-0.5.0.md).
 
 ## Modular npm packages
 
-`npm run pack:all` emits 29 `.tgz` packages into `artifacts/npm`, each with source, declarations, license and declared dependencies. They are **packaged, not published to npm**. Root-workspace use is offline; installing a standalone package normally resolves its declared dependencies through your configured registry. Install the Counterform tarballs together while they are unpublished.
+`npm run pack:all` emits 30 `.tgz` packages into `artifacts/npm`, each with source, declarations, license and declared dependencies. They are **packaged, not published to npm**. Root-workspace use is offline; installing a standalone package normally resolves its declared dependencies through your configured registry. Install the Counterform tarballs together while they are unpublished.
 
 See [API examples](docs/API.md), [architecture](docs/ARCHITECTURE.md), [keyboard map](docs/KEYBOARD.md), and [production gaps](docs/CAPABILITIES.md).
 

@@ -1,8 +1,19 @@
-# 0.4.0
+# Changelog
+
+## 0.5.0 — 2026-09-17 (local patch delivery)
+
+Add the thirtieth standalone package, `colrv1`: all 18 static paint formats, 28 composite modes, bounded graph reconstruction and static clip boxes. Add CPALv1 named palettes/entries and usability flags with collision-free name allocation, including CFF2 variable exports. Integrate the transactional paint-tree/property/JSON editor, gradients and transforms, compiled FontFace proof and exact-revision native Skia color rendering. Retain optional COLRv0 fallbacks and editable source contours. Add the paint-graph ribbon icon and command (68 icons, 137 commands).
+
+Fix cross-glyph paint validation in scoped undo transactions, self references when duplicating color glyphs, range-input initialization, and nested-dialog disposal. Add Node, independent fontTools colorLib, typed-consumer, packaged-worker and browser pixel/interaction tests. Retire the already-applied contextual delivery workflow. See `docs/RELEASE-0.5.0.md` for measured qualification and remaining gaps. This local patch is not a confirmed GitHub deployment.
+
+## 0.4.0 contextual continuation
+
+Compile supported contextual/chaining, multiple, alternate and reverse OpenType substitutions and contextual positioning; named lookups, ordered ignores, extensions and script/language selection. Fourteen procedural fontTools/HarfBuzz oracle scenarios. Committed baseline `a24fdc3bdc0a321d6504fd4a387180b296e1104c` passed remote CI, Pages and live HTTPS checks in run `35249506480`.
+
+## 0.4.0
 
 CFF2/WOFF2 export; HVAR/MVAR; variable kerning and anchors; non-destructive outline stacks; integrity-checked recovery journal; guarded original/metadata-only font preservation. See docs/RELEASE-0.4.0.md.
 
-# Changelog
 
 ## 0.3.0
 

@@ -8,6 +8,7 @@ export function mountStudio(host: any, { document: initialDocument, skiaOptions,
 export const version: "0.2.0";
 export class StudioWorkbench {
     compiler: import("@wieslawsoltes/counterform-compiler").CompilerClient;
+    showPaints():any;
     showColors(): any;
     constructor(host: any, options: any);
     host: any;

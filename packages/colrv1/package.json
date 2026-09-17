@@ -1,0 +1,33 @@
+{
+  "name": "@wieslawsoltes/counterform-colrv1",
+  "version": "0.5.0",
+  "type": "module",
+  "description": "Bounded COLRv1 paint-graph authoring, binary compilation and reconstruction.",
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@wieslawsoltes/counterform-binary": "0.5.0"
+  }
+}

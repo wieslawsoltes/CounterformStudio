@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {colorFixture} from './colrv1-fixture.mjs';
+import {compileTrueType,compileOpenTypeCFF,exportGlyphOrder} from '@wieslawsoltes/counterform-font-io';
+import {compileVariableTrueType} from '@wieslawsoltes/counterform-variations';
+import {compileOpenTypeCFF2} from '@wieslawsoltes/counterform-cff2';
+import {encodeWOFF2} from '@wieslawsoltes/counterform-woff2';
+const out=process.argv[2];if(!out)throw new Error('A temporary output directory is required');
+const d=colorFixture(),files=[['ttf',compileTrueType(d)],['cff',compileOpenTypeCFF(d)],['variable',compileVariableTrueType(d)],['cff2',compileOpenTypeCFF2(d)],['cff2-variable',compileOpenTypeCFF2(d,{variable:true})]];
+for(const [name,data]of files)await fs.writeFile(path.join(out,name+'.otf'),data);
+await fs.writeFile(path.join(out,'color.woff2'),encodeWOFF2(files[0][1]));
+await fs.writeFile(path.join(out,'source.json'),JSON.stringify({source:d.data,order:exportGlyphOrder(d).map(g=>g.id)}));

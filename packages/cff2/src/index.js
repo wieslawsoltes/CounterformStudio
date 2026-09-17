@@ -1,3 +1,4 @@
+import {compileColorTables,createPaletteNamePlan} from '@wieslawsoltes/counterform-color';
 import {compileLayout} from '@wieslawsoltes/counterform-opentype';
 import { Writer, readDirectory, sfnt } from '@wieslawsoltes/counterform-binary';
 import { FontDocument } from '@wieslawsoltes/counterform-model';
@@ -104,7 +105,8 @@ export function compileOpenTypeCFF2(doc,{variable=false,masterId=doc.data.master
         if(variable){
             for(const [tag,bytes]of compileLayout(doc.data,glyphs,base.id,model).tables)tables.set(tag,bytes);
             const meta=variationMetadata(doc.data);for(const [tag,bytes]of meta.tables)tables.set(tag,bytes);
-            tables.set('name',nameTable(info,meta.names));
+            const colorNames=createPaletteNamePlan(doc.data,meta.names);tables.set('name',nameTable(info,[...meta.names,...colorNames.names]));
+            for(const [tag,bytes]of compileColorTables(doc.data,glyphs,{namePlan:colorNames}))tables.set(tag,bytes);
             for(const [tag,bytes]of compileMetricVariations(doc,model,glyphs))tables.set(tag,bytes);
         }
         return sfnt(tables,0x4f54544f);

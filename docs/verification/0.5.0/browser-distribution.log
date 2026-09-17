@@ -1,0 +1,66 @@
+PASS workspace boot and real Skia surface
+PASS ten upstream components and extensible commands
+PASS Ribbon has executable items
+PASS real pointer node drag is one undoable transaction
+PASS Bézier handle drag and undo
+PASS rectangle tool writes editable source
+PASS ellipse tool writes cubic source
+PASS modifier-sensitive keyboard nudge
+PASS typing in an input never invokes outline shortcuts
+PASS native Skia overlap removal and undo
+PASS native Skia stroke expansion
+PASS compiler service returns byte-identical actual font data on its reported backend
+PASS browser sanitizer loads five CFF2 and WOFF2 exports
+PASS modifier UI preserves source, bypasses and bakes in one undo transaction
+PASS source-master vertical metrics dialog commits and undoes overrides
+PASS color layer editor, transactional RGBA validation, compiled color pixels and undo
+PASS palette duplication, equal-length entries, foreground, layer reorder and removal
+PASS COLRv1 graph editor creates real compiled red-to-blue gradient pixels without changing outlines
+PASS editor native Skia DrawGlyphs renders actual COLRv1 artwork, not only the HTML proof
+PASS gradient stop insertion, sorting, removal, alpha editing and invalid-input rollback are undoable
+PASS paint tree keyboard navigation, transform wrapping and composite mode editing update compiled source
+PASS linear, radial and sweep paint replacement, extension modes and graph-JSON validation work through UI
+PASS CPALv1 metadata survives palette structure changes and eight exports load through the browser sanitizer
+PASS closing paint editors cancels jobs, removes FontFaces and complete undo restores exact source
+PASS inspector metric editing participates in history
+PASS all 137 commands are available through nine menus and 24 vector tool buttons
+PASS menubar F10, arrows, Home/End, typeahead, Escape and context focus restoration
+PASS Line pointer tool creates an undoable open contour
+PASS Polygon pointer tool creates six real vertices
+PASS Star pointer tool creates alternating radius geometry
+PASS Rounded rectangle pointer tool creates eight cubic tangent nodes
+PASS Pencil freehand gesture simplifies into editable source
+PASS Brush gesture creates a filled source outline
+PASS Knife pointer tool splits actual contours and undo restores exact source
+PASS Scissors pointer tool opens an outline at a inserted edge point
+PASS Move pointer tool transforms source in one transaction
+PASS Rotate pointer tool transforms source in one transaction
+PASS Scale pointer tool transforms source in one transaction
+PASS Slant pointer tool transforms source in one transaction
+PASS Anchor and Guides pointer tools create undoable attachment geometry
+PASS Lasso selects enclosed nodes; Zoom changes only the camera
+PASS Escape rolls back construction and source locks block mutation
+PASS Undo cancels a live gesture; unrelated pointer events cannot finish it
+PASS Start point, open/join, line/cubic conversion and distribution commands edit geometry
+PASS Tool settings, guide table and gesture reference are functional dialogs
+PASS TreeDataGrid font inventory is live
+PASS GridWeb kerning edit synchronizes source and undo
+PASS OpenType feature editing recompiles a real proof font
+PASS SkiaSharp-compatible CFF import retrieves real outlines
+PASS RichTextWeb notes persist editable rich-document source
+PASS variable instance preview is read-only and reversible
+PASS command palette keyboard dispatch and focus dialog
+PASS shortcuts, validation, tables, export and capability dialogs
+PASS compute interface verifies numeric results on selected backend
+SKIP IndexedDB: opaque-origin local-assets mode
+PASS light and dark workspace appearance
+PASS no unhandled page exceptions
+PASS component lifetime disposes the complete workspace
+{
+  "secure": false,
+  "webgpuExposed": false,
+  "renderer": "canvas",
+  "compiler": "inline (explicit)",
+  "skia": true,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36"
+}

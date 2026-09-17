@@ -41,7 +41,7 @@ test('bounded color decoder rejects truncation, invalid offsets and unsupported 
  const d=fixture(),order=exportGlyphOrder(d),t=compileColorTables(d.data,order),c=t.get('COLR'),p=t.get('CPAL');
  for(let n=0;n<c.length;n++)assert.throws(()=>readColorTables(c.slice(0,n),p,order));
  for(let n=0;n<p.length;n++)assert.throws(()=>readColorTables(c,p.slice(0,n),order));
- const bad=c.slice();new DataView(bad.buffer).setUint16(0,1);assert.throws(()=>readColorTables(bad,p,order),/only COLRv0/);
+ const bad=c.slice();new DataView(bad.buffer).setUint16(0,2);assert.throws(()=>readColorTables(bad,p,order),/unsupported/);
  const badPalette=p.slice();new DataView(badPalette.buffer).setUint16(12,65535);assert.throws(()=>readColorTables(c,badPalette,order));
  const badLayer=c.slice();new DataView(badLayer.buffer).setUint16(20,65535);assert.throws(()=>readColorTables(badLayer,p,order));
 });

@@ -1,4 +1,4 @@
-import { compileColorTables, readColorTables } from '@wieslawsoltes/counterform-color';
+import { compileColorTables, readColorTables, createPaletteNamePlan } from '@wieslawsoltes/counterform-color';
 import { Reader, Writer, sfnt, readDirectory, checksum, utf16be, decodeUTF16BE } from '@wieslawsoltes/counterform-binary';
 import { FontDocument, createFont, createGlyph } from '@wieslawsoltes/counterform-model';
 import { bounds, contoursToQuadraticPoints, quadraticPointsToContour, fromSVG, transformContours, segments, uid } from '@wieslawsoltes/counterform-geometry';
@@ -177,7 +177,8 @@ function baseTables(doc, glyphs, metrics, outlineFormat, masterId, extraNames = 
     const maxp = new Writer().u32(outlineFormat === 'ttf' ? 0x10000 : 0x5000).u16(glyphs.length);
     if (outlineFormat === 'ttf')
         maxp.u16(Math.max(...metrics.map(m => m.points || 0))).u16(Math.max(...metrics.map(m => m.contours || 0))).u16(0).u16(0).u16(2).u16(0).u16(0).u16(0).u16(0).u16(0).u16(0).u16(0).u16(0);
-    const tables = new Map([['head', head.finish()], ['hhea', hhea.finish()], ['hmtx', hm.finish()], ['maxp', maxp.finish()], ['cmap', cmapTable(glyphs)], ['name', nameTable(info, extraNames)], ['OS/2', os2Table(info, glyphs, metrics)], ['post', postTable(info, glyphs)]]);
+    const colorNames=createPaletteNamePlan(doc.data,extraNames);
+    const tables = new Map([['head', head.finish()], ['hhea', hhea.finish()], ['hmtx', hm.finish()], ['maxp', maxp.finish()], ['cmap', cmapTable(glyphs)], ['name', nameTable(info, [...extraNames,...colorNames.names])], ['OS/2', os2Table(info, glyphs, metrics)], ['post', postTable(info, glyphs)]]);
     if (outlineFormat === 'ttf')
         tables.set('gasp', new Writer().u16(1).u16(1).u16(65535).u16(10).finish());
     const layout = compileLayout(doc.data, glyphs, masterId);
@@ -186,7 +187,7 @@ function baseTables(doc, glyphs, metrics, outlineFormat, masterId, extraNames = 
     const kern = compileKern(layout.kern);
     if (kern)
         tables.set('kern', kern);
-    for (const [tag, bytes] of compileColorTables(doc.data, glyphs)) tables.set(tag, bytes);
+    for (const [tag, bytes] of compileColorTables(doc.data, glyphs,{namePlan:colorNames})) tables.set(tag, bytes);
     return tables;
 }
 export function exportGlyphOrder(doc) { let glyphs = doc.data.glyphs.filter(g => g.export !== false); const notdef = glyphs.find(g => g.name === '.notdef'); if (notdef)
@@ -531,9 +532,11 @@ export function parseTrueType(bytes, { maxGlyphs = 65535, maxPoints = 2000000 } 
     const colorWarnings = [];
     if (get('COLR') && get('CPAL')) {
         try {
-            const colors = readColorTables(get('COLR'), get('CPAL'), data.glyphs);
+            const colors = readColorTables(get('COLR'), get('CPAL'), data.glyphs,{names:get('name')?readNames(get('name')):new Map()});
             data.palettes = colors.palettes;
             for (const g of data.glyphs) if (colors.colorLayers.has(g.id)) g.colorLayers = colors.colorLayers.get(g.id);
+            for (const g of data.glyphs) {if(colors.colorPaints.has(g.id))g.colorPaint=colors.colorPaints.get(g.id);if(colors.colorClips.has(g.id))g.colorClip=colors.colorClips.get(g.id);}
+            for(const key of ['paletteTypes','paletteLabels','paletteEntryLabels'])if(colors[key])data[key]=colors[key];
             supported.add('COLR'); supported.add('CPAL');
         } catch (error) { colorWarnings.push('Color reconstruction: ' + error.message); }
     }
