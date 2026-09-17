@@ -1,0 +1,64 @@
+diff --git a/tests/browser.py b/tests/browser.py
+index f7190761f9ea5107df7de2678fe1a11fbaea0c6f..7f96b3dc417342e5a888929d094d1744c3323ae9 100644
+--- a/tests/browser.py
++++ b/tests/browser.py
+@@ -5,6 +5,7 @@
+ from pathlib import Path
+ from urllib.parse import urlsplit, unquote
+ from playwright.sync_api import sync_playwright, expect as browser_expect
++from browser_ready import wait_for_native_workspace
+ import argparse, json, mimetypes, os, subprocess, time, traceback
+ 
+ def assert_empty(value):
+@@ -69,8 +70,7 @@
+             server=subprocess.Popen(['node',str(root/'scripts/serve.mjs')],cwd=root,env=env,stdout=subprocess.DEVNULL)
+             time.sleep(.8)
+             page.goto(origin+'/?demo',wait_until='load')
+-        page.wait_for_function("document.documentElement.dataset.ready === 'true'",timeout=30000)
+-        page.wait_for_function('!!counterform.proof.face',timeout=15000)
++        wait_for_native_workspace(page)
+         report['environment']=js("({secure:isSecureContext,webgpuExposed:!!navigator.gpu,renderer:counterform.renderer.backend,compiler:counterform.compiler.backend,skia:!!counterform.S,userAgent:navigator.userAgent})")
+         check('workspace boot and real Skia surface',lambda:expect("counterform.S && counterform.renderer.backend !== 'initializing' && counterform.doc.data.glyphs.length===102"))
+         check('ten upstream components and extensible commands',lambda:expect("!!counterform.dock && !!counterform.table.source && !!counterform.state.glyphs && !!counterform.ribbon.model && !!counterform.editor.index && !!counterform.kerning.workbook && !!counterform.notes.element.Document && counterform.commands.commands.size>=100"))
+diff --git a/tests/workspace-browser.py b/tests/workspace-browser.py
+index 6a2ec1ba899da3b419f126f348ea86ca6c675588..76d278d9ea09151e196578f240ea6a606d7c336d 100644
+--- a/tests/workspace-browser.py
++++ b/tests/workspace-browser.py
+@@ -2,6 +2,7 @@
+ from pathlib import Path
+ from urllib.parse import unquote, urlsplit
+ from playwright.sync_api import sync_playwright, expect
++from browser_ready import wait_for_native_workspace
+ import argparse, json, mimetypes, os, subprocess, time, traceback
+ 
+ ROOT=Path(__file__).resolve().parents[1]
+@@ -40,7 +41,7 @@
+         else:
+             server=subprocess.Popen(['node',str(ROOT/'scripts/serve.mjs')],cwd=ROOT,env={**os.environ,'PORT':'4178','CF_ROOT':str(assets)},stdout=subprocess.DEVNULL)
+             time.sleep(.8);page.goto(origin+'/?demo',wait_until='load')
+-        page.wait_for_function("document.documentElement.dataset.ready==='true' && !!counterform.proof.face",timeout=60000);idle()
++        wait_for_native_workspace(page);idle()
+         report['environment']=js("({secure:isSecureContext,renderer:counterform.renderer.backend,compiler:counterform.compiler.backend})")
+         js("window.uiOriginal=JSON.stringify(counterform.doc.data);window.inspectorOriginal=counterform.inspectorFields.advanceWidth")
+         def density():
+diff --git a/tests/live-pages.py b/tests/live-pages.py
+index ca13a94c17c7bb003f7de28e6d9421547f09b459..291d0340dd085801c6e3a008e92358587c6c6794 100644
+--- a/tests/live-pages.py
++++ b/tests/live-pages.py
+@@ -12,6 +12,7 @@
+ import time
+ import traceback
+ from playwright.sync_api import sync_playwright, expect
++from browser_ready import wait_for_native_workspace
+ 
+ 
+ def main() -> None:
+@@ -53,7 +54,7 @@
+                 time.sleep(5)
+             check('live asset manifest matches the requested version and commit')
+             page.goto(args.url+'?demo&qualification='+args.commit, wait_until='load', timeout=60000)
+-            page.wait_for_function("document.documentElement.dataset.ready==='true' && !!globalThis.counterform?.proof.face", timeout=60000)
++            wait_for_native_workspace(page)
+             environment = page.evaluate("({secure:isSecureContext,compiler:counterform.compiler.backend,renderer:counterform.renderer.backend,skia:!!counterform.S,commands:counterform.commands.commands.size,tools:counterform.toolRail.querySelectorAll('[data-tool]').length,menus:counterform.menuDefinitions.length,userAgent:navigator.userAgent})")
+             report['environment'] = environment
+             check('HTTPS startup uses the actual compiler worker and Skia', environment['secure'] and environment['compiler']=='worker' and environment['skia'])
