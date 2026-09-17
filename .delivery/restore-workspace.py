@@ -18,8 +18,13 @@ def main():
  if not decoder.eof or decoder.unused_data:raise ValueError('Invalid source frame')
  manifest=json.loads(raw)
  if manifest['format']!=1:raise ValueError('Invalid manifest')
+ rebased=(ROOT/'.delivery/workspace-docs-rebase.json').read_bytes()
+ if hashlib.sha256(rebased).hexdigest()!='ef31c12f59b360cef239ecea4b391ed7f39e19012caec68c53c30a7e48d7ad8d':raise ValueError('Documentation rebase digest mismatch')
+ overrides={r['path']:r for r in json.loads(rebased)['records']}
+ if set(overrides)!={'CHANGELOG.md','docs/CAPABILITIES.md'}:raise ValueError('Unexpected rebase paths')
  plans=[];seen=set()
- for r in manifest['records']:
+ for source in manifest['records']:
+  r=overrides.get(source['path'],source)
   name=r['path'];path=safe_path(name)
   if name in seen:raise ValueError('Duplicate path')
   seen.add(name);old=path.read_bytes() if path.exists() else b'';actual=blob(old) if path.exists() else None
