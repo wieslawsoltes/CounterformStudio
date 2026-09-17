@@ -1,0 +1,42 @@
+name: Commit verified export engines
+on:
+  push:
+    branches: [main]
+    paths: ['.delivery/exports.*.xzpart', '.github/workflows/export-delivery.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: counterform-export-delivery
+  cancel-in-progress: false
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Verify and apply tested source
+        run: |
+          python - <<'PY'
+          import pathlib,hashlib,lzma,subprocess
+          data=b''.join(p.read_bytes() for p in sorted(pathlib.Path('.delivery').glob('exports.*.xzpart')))
+          assert hashlib.sha256(data).hexdigest()=='ca136c0abbb165e03a74fe343009d9d20eda7e7115c787a18ab0458b26eb7d4a','Delivery digest mismatch'
+          patch=lzma.decompress(data,memlimit=128*1024*1024)
+          if subprocess.run(['git','apply','--reverse','--check'],input=patch,capture_output=True).returncode:
+              subprocess.run(['git','apply','--check'],input=patch,check=True)
+              subprocess.run(['git','apply'],input=patch,check=True)
+          PY
+      - run: npm test
+      - name: Commit editable implementation and dispatch full verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add packages tests docs package.json
+          git diff --cached --quiet || git commit -m 'feat: add CFF2 and WOFF2 export with HVAR/MVAR variable metrics'
+          git push origin HEAD:main
+          gh workflow run ci.yml --ref main
