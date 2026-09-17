@@ -12,6 +12,7 @@ import re
 import time
 import traceback
 from playwright.sync_api import sync_playwright, expect
+from browser_ready import wait_for_native_workspace
 
 
 def main() -> None:
@@ -53,7 +54,7 @@ def main() -> None:
                 time.sleep(5)
             check('live asset manifest matches the requested version and commit')
             page.goto(args.url+'?demo&qualification='+args.commit, wait_until='load', timeout=60000)
-            page.wait_for_function("document.documentElement.dataset.ready==='true' && !!globalThis.counterform?.proof.face", timeout=60000)
+            wait_for_native_workspace(page)
             environment = page.evaluate("({secure:isSecureContext,compiler:counterform.compiler.backend,renderer:counterform.renderer.backend,skia:!!counterform.S,commands:counterform.commands.commands.size,tools:counterform.toolRail.querySelectorAll('[data-tool]').length,menus:counterform.menuDefinitions.length,userAgent:navigator.userAgent})")
             report['environment'] = environment
             check('HTTPS startup uses the actual compiler worker and Skia', environment['secure'] and environment['compiler']=='worker' and environment['skia'])

@@ -5,6 +5,7 @@ Normal CI mode serves localhost and qualifies the backend the browser actually s
 from pathlib import Path
 from urllib.parse import urlsplit, unquote
 from playwright.sync_api import sync_playwright, expect as browser_expect
+from browser_ready import wait_for_native_workspace
 import argparse, json, mimetypes, os, subprocess, time, traceback
 
 def assert_empty(value):
@@ -69,8 +70,7 @@ with sync_playwright() as p:
             server=subprocess.Popen(['node',str(root/'scripts/serve.mjs')],cwd=root,env=env,stdout=subprocess.DEVNULL)
             time.sleep(.8)
             page.goto(origin+'/?demo',wait_until='load')
-        page.wait_for_function("document.documentElement.dataset.ready === 'true'",timeout=30000)
-        page.wait_for_function('!!counterform.proof.face',timeout=15000)
+        wait_for_native_workspace(page)
         report['environment']=js("({secure:isSecureContext,webgpuExposed:!!navigator.gpu,renderer:counterform.renderer.backend,compiler:counterform.compiler.backend,skia:!!counterform.S,userAgent:navigator.userAgent})")
         check('workspace boot and real Skia surface',lambda:expect("counterform.S && counterform.renderer.backend !== 'initializing' && counterform.doc.data.glyphs.length===102"))
         check('ten upstream components and extensible commands',lambda:expect("!!counterform.dock && !!counterform.table.source && !!counterform.state.glyphs && !!counterform.ribbon.model && !!counterform.editor.index && !!counterform.kerning.workbook && !!counterform.notes.element.Document && counterform.commands.commands.size>=100"))

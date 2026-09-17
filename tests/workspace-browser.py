@@ -2,6 +2,7 @@
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 from playwright.sync_api import sync_playwright, expect
+from browser_ready import wait_for_native_workspace
 import argparse, json, mimetypes, os, subprocess, time, traceback
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -40,7 +41,7 @@ with sync_playwright() as p:
         else:
             server=subprocess.Popen(['node',str(ROOT/'scripts/serve.mjs')],cwd=ROOT,env={**os.environ,'PORT':'4178','CF_ROOT':str(assets)},stdout=subprocess.DEVNULL)
             time.sleep(.8);page.goto(origin+'/?demo',wait_until='load')
-        page.wait_for_function("document.documentElement.dataset.ready==='true' && !!counterform.proof.face",timeout=60000);idle()
+        wait_for_native_workspace(page);idle()
         report['environment']=js("({secure:isSecureContext,renderer:counterform.renderer.backend,compiler:counterform.compiler.backend})")
         js("window.uiOriginal=JSON.stringify(counterform.doc.data);window.inspectorOriginal=counterform.inspectorFields.advanceWidth")
         def density():
