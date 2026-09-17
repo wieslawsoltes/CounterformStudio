@@ -2,6 +2,7 @@ name: Verify and publish Counterform Studio
 on:
   push:
     branches: [main]
+    paths-ignore: ['.delivery/**', '.recovery/**', '.github/workflows/delivery.yml']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -20,7 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.13'}
       - run: npm test
-      - run: python -m pip install fonttools==4.63.0 brotli playwright==1.56.0
+      - run: python -m pip install -r tests/requirements.txt
       - run: python -m playwright install --with-deps chromium
       - run: npx --yes --package=typescript@5.9.3 tsc -p tests/tsconfig.json
       - run: npm run test:fonts
@@ -28,11 +29,9 @@ jobs:
       - run: npm run pack:all && npm run test:packages
       - name: Browser source and distribution verification
         run: |
-          python tests/browser.py
-          mkdir -p test-results/source
-          cp test-results/*.png test-results/source/ || true
-          python tests/browser.py --root dist
-      - name: Archive checkout without generated fonts or external tooling
+          python tests/browser.py --out-dir test-results/source
+          python tests/browser.py --root dist --out-dir test-results/distribution
+      - name: Archive source
         run: git archive --format=tar.gz HEAD -o CounterformStudio-source.tar.gz
       - uses: actions/upload-artifact@v4
         if: always()
