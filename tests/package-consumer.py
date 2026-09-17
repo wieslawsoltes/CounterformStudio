@@ -1,7 +1,22 @@
 """Verify packaged entrypoints in a fresh consumer, without registry access."""
 from pathlib import Path
-import tempfile, tarfile, subprocess, json
+import tempfile, tarfile, subprocess, json, hashlib, base64
 root = Path(__file__).resolve().parents[1]
+version = json.loads((root/'package.json').read_text())['version']
+manifest = json.loads((root/'artifacts/npm/manifest.json').read_text())
+assert manifest['version'] == version, 'Release manifest version differs from the workspace.'
+assert manifest['published'] is False, 'Packing must not claim registry publication.'
+records = {entry['filename']: entry for entry in manifest['packages']}
+assert len(records) == len(manifest['packages']), 'Duplicate package archive in manifest.'
+assert len({entry['name'] for entry in records.values()}) == len(records), 'Duplicate package identity.'
+assert set(records) == {file.name for file in (root/'artifacts/npm').glob('*.tgz')}, 'Archive inventory differs from manifest.'
+for filename, entry in records.items():
+    raw = (root/'artifacts/npm'/filename).read_bytes()
+    assert entry['version'] == version, f'{filename}: package version mismatch'
+    assert entry['bytes'] == len(raw), f'{filename}: length mismatch'
+    assert entry['sha256'] == hashlib.sha256(raw).hexdigest(), f'{filename}: SHA-256 mismatch'
+    integrity = 'sha512-' + base64.b64encode(hashlib.sha512(raw).digest()).decode('ascii')
+    assert entry['integrity'] == integrity, f'{filename}: SRI mismatch'
 fonts = {'.ttf','.otf','.woff','.woff2','.ttc','.otc','.eot','.pfb','.pfa','.afm','.pcf','.bdf'}
 with tempfile.TemporaryDirectory(prefix='counterform-consumer-') as tmp:
     base = Path(tmp)
@@ -14,6 +29,12 @@ with tempfile.TemporaryDirectory(prefix='counterform-consumer-') as tmp:
             assert 'package/types/index.d.ts' in entries and 'package/src/index.js' in entries
             assert not any(Path(n).suffix.lower() in fonts for n in entries)
             meta = json.load(archive.extractfile('package/package.json'))
+            record = records[file.name]
+            assert meta['name'] == record['name'] and meta['version'] == version, 'Archive metadata mismatch.'
+            assert meta.get('dependencies', {}) == record['dependencies'], 'Archive dependencies differ from manifest.'
+            for dependency, constraint in meta.get('dependencies', {}).items():
+                if dependency.startswith('@wieslawsoltes/counterform-'):
+                    assert constraint == version, f'{dependency}: internal release dependency mismatch'
             target = scope/meta['name'].split('/')[1]
             stage = base/f'stage-{count}'
             stage.mkdir()
@@ -58,7 +79,7 @@ console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TT
         raise SystemExit(result.returncode)
     (root/'test-results/package-report.json').write_text(json.dumps({
         'archivesVerified':count,'freshConsumer':True,'fontFilesIncluded':False,
-        'checks':['All archive manifests, declarations, entrypoints and font-file exclusion',
+        'checks':['Release version, archive inventory, SHA-256/SRI, dependencies, declarations, entrypoints and font-file exclusion',
                   'fresh extracted consumer TTF/CFF/variable TTF compilation',
                   'headless package imports with real vendor dependencies',
                   'real packaged Node-worker entry compiles byte-identical color fonts'],
