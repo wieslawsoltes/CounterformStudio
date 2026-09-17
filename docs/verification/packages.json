@@ -1,0 +1,12 @@
+{
+  "archivesVerified": 20,
+  "freshConsumer": true,
+  "fontFilesIncluded": false,
+  "checks": [
+    "All archive manifests, declarations, entrypoints and font-file exclusion",
+    "fresh extracted consumer TTF/CFF/variable TTF compilation",
+    "headless package imports with real vendor dependencies",
+    "real packaged Node-worker entry compiles byte-identical color fonts"
+  ],
+  "stdout": "PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0, real Node compiler worker and headless module imports\n"
+}

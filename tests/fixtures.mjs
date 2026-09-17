@@ -14,6 +14,10 @@ for(const l of d.glyph('A').layers)l.anchors.push({name:'top',x:320,y:700});
 const mark=createGlyph('acutecomb',0x301,d.data.masters);mark.category='Mark';for(const l of mark.layers){l.advanceWidth=0;l.anchors.push({name:'_top',x:0,y:0});}d.addGlyph(mark);
 const ttf=compileTrueType(d);
 for(const [name,data] of Object.entries({'static.ttf':ttf,'static.otf':compileOpenTypeCFF(d),'static.woff':encodeWOFF(ttf),'variable.ttf':compileVariableTrueType(d),'source.ufoz':exportUFO(d)}))await fs.writeFile(path.join(destination,name),data);
+// All color fixtures are generated from our procedural source, never bundled fonts.
+d.data.palettes=[['#ff3300','#0066ff80'],['#33ff00','#8800ffaa']];
+d.glyph('A').colorLayers=[{glyphId:d.glyph('A').id,paletteIndex:0},{glyphId:d.glyph('O').id,paletteIndex:1},{glyphId:d.glyph('H').id,paletteIndex:65535}];
+for(const [name,data] of Object.entries({'color.ttf':compileTrueType(d),'color.otf':compileOpenTypeCFF(d),'color-variable.ttf':compileVariableTrueType(d)}))await fs.writeFile(path.join(destination,name),data);
 const locations=[{}, {wght:-1},{wght:1},{wdth:1},{wght:1,wdth:1},{wght:.5,wdth:.5}],values=[0,10,20,40,80,120],queries=[{wght:.2,wdth:.8},{wght:.75,wdth:.25},{wght:-.5,wdth:.4},...locations];
 const model=new VariationModel(locations,['wght','wdth']);
 await fs.writeFile(path.join(destination,'variation-oracle.json'),JSON.stringify({locations,values,queries,results:queries.map(l=>model.interpolate(l,values))}));

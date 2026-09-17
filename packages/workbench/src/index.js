@@ -1,3 +1,5 @@
+import { CompilerClient } from '@wieslawsoltes/counterform-compiler';
+import { showColorEditor } from './colors.js';
 import { FontDocument, createFont, createGlyph, createDemoFont, duplicateGlyph, addMaster, setSidebearing } from '@wieslawsoltes/counterform-model';
 import { History } from '@wieslawsoltes/counterform-history';
 import { CommandRegistry, formatBinding } from '@wieslawsoltes/counterform-commands';
@@ -16,11 +18,11 @@ import { applyRecipe, recipes } from '@wieslawsoltes/counterform-automation';
 import { CoordinateCompute } from '@wieslawsoltes/counterform-compute';
 import { fromSVG, toSVG, bounds, transformContours, uid, rectangle, ellipse } from '@wieslawsoltes/counterform-geometry';
 import { el, button, toast, dialog, field, section, setValue, formDialog, escapeHTML } from './ui.js';
-export const version = '0.1.0';
+export const version = '0.2.0';
 const brand = `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M32 9A16 16 0 1 0 32 31L27 25A8 8 0 1 1 27 15Z" fill="currentColor"/><path d="M24 17H36V23H24Z" fill="#91b9ff"/></svg>`;
 /** Mount a complete local-first authoring workspace. Consumers own the returned lifetime. */
-export async function mountStudio(host, { document: initialDocument = null, skiaOptions = {}, restore = true } = {}) {
-    const app = new StudioWorkbench(host, { initialDocument, skiaOptions, restore });
+export async function mountStudio(host, { document: initialDocument = null, skiaOptions = {}, compilerOptions = {}, restore = true } = {}) {
+    const app = new StudioWorkbench(host, { initialDocument, skiaOptions, compilerOptions, restore });
     await app.initialize();
     return app;
 }
@@ -53,6 +55,8 @@ export class StudioWorkbench {
         }
         this.commands = new CommandRegistry({ context: () => document.activeElement === this.renderer?.overlay ? 'editor' : 'global' });
         this.compute = new CoordinateCompute();
+        this.compiler = new CompilerClient(this.options.compilerOptions);
+        this.disposables.push(() => this.compiler.dispose());
         this.constructShell();
         this.renderer = new GlyphRenderer(this.canvasHost, { S: this.S });
         this.editor = new GlyphEditor(this.doc, this.history, this.renderer);
@@ -188,7 +192,7 @@ export class StudioWorkbench {
         ptoolbar.append(text, this.proofKern, this.proofLiga, size, this.proofMode);
         const proofHost = el('div', 'cf-proof-host');
         this.proofPane.append(ptoolbar, proofHost);
-        this.proof = new FontProof(proofHost, this.doc, { masterId: this.editor.masterId });
+        this.proof = new FontProof(proofHost, this.doc, { masterId: this.editor.masterId, compiler:this.compiler });
         this.proof.errors.subscribe(e => this.record('Proof', e.message));
         this.inspector = el('div', 'cf-inspector');
         this.buildInspector();
@@ -205,7 +209,7 @@ export class StudioWorkbench {
         if (m.IsHidden)
             m.Show?.();
     } }
-    constructRibbon() { const tabs = [{ id: 'design', label: 'Design', groups: [{ id: 'nodes', label: 'Nodes', commands: ['node.smooth', 'node.corner', 'outline.extrema'] }, { id: 'paths', label: 'Contours', commands: ['outline.overlap', 'outline.reverse', 'outline.winding'] }, { id: 'transform', label: 'Transform', commands: ['outline.transform', 'outline.mirrorX', 'outline.round'] }] }, { id: 'spacing', label: 'Spacing', groups: [{ id: 'metrics', label: 'Metrics', commands: ['font.info', 'glyph.center', 'kern.pair'] }, { id: 'kern', label: 'Kerning', commands: ['view.kerning', 'kern.groups'] }] }, { id: 'masters', label: 'Masters', groups: [{ id: 'masters', label: 'Design space', commands: ['view.masters', 'master.add', 'axis.add', 'master.compatibility', 'master.instance'] }] }, { id: 'opentype', label: 'OpenType', groups: [{ id: 'compile', label: 'Compilation', commands: ['view.features', 'features.apply', 'font.validate', 'font.tables'] }, { id: 'components', label: 'Construction', commands: ['glyph.component', 'glyph.decompose', 'glyph.anchor'] }] }, { id: 'workspace', label: 'Workspace', groups: [{ id: 'layout', label: 'Layout', commands: ['layout.undo', 'layout.redo', 'view.theme', 'view.fullscreen'] }, { id: 'tools', label: 'Tools', commands: ['commands.palette', 'commands.bindings', 'automation.recipe', 'app.about'] }] }]; this.ribbon = createRibbon(this.commands, tabs); this.ribbonHost.append(this.ribbon); this.buildMenus(); for (const tool of tools) {
+    constructRibbon() { const tabs = [{ id: 'design', label: 'Design', groups: [{ id: 'nodes', label: 'Nodes', commands: ['node.smooth', 'node.corner', 'outline.extrema'] }, { id: 'paths', label: 'Contours', commands: ['outline.overlap', 'outline.reverse', 'outline.winding'] }, { id: 'transform', label: 'Transform', commands: ['outline.transform', 'outline.mirrorX', 'outline.round'] }] }, { id: 'spacing', label: 'Spacing', groups: [{ id: 'metrics', label: 'Metrics', commands: ['font.info', 'glyph.center', 'kern.pair'] }, { id: 'kern', label: 'Kerning', commands: ['view.kerning', 'kern.groups'] }] }, { id: 'masters', label: 'Masters', groups: [{ id: 'masters', label: 'Design space', commands: ['view.masters', 'master.add', 'axis.add', 'master.compatibility', 'master.instance'] }] }, { id: 'opentype', label: 'OpenType', groups: [{ id: 'compile', label: 'Compilation', commands: ['view.features', 'features.apply', 'font.validate', 'font.tables'] }, { id: 'components', label: 'Construction', commands: ['glyph.component', 'glyph.decompose', 'glyph.anchor', 'color.edit'] }] }, { id: 'workspace', label: 'Workspace', groups: [{ id: 'layout', label: 'Layout', commands: ['layout.undo', 'layout.redo', 'view.theme', 'view.fullscreen'] }, { id: 'tools', label: 'Tools', commands: ['commands.palette', 'commands.bindings', 'automation.recipe', 'app.about'] }] }]; this.ribbon = createRibbon(this.commands, tabs); this.ribbonHost.append(this.ribbon); this.buildMenus(); for (const tool of tools) {
         const b = button(tool.icon, () => this.editor.setTool(tool.id), { className: 'cf-tool' + (tool.id === this.editor.tool ? ' active' : ''), title: `${tool.label} · ${tool.key}` });
         const paths = { select: 'M5 3v16l4-5 5 7 3-2-5-7 6-1Z', pen: 'M6 18 4 20l2-8 8-8 6 6-8 8Z M14 4l6 6 M6 18l6-6', rect: 'M4 4h16v16H4Z', ellipse: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18', insert: 'M3 18c5-20 13 12 18-12 M12 7v10 M7 12h10', eraser: 'm4 15 9-11 8 6-9 11H9Z M8 10l8 6', measure: 'M3 8h18v8H3Z M7 8v4 M11 8v3 M15 8v4 M19 8v3', pan: 'M7 13V6a2 2 0 0 1 4 0v5-8a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8-3a2 2 0 0 1 4 0v7c0 5-3 8-7 8h-2c-2 0-3-1-4-3L4 15c-2-3 0-4 2-3Z' };
         if (paths[tool.id])
@@ -216,6 +220,7 @@ export class StudioWorkbench {
     } this.toolRail.append(el('div', 'cf-tool-spacer'), button('◧', () => this.commands.run('view.fill'), { className: 'cf-tool', title: 'Toggle fill' }), button('⊞', () => this.commands.run('view.grid'), { className: 'cf-tool', title: 'Toggle grid' }), button('?', () => this.showBindings(), { className: 'cf-tool', title: 'Keyboard shortcuts' })); }
     registerCommands() {
         const r = (id, label, execute, keys = [], extra = {}) => this.commands.register({ id, label, execute, keys, repeat: false, ...extra }), edit = { scope: 'editor', enabled: () => this.editor.canEdit };
+        r('color.edit', 'Color layers & palettes', () => this.showColors());
         r('file.new', 'New font', () => this.newFont(), ['Mod+N']);
         r('file.open', 'Open font / project', () => this.openFile(), ['Mod+O'], { allowInText: true });
         r('file.save', 'Save project', () => this.saveProject(), ['Mod+S'], { allowInText: true });
@@ -362,7 +367,9 @@ export class StudioWorkbench {
         layers.element.append(this.layerList);
         const actions = el('div', 'cf-inspector-actions');
         actions.append(button('Validate glyph', () => this.showValidation(this.editor.glyphId)), button('Font info', () => this.showFontInfo()));
-        this.inspector.append(glyphSection.element, metrics.element, selection.element, anchors.element, components.element, layers.element, actions);
+        const colors = section('Color font');
+        colors.element.append(button('Color layers & palettes…', () => this.showColors()));
+        this.inspector.append(colors.element, glyphSection.element, metrics.element, selection.element, anchors.element, components.element, layers.element, actions);
     }
     bind() {
         this.disposables.push(this.commands.attach(window, { capture: true }), this.commands.errors.subscribe(({ error }) => { toast(error.message, 'error'); this.record('Command', error.message); }), this.commands.executed.subscribe(({ id }) => { this.record('Command', this.commands.commands.get(id)?.label || id); this.updateStatus(); }), this.editor.changed.subscribe(e => { this.updateInspector(); this.updateStatus(); if (e.kind === 'tool')
@@ -454,8 +461,8 @@ export class StudioWorkbench {
     updateAll() { this.updateMasterControls(); this.renderMasters(); this.updateInspector(); this.updateStatus(); this.renderLog(); }
     zoom(factor) { this.renderer.camera.zoomAt(factor, { x: this.canvasHost.clientWidth / 2, y: this.canvasHost.clientHeight / 2 }); this.renderer.invalidate(); this.updateStatus(); }
     toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; this.host.dataset.theme = this.theme; this.dock.Theme = this.theme; this.ribbon.setAttribute('theme', this.theme); this.renderer.dark = this.theme === 'dark'; this.renderer.invalidate(); this.table.element.setAttribute('theme', this.theme); this.kerning.element.setAttribute('theme', this.theme); }
-    async newFont() { if (this.doc.dirty && !confirm('Create a new font? The current project remains in local recovery storage.'))
-        return; await this.autosave.flush(); const data = createFont('Untitled Family'); data.glyphs = [createGlyph('.notdef', null), createGlyph('space', 32), createGlyph('A', 65)]; this.replaceDocument(new FontDocument(data)); this.activate('glyph'); }
+    async newFont() { if (this.doc.dirty && !confirm('Create a new font? The current project will be saved to local recovery storage when available.'))
+        return; const saved = await this.autosave.flush(); if (!saved && this.doc.dirty && !confirm('Local recovery could not save this project. Continue without a recovery copy?')) return; const data = createFont('Untitled Family'); data.glyphs = [createGlyph('.notdef', null), createGlyph('space', 32), createGlyph('A', 65)]; this.replaceDocument(new FontDocument(data)); this.activate('glyph'); }
     replaceDocument(document, confirmDiscard = false) { if (confirmDiscard && this.doc.dirty && !confirm('Replace the current workspace? Save a project file first to keep a portable copy.'))
         return; this.editor.cancel(); this.history.clear(); this.previewInstance = false; this.editor.readOnly = false; const incoming = structuredClone(document.data ?? document); if (!incoming.glyphs.length)
         incoming.glyphs.push(createGlyph('.notdef', null, incoming.masters)); this.doc.replace(incoming); this.history.clear(); this.editor.setMaster(this.doc.data.masters[0].id); this.state.SetValue('masterId', this.editor.masterId); this.state.sync(); this.selectGlyph(this.doc.glyph('A')?.id || this.doc.data.glyphs[0]?.id); this.proof.update({ masterId: this.editor.masterId, variable: false }); this.featureText.value = this.doc.data.features; this.updateAll(); this.renderer.fit(); this.doc.markSaved(); this.autosave?.flush(); }
@@ -527,7 +534,7 @@ export class StudioWorkbench {
             throw new Error('Choose an unassigned Unicode scalar'); const g = createGlyph(name, cp, this.doc.data.masters.map(m => m.id)); this.history.execute('Create glyph', () => this.doc.addGlyph(g)); this.selectGlyph(g.id); this.activate('glyph'); } }); }
     duplicateCurrent() { return formDialog('Duplicate glyph', [['name', 'New glyph name', this.editor.glyph.name + '.copy', {}]], { onSubmit: v => { if (!v.name.trim() || this.doc.glyph(v.name))
             throw new Error('Choose a unique glyph name'); const g = duplicateGlyph(this.editor.glyph, v.name); this.history.execute('Duplicate glyph', () => this.doc.addGlyph(g)); this.selectGlyph(g.id); } }); }
-    deleteGlyph() { const g = this.editor.glyph; if (g.name === '.notdef')
+    deleteGlyph() { const g = this.editor.glyph; if (this.doc.data.glyphs.some(x => x.id !== g.id && x.colorLayers?.some(l => l.glyphId === g.id))) throw new Error('This glyph is referenced by a color layer. Remove that reference first.'); if (g.name === '.notdef')
         throw new Error('Keep the .notdef glyph'); if (this.doc.data.glyphs.some(x => x.layers.some(l => l.components.some(c => c.glyphId === g.id || c.glyphName === g.name))))
         throw new Error('This glyph is referenced by components. Decompose or remove those references first.'); if (confirm(`Delete ${g.name} from every master?`))
         this.history.execute('Delete glyph', () => { this.doc.data.glyphs = this.doc.data.glyphs.filter(x => x.id !== g.id); }); }
@@ -565,7 +572,7 @@ export class StudioWorkbench {
         this.featureMessage.className = 'cf-feature-message error';
         throw e;
     } }
-    showValidation(glyphId = null) { const issues = validateFont(this.doc).filter(x => !glyphId || !x.glyphId || x.glyphId === glyphId), errors = issues.filter(x => x.severity === 'error').length, warnings = issues.filter(x => x.severity === 'warning').length, d = dialog(glyphId ? 'Glyph validation' : 'Font validation', { subtitle: `${errors} errors · ${warnings} warnings · ${issues.length - errors - warnings} observations`, wide: true }); if (!issues.length)
+    async showValidation(glyphId = null) { const result = await this.compiler.validate(this.doc), issues = result.issues.filter(x => !glyphId || !x.glyphId || x.glyphId === glyphId), errors = issues.filter(x => x.severity === 'error').length, warnings = issues.filter(x => x.severity === 'warning').length, d = dialog(glyphId ? 'Glyph validation' : 'Font validation', { subtitle: `${errors} errors · ${warnings} warnings · ${issues.length - errors - warnings} observations`, wide: true }); if (!issues.length)
         d.body.append(el('div', 'cf-success-card', 'No issues found by the implemented checks.'));
     else {
         const list = el('div', 'cf-issues');
@@ -581,33 +588,26 @@ export class StudioWorkbench {
         }
         d.body.append(list);
     } d.footer.append(button('Download report', () => download(JSON.stringify({ revision: this.doc.revision, issues }, null, 2), 'validation.json', 'application/json')), button('Close', () => d.close(), { className: 'primary' })); return issues; }
-    showTables() { const bytes = compileTrueType(this.doc, { masterId: this.editor.masterId }), report = inspectFont(bytes), d = dialog('Compiled OpenType tables', { subtitle: `TrueType · ${bytes.byteLength.toLocaleString()} bytes · ${report.tables.length} tables`, wide: true }); const table = el('table', 'cf-table'); table.innerHTML = '<thead><tr><th>Tag</th><th>Bytes</th><th>Checksum</th><th>Verified</th></tr></thead>'; const body = el('tbody'); for (const t of report.tables)
+    showColors() { return showColorEditor(this); }
+    async showTables() { const {report, byteLength} = await this.compiler.inspect(this.doc, {masterId:this.editor.masterId}), d = dialog('Compiled OpenType tables', { subtitle: `TrueType · ${byteLength.toLocaleString()} bytes · ${report.tables.length} tables`, wide: true }); const table = el('table', 'cf-table'); table.innerHTML = '<thead><tr><th>Tag</th><th>Bytes</th><th>Checksum</th><th>Verified</th></tr></thead>'; const body = el('tbody'); for (const t of report.tables)
         body.innerHTML += `<tr><td><code>${escapeHTML(t.tag)}</code></td><td>${t.length.toLocaleString()}</td><td><code>${t.checksum.toString(16).padStart(8, '0')}</code></td><td>${t.validChecksum ? '✓' : 'Mismatch'}</td></tr>`; table.append(body); d.body.append(table); }
-    showExport() { const d = dialog('Export font', { subtitle: 'Compile actual font binaries from the editable source. No server upload.', wide: true }), form = el('div', 'cf-form-grid'), format = field('Format', 'ttf', { options: [{ value: 'ttf', label: 'TrueType · .ttf' }, { value: 'otf', label: 'OpenType CFF · .otf' }, { value: 'woff', label: 'Web Open Font Format · .woff' }, { value: 'variable', label: 'Variable TrueType · .ttf' }, { value: 'ufoz', label: 'UFO 3 source archive · .ufoz' }, { value: 'project', label: 'Counterform source · .counterform' }] }), master = field('Source master', this.editor.masterId, { options: this.doc.data.masters.map(m => ({ value: m.id, label: m.name })) }), name = field('File name', this.doc.info.familyName.replace(/[^a-zA-Z0-9_-]/g, '') + '-' + (this.doc.data.masters.find(m => m.id === this.editor.masterId)?.name || 'Regular'), {}); form.append(format.element, master.element, name.element); const note = el('div', 'cf-export-note'); note.innerHTML = '<strong>Export contract</strong><p>Static export includes contours, Unicode, metrics, names, pair kerning and supported GSUB/GPOS rules. Variable TrueType includes fvar, gvar and STAT; variable kerning and hinting are not generated. UFO preserves all source masters in layers and embeds Counterform metadata.</p><p>Imported advanced OpenType tables, hint programs and color paint graphs are not reconstructed. Keep the original font and review import warnings.</p>'; const errors = validateFont(this.doc).filter(x => x.severity === 'error'), check = el('div', errors.length ? 'cf-warning-card' : 'cf-success-card', errors.length ? `${errors.length} validation errors. Resolve them before font compilation.` : 'Structural validation passed.'); const progress = el('p', 'cf-muted'); d.body.append(form, check, note, progress); d.footer.append(button('Cancel', () => d.close()), button('Export', async () => { if (errors.length && !['project', 'ufoz'].includes(format.input.value))
+    showExport() { const d = dialog('Export font', { subtitle: 'Compile actual font binaries from the editable source. No server upload.', wide: true }), form = el('div', 'cf-form-grid'), format = field('Format', 'ttf', { options: [{ value: 'ttf', label: 'TrueType · .ttf' }, { value: 'otf', label: 'OpenType CFF · .otf' }, { value: 'woff', label: 'Web Open Font Format · .woff' }, { value: 'variable', label: 'Variable TrueType · .ttf' }, { value: 'ufoz', label: 'UFO 3 source archive · .ufoz' }, { value: 'project', label: 'Counterform source · .counterform' }] }), master = field('Source master', this.editor.masterId, { options: this.doc.data.masters.map(m => ({ value: m.id, label: m.name })) }), name = field('File name', this.doc.info.familyName.replace(/[^a-zA-Z0-9_-]/g, '') + '-' + (this.doc.data.masters.find(m => m.id === this.editor.masterId)?.name || 'Regular'), {}); form.append(format.element, master.element, name.element); const note = el('div', 'cf-export-note'); note.innerHTML = '<strong>Export contract</strong><p>Static export includes contours, Unicode, metrics, names, pair kerning and supported GSUB/GPOS rules. Variable TrueType includes fvar, gvar and STAT; variable kerning and hinting are not generated. UFO preserves all source masters in layers and embeds Counterform metadata.</p><p>COLRv0/CPALv0 color layers are compiled and reconstructed on supported TrueType imports. Other imported layout tables, hint programs and advanced color paint graphs are not reconstructed. Keep the original font and review import warnings.</p>'; const errors = [], check = el('div', 'cf-export-check', 'Validation runs in the compiler worker when you export.'); const progress = el('p', 'cf-muted'); d.body.append(form, check, note, progress); d.footer.append(button('Cancel', () => d.close()), button('Export', async () => { if (errors.length && !['project', 'ufoz'].includes(format.input.value))
         throw new Error('Resolve validation errors before exporting'); if (!name.input.value.trim())
-        throw new Error('Choose a file name'); progress.textContent = 'Compiling…'; await new Promise(r => requestAnimationFrame(r)); let bytes, extension = format.input.value, mime = 'font/ttf'; const opts = { masterId: master.input.value }; if (extension === 'ttf')
-        bytes = compileTrueType(this.doc, opts);
-    else if (extension === 'otf') {
-        bytes = compileOpenTypeCFF(this.doc, opts);
-        mime = 'font/otf';
-    }
-    else if (extension === 'woff') {
-        bytes = encodeWOFF(compileTrueType(this.doc, opts));
-        mime = 'font/woff';
-    }
-    else if (extension === 'variable') {
-        bytes = compileVariableTrueType(this.doc);
-        extension = 'ttf';
-    }
-    else if (extension === 'ufoz') {
-        bytes = exportUFO(this.doc, opts);
-        mime = 'application/zip';
-    }
-    else {
-        bytes = JSON.stringify(this.doc.data, null, 2);
-        extension = 'counterform';
-        mime = 'application/json';
-    } const filename = name.input.value.replace(/[\\/:*?"<>|]/g, '_') + '.' + extension; download(bytes, filename, mime); this.record('Export', `${filename} · ${(bytes.byteLength ?? bytes.length).toLocaleString()} bytes`); toast('Exported ' + filename); d.close(); }, { className: 'primary' })); }
+        throw new Error('Choose a file name'); progress.textContent = 'Compiling in worker…';
+        const abort = new AbortController();
+        d.element.addEventListener('close', () => abort.abort(), {once:true});
+        let bytes, extension = format.input.value, mime;
+        const exportRevision = this.doc.revision;
+        if (extension === 'project') {bytes=JSON.stringify(this.doc.data,null,2);extension='counterform';mime='application/json';}
+        else {
+            try {
+                const result = await this.compiler.compile(this.doc,{format:extension,masterId:master.input.value,validate:extension!=='ufoz'},{signal:abort.signal,priority:-10});
+                bytes=result.bytes;mime=result.mime;if(extension==='variable')extension='ttf';
+            } catch (error) { if(error.name==='AbortError')return;progress.textContent=error.message;throw error; }
+        }
+        if (!d.element.open) return;
+        if (this.doc.revision !== exportRevision) this.record('Export','Source changed during compilation; exported the captured snapshot.');
+ const filename = name.input.value.replace(/[\\/:*?"<>|]/g, '_') + '.' + extension; download(bytes, filename, mime); this.record('Export', `${filename} · ${(bytes.byteLength ?? bytes.length).toLocaleString()} bytes`); toast('Exported ' + filename); d.close(); }, { className: 'primary' })); }
     renderMasters() { if (!this.mastersPane)
         return; this.mastersPane.replaceChildren(); const title = section('Design space', { extra: button('+ Master', () => this.addMaster(), { className: 'cf-mini' }) }); this.mastersPane.append(title.element); for (const m of this.doc.data.masters) {
         const card = el('div', 'cf-master-card' + (m.id === this.editor.masterId ? ' selected' : ''));
@@ -632,7 +632,7 @@ export class StudioWorkbench {
     } if (!this.doc.data.axes.length)
         axes.element.append(el('p', 'cf-muted', 'No variation axes defined.')); this.mastersPane.append(axes.element); const actions = el('div', 'cf-button-stack'); actions.append(button('Check master compatibility', () => this.checkCompatibility()), button('Generate static instance', () => this.generateInstance()), button('Export variable font', () => this.showExport())); this.mastersPane.append(actions); }
     applyInstancePreview() { if (!this.doc.data.axes.length)
-        return; const instance = instanceDocument(this.doc, this.location); this.previewInstance = true; this.editor.readOnly = true; this.renderer.setScene({ contours: instance.resolve(this.editor.glyphId), editable: [], advanceWidth: instance.layer(this.editor.glyphId).advanceWidth, ghost: [] }); this.proof.update({ variable: true, location: this.location }); this.updateStatus(); this.updateInspector(); }
+        return; const instance = instanceDocument(this.doc, this.location); this.previewInstance = true; this.editor.readOnly = true; this.renderer.setScene({ colorLayers:(this.editor.glyph.colorLayers || []).map(l=>({contours:instance.resolve(l.glyphId),color:l.paletteIndex===65535?null:this.doc.data.palettes[0][l.paletteIndex]})), contours: instance.resolve(this.editor.glyphId), editable: [], advanceWidth: instance.layer(this.editor.glyphId).advanceWidth, ghost: [] }); this.proof.update({ variable: true, location: this.location }); this.updateStatus(); this.updateInspector(); }
     addMaster() { return formDialog('Add master', [['name', 'Name', 'New Master', {}], ...this.doc.data.axes.map(a => [a.tag, a.name || a.tag, this.location[a.tag] ?? a.default, { type: 'number', min: a.min, max: a.max }])], { subtitle: 'Clones all glyph layers and kerning from the selected master. Use a unique axis location.', onSubmit: v => { const location = Object.fromEntries(this.doc.data.axes.map(a => [a.tag, v[a.tag]])); let id; this.history.execute('Add master', () => id = addMaster(this.doc, v.name, location, this.editor.masterId)); this.selectMaster(id); } }); }
     editMaster(master) { return formDialog('Master properties', [['name', 'Name', master.name, {}], ...this.doc.data.axes.map(a => [a.tag, a.name || a.tag, master.location?.[a.tag] ?? a.default, { type: 'number', min: a.min, max: a.max }])], { onSubmit: v => this.history.execute('Edit master', () => { master.name = v.name; master.location = Object.fromEntries(this.doc.data.axes.map(a => [a.tag, v[a.tag]])); }) }); }
     addAxis() { return formDialog('Add variation axis', [['tag', 'Four-character tag', 'wdth', {}], ['name', 'Axis name', 'Width', {}], ['min', 'Minimum', 75, { type: 'number' }], ['default', 'Default', 100, { type: 'number' }], ['max', 'Maximum', 125, { type: 'number' }]], { onSubmit: v => { if (!/^[ -~]{4}$/.test(v.tag) || this.doc.data.axes.some(a => a.tag === v.tag) || v.min >= v.default || v.default >= v.max)
@@ -675,7 +675,7 @@ export class StudioWorkbench {
     showRecipe() { const d = dialog('Batch outline recipe', { subtitle: 'Declarative, deterministic operations. No eval and no untrusted JavaScript execution.', wide: true }), text = el('textarea', 'cf-code-editor'); text.style.minHeight = '300px'; text.value = JSON.stringify(recipes.clean, null, 2); const target = field('Target', 'current', { options: [{ value: 'current', label: 'Current glyph / current master' }, { value: 'all', label: 'All glyphs / all masters' }] }); d.body.append(target.element, text); d.footer.append(button('Cancel', () => d.close()), button('Run recipe', () => { const recipe = JSON.parse(text.value); this.history.execute('Run outline recipe', () => applyRecipe(this.doc, recipe, { glyphIds: target.input.value === 'current' ? [this.editor.glyphId] : null, masterIds: target.input.value === 'current' ? [this.editor.masterId] : null })); d.close(); }, { className: 'primary' })); }
     async verifyCompute() { const available = this.compute.device || await this.compute.initialize(), masters = [new Float32Array([0, 10, 20, 30]), new Float32Array([100, 110, 120, 130])], weights = [.25, .75], result = await this.compute.interpolate(masters, weights), expected = [75, 85, 95, 105]; if (!result.every((v, i) => Math.abs(v - expected[i]) < .001))
         throw new Error('Compute verification failed'); const message = `Interpolation verified: ${this.compute.backend} · [${[...result].join(', ')}]`; this.record('Compute', message); toast(message); return { available: !!available, backend: this.compute.backend, result: [...result] }; }
-    showAbout() { const d = dialog('Counterform Studio', { subtitle: `Version ${version} · original, modular font-authoring software`, wide: true }); d.body.innerHTML = `<div class="cf-about-brand">${brand}<div><h1>Make every curve count.</h1><p>A local-first workspace built from your browser-native components.</p></div></div><h3>Implemented in this build</h3><p>Editable cubic outlines; Skia rendering and path operations; node/handle tools; Unicode and metrics; components and anchors; multi-master interpolation; static TrueType/CFF and variable TrueType compilation; supported GSUB/GPOS; WOFF; UFO sources; live compiled-font proofing; recovery, undo, recipes and remappable commands.</p><h3>Explicit parity boundaries</h3><p>This is not a feature-complete FontLab replacement. Full hinting authoring, complete Adobe feature syntax, all language-system shaping workflows, CFF2 variable export, variable GPOS/HVAR/MVAR, all color-font paint editing, arbitrary VFC/VFJ import, lossless compiled-font reconstruction, full native shortcut parity and Python macro compatibility remain outside this release.</p><h3>Component runtime</h3><div class="cf-component-grid">${Object.entries(componentVersions).map(([name, v]) => `<div><strong>${name}</strong><span>${v}</span></div>`).join('')}</div><p class="cf-muted">SkiaSharpWeb’s SK* API is consumed unchanged. Font authoring and compilation live in Counterform packages. No font data leaves the browser unless you explicitly download it.</p>`; d.footer.append(button('Keyboard shortcuts', () => { d.close(); this.showBindings(); }), button('Close', () => d.close(), { className: 'primary' })); }
+    showAbout() { const d = dialog('Counterform Studio', { subtitle: `Version ${version} · original, modular font-authoring software`, wide: true }); d.body.innerHTML = `<div class="cf-about-brand">${brand}<div><h1>Make every curve count.</h1><p>A local-first workspace built from your browser-native components.</p></div></div><h3>Implemented in this build</h3><p>Editable cubic outlines; Skia rendering and path operations; node/handle tools; Unicode and metrics; components and anchors; multi-master interpolation; static TrueType/CFF and variable TrueType compilation; supported GSUB/GPOS; WOFF; UFO sources; live compiled-font proofing; COLRv0 palette and layer authoring; cancellable worker compilation; recovery, undo, recipes and remappable commands.</p><h3>Explicit parity boundaries</h3><p>This is not a feature-complete FontLab replacement. Full hinting authoring, complete Adobe feature syntax, all language-system shaping workflows, CFF2 variable export, variable GPOS/HVAR/MVAR, all color-font paint editing, arbitrary VFC/VFJ import, lossless compiled-font reconstruction, full native shortcut parity and Python macro compatibility remain outside this release.</p><h3>Component runtime</h3><div class="cf-component-grid">${Object.entries(componentVersions).map(([name, v]) => `<div><strong>${name}</strong><span>${v}</span></div>`).join('')}</div><p class="cf-muted">SkiaSharpWeb’s SK* API is consumed unchanged. Font authoring and compilation live in Counterform packages. No font data leaves the browser unless you explicitly download it.</p>`; d.footer.append(button('Keyboard shortcuts', () => { d.close(); this.showBindings(); }), button('Close', () => d.close(), { className: 'primary' })); }
     record(category, message) { this.log.push({ at: new Date().toISOString(), category, message }); if (this.log.length > 500)
         this.log.shift(); this.renderLog(); }
     renderLog() { if (!this.outputList)

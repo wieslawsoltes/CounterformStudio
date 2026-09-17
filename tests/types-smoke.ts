@@ -12,3 +12,18 @@ history.execute('Create glyph',()=>doc.addGlyph(glyph));
 const a:Uint8Array=compileTrueType(doc), b:Uint8Array=compileOpenTypeCFF(doc), c:Uint8Array=compileVariableTrueType(doc);
 const compute=new CoordinateCompute();compute.interpolate([new Float64Array([1,2])],[1]);
 void mountStudio(document.createElement('div'),{document:doc,restore:false});
+
+import {CompilerClient,CompileResult,CompilerOptions} from '@wieslawsoltes/counterform-compiler';
+import {FOREGROUND,compileColorTables,parseColor,validateColorSource,ColorLayer} from '@wieslawsoltes/counterform-color';
+import {Autosave,ProjectStore} from '@wieslawsoltes/counterform-storage';
+const layer:ColorLayer={glyphId:glyph.id,paletteIndex:FOREGROUND};
+glyph.colorLayers=[layer];
+const rgba:[number,number,number,number]=parseColor('#123456ab');
+const tables:Map<string,Uint8Array>=compileColorTables(validateColorSource(source),source.glyphs);
+const options:CompilerOptions={workerURL:new URL('./worker.js',import.meta.url),maxQueue:8};
+const compiler=new CompilerClient(options);
+const result:Promise<CompileResult>=compiler.compile(doc,{format:'variable'},{signal:new AbortController().signal,key:'proof',priority:10});
+const autosave=new Autosave(doc,new ProjectStore());
+const saved:Promise<boolean>=autosave.flush();
+void mountStudio(document.createElement('div'),{document:doc,restore:false,compilerOptions:options});
+compiler.dispose(); autosave.dispose();

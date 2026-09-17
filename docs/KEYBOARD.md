@@ -1,6 +1,6 @@
 # Keyboard contract
 
-Bindings are command IDs rather than hardwired control actions. `Mod` means Command on macOS and Control elsewhere. The default map is inspired by the requested editor's workflows; it is **not a complete, verified copy of FontLab's native shortcut list**. Use Help → Keyboard shortcuts to inspect/remap/export/import the actual 99-command registry.
+Bindings are command IDs rather than hardwired control actions. `Mod` means Command on macOS and Control elsewhere. The default map is inspired by the requested editor's workflows; it is **not a complete, verified copy of FontLab's native shortcut list**. Use Help → Keyboard shortcuts to inspect/remap/export/import the actual 100-command registry.
 
 | Action | Default |
 |---|---|
@@ -31,3 +31,5 @@ Drawing and nudge shortcuts require editor focus. Text inputs, editable rich tex
 The workbench installs its dispatcher in window capture phase to prevent Dockyard layout undo from consuming document undo. Layout undo/redo remain separate commands. Holding Space does not permanently change the chosen tool; focus loss and Escape cancel a pointer transaction.
 
 Browser/OS-reserved key combinations cannot be guaranteed available on every browser. Every registered action remains accessible through menus, the ribbon or command search. Key conflict reporting is syntactic/contextual; equivalent physical mappings across non-US layouts and Mod aliases require further qualification.
+
+`color.edit` opens Color layers & palettes from the ribbon, Inspector or command palette. It has no default shortcut, avoiding a collision with established outline-editing bindings.

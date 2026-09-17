@@ -1,0 +1,43 @@
+{
+  "name": "@wieslawsoltes/counterform-compiler",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Cancellable, prioritized worker compiler and font validation service.",
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json",
+    "./worker": "./src/worker.js",
+    "./node-worker": "./src/node-worker.js",
+    "./tasks": {
+      "types": "./types/tasks.d.ts",
+      "import": "./src/tasks.js"
+    }
+  },
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@wieslawsoltes/counterform-model": "0.2.0",
+    "@wieslawsoltes/counterform-font-io": "0.2.0",
+    "@wieslawsoltes/counterform-variations": "0.2.0",
+    "@wieslawsoltes/counterform-validation": "0.2.0",
+    "@wieslawsoltes/counterform-ufo": "0.2.0"
+  }
+}

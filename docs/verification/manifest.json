@@ -1,0 +1,50 @@
+{
+  "version": "0.2.0",
+  "baseRemoteCommit": "ff279154a3156797e6352ce6f4b28699284ee3e4",
+  "remotePushed": false,
+  "pagesRedeployed": false,
+  "node": "v22.16.0",
+  "python": "3.13.5",
+  "corePassed": 60,
+  "fonttoolsChecks": 11,
+  "browser": {
+    "sourcePassed": 27,
+    "distributionPassed": 27,
+    "skippedPerBuild": [
+      "IndexedDB: opaque-origin isolated mode"
+    ],
+    "actualBrowserCompiler": "inline (explicit)",
+    "actualSkiaBackend": "canvas/raster",
+    "browserWorkerOverHTTPSQualified": false,
+    "physicalWebGPUQualified": false
+  },
+  "npmPackages": 20,
+  "freshNodeWorkerVerified": true,
+  "relativeModuleGraphVerifiedInNode": true,
+  "evidence": [
+    {
+      "path": "docs/verification/browser-distribution.json",
+      "sha256": "27ff4a6386c313632f6cdae964ff3f8410e7311451195f930612b58ce6b01ffd"
+    },
+    {
+      "path": "docs/verification/browser-source.json",
+      "sha256": "8fc3e6e2c097e7f67afc5195d95bf96d89afea9c82765fb35260063ef1bc667e"
+    },
+    {
+      "path": "docs/verification/core.tap",
+      "sha256": "f154dcff918dced7b823653cc5a5c414346a636d78679c21a4a229429f14296c"
+    },
+    {
+      "path": "docs/verification/fonttools.json",
+      "sha256": "31f6824e2617867390c7e19fd558071fc86ed414d430a63bc9d3eea11d75cdca"
+    },
+    {
+      "path": "docs/verification/packages.json",
+      "sha256": "91a9505670d2acc5489e2d13d98a19a253a7e27b1422cbda51b62b798f44804a"
+    },
+    {
+      "path": "docs/verification/types.txt",
+      "sha256": "2b3c17074d6df3f0c8a21d7b143d7ede7c374d93f1724b70bf6ae3550abfbdd7"
+    }
+  ]
+}

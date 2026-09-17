@@ -1,0 +1,18 @@
+{
+  "tool": "fontTools",
+  "checks": [
+    "static.ttf: all tables independently decompile, names/cmap/metrics/outlines/layout match",
+    "static.otf: all tables independently decompile, names/cmap/metrics/outlines/layout match",
+    "static.woff: all tables independently decompile, names/cmap/metrics/outlines/layout match",
+    "variable.ttf: all tables independently decompile, names/cmap/metrics/outlines/layout match",
+    "color.ttf: independent COLRv0 layers, CPAL RGBA channels, palettes and foreground indices",
+    "color.otf: independent COLRv0 layers, CPAL RGBA channels, palettes and foreground indices",
+    "color-variable.ttf: independent COLRv0 layers, CPAL RGBA channels, palettes and foreground indices",
+    "variable color font: independent instantiation preserves palette alpha and layer references",
+    "gvar: 5 independently instantiated weights produce monotonically widening A outlines",
+    "sparse multi-axis interpolation matches fontTools at all reference locations",
+    "UFO3: independent layer/glyph/metrics/kerning reader accepts source archive"
+  ],
+  "passed": 11,
+  "fixturePolicy": "Generated from original procedural source in temporary directory; removed after verification."
+}

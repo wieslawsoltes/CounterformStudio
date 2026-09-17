@@ -1,11 +1,14 @@
 /** Mount a complete local-first authoring workspace. Consumers own the returned lifetime. */
-export function mountStudio(host: any, { document: initialDocument, skiaOptions, restore }?: {
+export function mountStudio(host: any, { document: initialDocument, skiaOptions, compilerOptions, restore }?: {
     document?: any;
     skiaOptions?: {};
+    compilerOptions?: import("@wieslawsoltes/counterform-compiler").CompilerOptions;
     restore?: boolean;
 }): Promise<StudioWorkbench>;
-export const version: "0.1.0";
+export const version: "0.2.0";
 export class StudioWorkbench {
+    compiler: import("@wieslawsoltes/counterform-compiler").CompilerClient;
+    showColors(): any;
     constructor(host: any, options: any);
     host: any;
     options: any;
@@ -195,8 +198,8 @@ export class StudioWorkbench {
         }[];
     };
     applyFeatures(): void;
-    showValidation(glyphId?: any): any[];
-    showTables(): void;
+    showValidation(glyphId?: any): Promise<any[]>;
+    showTables(): Promise<void>;
     showExport(): void;
     renderMasters(): void;
     axisTimer: number;

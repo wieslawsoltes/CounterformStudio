@@ -31,6 +31,23 @@ with TemporaryDirectory(prefix='counterform-font-test-') as tmp:
         assert font['kern'].kernTables[0].kernTable['A','V']==-85
         font.close()
         passed(filename+': all tables independently decompile, names/cmap/metrics/outlines/layout match')
+    for filename in ['color.ttf','color.otf','color-variable.ttf']:
+        with TTFont(tmp/filename, checkChecksums=2) as font:
+            font.ensureDecompiled()
+            assert font['COLR'].version == 0 and font['CPAL'].version == 0
+            layers=font['COLR'].ColorLayers['A']
+            assert [(x.name,x.colorID) for x in layers] == [('A',0),('O',1),('H',65535)]
+            palettes=font['CPAL'].palettes
+            assert len(palettes)==2 and all(len(p)==2 for p in palettes)
+            assert [(c.red,c.green,c.blue,c.alpha) for c in palettes[0]]==[(255,51,0,255),(0,102,255,128)]
+            assert [(c.red,c.green,c.blue,c.alpha) for c in palettes[1]]==[(51,255,0,255),(136,0,255,170)]
+        passed(filename+': independent COLRv0 layers, CPAL RGBA channels, palettes and foreground indices')
+    with TTFont(tmp/'color-variable.ttf') as font:
+        instance=instantiateVariableFont(font,{'wght':600},inplace=False)
+        assert [(x.name,x.colorID) for x in instance['COLR'].ColorLayers['A']] == [('A',0),('O',1),('H',65535)]
+        assert instance['CPAL'].palettes[0][1].alpha == 128
+        instance.close()
+    passed('variable color font: independent instantiation preserves palette alpha and layer references')
     widths=[]
     for wght in [300,400,500,600,800]:
         font=TTFont(tmp/'variable.ttf')

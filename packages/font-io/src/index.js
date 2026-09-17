@@ -1,3 +1,4 @@
+import { compileColorTables, readColorTables } from '@wieslawsoltes/counterform-color';
 import { Reader, Writer, sfnt, readDirectory, checksum, utf16be, decodeUTF16BE } from '@wieslawsoltes/counterform-binary';
 import { FontDocument, createFont, createGlyph } from '@wieslawsoltes/counterform-model';
 import { bounds, contoursToQuadraticPoints, quadraticPointsToContour, fromSVG, transformContours, segments, uid } from '@wieslawsoltes/counterform-geometry';
@@ -185,6 +186,7 @@ function baseTables(doc, glyphs, metrics, outlineFormat, masterId, extraNames = 
     const kern = compileKern(layout.kern);
     if (kern)
         tables.set('kern', kern);
+    for (const [tag, bytes] of compileColorTables(doc.data, glyphs)) tables.set(tag, bytes);
     return tables;
 }
 export function exportGlyphOrder(doc) { let glyphs = doc.data.glyphs.filter(g => g.export !== false); const notdef = glyphs.find(g => g.name === '.notdef'); if (notdef)
@@ -526,7 +528,16 @@ export function parseTrueType(bytes, { maxGlyphs = 65535, maxPoints = 2000000 } 
             if (data.glyphs[k.left] && data.glyphs[k.right])
                 data.kerning.regular[pairKey(data.glyphs[k.left].name, data.glyphs[k.right].name)] = k.value;
     const supported = new Set(['head', 'hhea', 'maxp', 'hmtx', 'cmap', 'glyf', 'loca', 'name', 'OS/2', 'post', 'kern']);
-    data.importInfo = { format: 'TrueType', tableTags: [...tables.keys()], notReconstructed: [...tables.keys()].filter(t => !supported.has(t)), warnings: ['Hinting instructions are not retained in rebuilt output.', 'Existing advanced layout and variation tables are inventoried, not decompiled into editable feature source.'] };
+    const colorWarnings = [];
+    if (get('COLR') && get('CPAL')) {
+        try {
+            const colors = readColorTables(get('COLR'), get('CPAL'), data.glyphs);
+            data.palettes = colors.palettes;
+            for (const g of data.glyphs) if (colors.colorLayers.has(g.id)) g.colorLayers = colors.colorLayers.get(g.id);
+            supported.add('COLR'); supported.add('CPAL');
+        } catch (error) { colorWarnings.push('Color reconstruction: ' + error.message); }
+    }
+    data.importInfo = { format: 'TrueType', tableTags: [...tables.keys()], notReconstructed: [...tables.keys()].filter(t => !supported.has(t)), warnings: [...colorWarnings, 'Hinting instructions are not retained in rebuilt output.', 'Existing advanced layout and variation tables are inventoried, not decompiled into editable feature source.'] };
     return new FontDocument(data);
 }
 /** Native Skia import of CFF/WOFF2/other supported containers. Uses only public SK* APIs. */

@@ -13,14 +13,18 @@ flowchart TD
   History --> Model[model · font source]
   Editor --> Renderer[renderer · SkiaSharpWeb]
   Renderer --> Geometry[geometry · Float64 Bézier]
-  Proof --> IO[font-io · sfnt / TTF / CFF / WOFF]
+  Proof --> Compiler[compiler · bounded worker queue]
+  Workbench --> Compiler
+  Compiler --> IO[font-io · sfnt / TTF / CFF / WOFF]
+  IO --> Color[color · COLRv0 / CPALv0]
+  Model --> Color
   IO --> Layout[opentype · GSUB / GPOS / GDEF]
   IO --> Binary[binary · bounded table primitives]
   Workbench --> Variation[variations · sparse masters + gvar]
   Variation --> IO
   Workbench --> Compute[compute · optional WGSL interpolation service]
-  Workbench --> Validation[validation · QuikGraph dependencies]
-  Workbench --> UFO[ufo · GLIF / plist / ZIP]
+  Compiler --> Validation[validation · QuikGraph dependencies]
+  Compiler --> UFO[ufo · GLIF / plist / ZIP]
   Workbench --> Storage[storage · IndexedDB + source files]
 ```
 
@@ -28,7 +32,7 @@ The compute package is independently callable. The interactive source interpolat
 
 ## Coordinate and source contract
 
-The model is JSON-serializable: font metadata, masters and axis locations; glyph identities and Unicode scalars; source layers; contours and endpoint nodes; absolute incoming/outgoing cubic handles; component affine transforms; anchors; guides; groups and per-master kerning; feature source; notes and preserved metadata.
+The model is JSON-serializable: font metadata, masters and axis locations; glyph identities and Unicode scalars; source layers; contours and endpoint nodes; absolute incoming/outgoing cubic handles; component affine transforms; anchors; guides; groups and per-master kerning; feature source; notes and preserved metadata; ordered color-layer glyph IDs and equal-length RGBA palettes. Color layers reference monochrome outlines, not recursively rendered color glyphs.
 
 Font coordinates are y-up and double precision. A contour edge uses its first node's outgoing handle and second node's incoming handle, falling back to endpoints when absent. The renderer applies y inversion exactly once. Camera offsets are CSS pixels; device pixel ratio is applied only at surface composition. The demo's uppercase O has editable cubic contours rather than an SVG thumbnail acting as the editing model.
 
@@ -63,4 +67,22 @@ The workbench owns subscriptions, resize observers, input AbortControllers, nati
 
 The virtual glyph library materializes visible rows. Canvas refreshes are frame-coalesced; paths are cached until geometry changes. Pointer motion changes only the current glyph transaction. Source projection uses DynamicData keys; proof compilation is debounced and a generation number rejects stale FontFace completions.
 
-Compilation and full-document validation still run synchronously on the browser thread. Large CJK fonts, million-point contours, variable-font throughput, native memory soak and peak GPU memory are **not qualified**. The next performance milestone is a worker compiler and immutable revision snapshots; the current compute service is not a substitute for that work. Storage is local IndexedDB plus explicit file downloads; no OPFS write-ahead journal, collaboration backend or crash-replay log exists yet.
+Compilation, table inspection and full-document validation run through a shared worker queue by default. The compiler receives immutable snapshots, not live document references. Full snapshot cloning still occurs on the caller thread. Large CJK fonts, million-point contours, variable-font throughput, native memory soak and peak GPU memory are **not qualified**. The optional GPU compute service is separate from the CPU compiler worker. Storage is local IndexedDB plus explicit file downloads; no OPFS write-ahead journal, collaboration backend or crash-replay log exists yet.
+
+## Worker graph and cancellation
+
+`compiler` owns one lazily created worker and a bounded priority queue. FIFO sequence breaks equal-priority ties. A request key supersedes older work with the same key. Cancelling active synchronous compilation terminates the worker rather than setting an ineffective flag inside blocked JavaScript. Queued work restarts on a new worker. Timeouts include worker startup/execution, not queue residence. Signals, timers and event listeners are released on every settlement path. Disposal rejects outstanding promises. Progress reports compiler stages, not invented per-glyph completion.
+
+FontProof shares the workspace compiler but owns its request key and FontFace lifecycle. Its generation increments as soon as an edit is scheduled, so a face from an already-obsolete source is never installed. Binary buffers transfer back; font source remains in the browser and no network compiler service is used. Inline mode is explicit and cannot preempt synchronous work.
+
+Because HTML import maps are not worker import maps, `scripts/worker-build.mjs` parses the pinned static dependency graph using Node's VM parser, mirrors its modules, rewrites static specifiers to relative URLs and rejects unresolved dependencies. Bootstrap/build generate `app/workers/compiler.js` plus a 31-module graph and hash manifest. Runtime packages retain their normal npm imports; only this generated application deployment graph is rewritten. No SkiaSharpWeb API changes are needed. The script is a linker for this static graph, not a general JavaScript bundler.
+
+## Color table ownership
+
+`color` depends only on bounded binary primitives. The model uses it for source validation; font-io supplies the exact final glyph order at compilation. COLRv0 base records are sorted by glyph ID; ordered layer records carry mapped glyph IDs and palette indexes. CPAL stores BGRA while source strings use CSS RGBA. The foreground sentinel remains 65535. Self references are allowed because layer glyphs use their monochrome outlines. References to excluded/deleted glyphs are rejected. The decoder bounds expanded palettes/layers as well as raw byte ranges, rejecting disproportionate shared-record expansion.
+
+The editor's native Skia path projection draws every color layer back-to-front and keeps the base contour editable. Conversion to SkiaSharp's ARGB hexadecimal parsing stays inside the renderer adapter. Browser proof text is separately rendered from the compiled COLR/CPAL font, and tests examine actual pixel colors. Preview currently uses palette zero; palette-selection UI and CPALv1 metadata remain future work.
+
+## Save completion and shutdown
+
+ProjectStore captures and validates its snapshot before awaiting database open. Concurrent open calls share a promise; closing during open invalidates and closes a late result. Autosave exposes one shared flush promise that drains the active snapshot and any trailing edits. Intermediate snapshots are not announced as saved. Errors return false and can be retried. Disposal suppresses new/trailing work and callbacks while allowing an already-started write to settle. This is not a crash write-ahead log or a full durability guarantee.

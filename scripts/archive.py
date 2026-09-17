@@ -3,6 +3,7 @@ from pathlib import Path
 import zipfile, hashlib, json
 root=Path(__file__).resolve().parents[1]
 out=root.parent
+version=json.loads((root/'package.json').read_text())['version']
 fonts={'.ttf','.otf','.woff','.woff2','.ttc','.otc','.eot','.pfb','.pfa','.afm','.pcf','.bdf'}
 def make(name,base,prefix,exclude):
     target=out/name
@@ -14,6 +15,6 @@ def make(name,base,prefix,exclude):
             if file.name=='failure.png' or file.name=='first.png':continue
             z.write(file,str(Path(prefix)/rel))
     return {'file':name,'bytes':target.stat().st_size,'sha256':hashlib.sha256(target.read_bytes()).hexdigest()}
-records=[make('CounterformStudio-source.zip',root,'CounterformStudio',{'node_modules','.git','dist','artifacts','.types','__pycache__'}),make('CounterformStudio-web.zip',root/'dist','',set()),make('CounterformStudio-npm-packages.zip',root/'artifacts/npm','npm',set())]
-(out/'CounterformStudio-checksums.json').write_text(json.dumps(records,indent=2)+'\n')
+records=[make(f'CounterformStudio-{version}-source.zip',root,'CounterformStudio',{'node_modules','.git','dist','artifacts','.types','__pycache__'}),make(f'CounterformStudio-{version}-web.zip',root/'dist','',set()),make(f'CounterformStudio-{version}-npm-packages.zip',root/'artifacts/npm','npm',set())]
+(out/f'CounterformStudio-{version}-checksums.json').write_text(json.dumps(records,indent=2)+'\n')
 for r in records:print(r['file'],round(r['bytes']/1024/1024,2),'MiB',r['sha256'])

@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix='counterform-consumer-') as tmp:
             archive.extractall(stage, filter='data')
             (stage/'package').rename(target)
             count += 1
-    assert count == 18, 'Run npm run pack:all first.'
+    assert count == len(list((root/'packages').glob('*/package.json'))), 'Run npm run pack:all first.'
     # Real vendor dependencies are linked; Counterform packages are extracted copies.
     for folder in (root/'vendor').iterdir():
         pkg = folder/'package.json'
@@ -34,11 +34,22 @@ import {createDemoFont} from '@wieslawsoltes/counterform-model';
 import {compileTrueType,compileOpenTypeCFF} from '@wieslawsoltes/counterform-font-io';
 import {compileVariableTrueType} from '@wieslawsoltes/counterform-variations';
 import {History} from '@wieslawsoltes/counterform-history';
+import {CompilerClient} from '@wieslawsoltes/counterform-compiler';
+import {compileColorTables} from '@wieslawsoltes/counterform-color';
+import {Worker} from 'node:worker_threads';
 const doc=createDemoFont(); assert.equal(doc.data.glyphs.length,102);
 for(const compile of [compileTrueType,compileOpenTypeCFF,compileVariableTrueType])assert(compile(doc).byteLength>1000);
 assert(new History(doc));
 for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
-console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF and headless module imports');
+doc.glyph('A').colorLayers=[{glyphId:doc.glyph('O').id,paletteIndex:1}];
+assert(compileColorTables(doc.data,doc.data.glyphs).has('COLR'));
+const compiler=new CompilerClient({workerFactory:()=>new Worker(new URL(import.meta.resolve('@wieslawsoltes/counterform-compiler/node-worker')))});
+try {
+    const {bytes}=await compiler.compile(doc,{format:'ttf'});
+    assert.deepEqual(bytes,compileTrueType(doc));
+    assert((await compiler.inspect(doc)).report.tables.some(t=>t.tag==='COLR'));
+} finally {compiler.dispose();}
+console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0, real Node compiler worker and headless module imports');
 ''')
     result = subprocess.run(['node','consumer.mjs'],cwd=base,text=True,capture_output=True)
     print(result.stdout, end='')
@@ -47,7 +58,8 @@ console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TT
         raise SystemExit(result.returncode)
     (root/'test-results/package-report.json').write_text(json.dumps({
         'archivesVerified':count,'freshConsumer':True,'fontFilesIncluded':False,
-        'checks':['18 archive manifests, declarations, entrypoints and font-file exclusion',
+        'checks':['All archive manifests, declarations, entrypoints and font-file exclusion',
                   'fresh extracted consumer TTF/CFF/variable TTF compilation',
-                  'headless package imports with real vendor dependencies'],
+                  'headless package imports with real vendor dependencies',
+                  'real packaged Node-worker entry compiles byte-identical color fonts'],
         'stdout':result.stdout},indent=2)+'\n')

@@ -81,7 +81,8 @@ export class GlyphEditor {
             if (!ids.has(id))
                 this.selection.delete(id);
         this.renderer.selection = this.selection;
-        this.renderer.setScene({ contours: this.doc.resolve(this.glyphId, this.masterId), editable: l.contours, advanceWidth: l.advanceWidth, metrics: this.doc.info, anchors: l.anchors, guides: l.guides });
+        const colorLayers = (this.glyph.colorLayers || []).map(layer => ({contours:this.doc.resolve(layer.glyphId,this.masterId),color:layer.paletteIndex===65535?null:this.doc.data.palettes[0][layer.paletteIndex]}));
+        this.renderer.setScene({ colorLayers, contours: this.doc.resolve(this.glyphId, this.masterId), editable: l.contours, advanceWidth: l.advanceWidth, metrics: this.doc.info, anchors: l.anchors, guides: l.guides });
         this.reindex();
         this.changed.emit({ kind: 'geometry', glyphId: this.glyphId, masterId: this.masterId });
     }

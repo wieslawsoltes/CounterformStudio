@@ -1,8 +1,11 @@
+import {fileURLToPath} from 'node:url';
 /** Reproducible static-site assembly from the supplied, pinned local inputs. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { writeIndex } from './importmap.mjs';
+import {execFileSync} from 'node:child_process';
+execFileSync(process.execPath,[fileURLToPath(new URL('./worker-build.mjs',import.meta.url))],{stdio:'inherit'});
 const root=path.resolve(import.meta.dirname,'..'),dist=path.join(root,'dist');
 const fontExtensions=new Set(['.ttf','.otf','.woff','.woff2','.ttc','.otc','.eot','.pfb','.pfa','.afm','.pcf','.bdf']);
 const omit=new Set(['node_modules','.git','tests','test-results','examples','sample','samples','demo','blazor','dotnet','adapters','docs','pdf-assets']);
@@ -19,5 +22,5 @@ await fs.writeFile(path.join(dist,'.nojekyll'),'');
 await fs.writeFile(path.join(dist,'_headers'),'/*\n  Cross-Origin-Opener-Policy: same-origin\n  Cross-Origin-Embedder-Policy: require-corp\n  Cross-Origin-Resource-Policy: same-origin\n  X-Content-Type-Options: nosniff\n');
 const entries=[];
 async function inventory(dir){for(const file of (await fs.readdir(dir)).sort()){const full=path.join(dir,file),stat=await fs.stat(full);if(stat.isDirectory())await inventory(full);else entries.push({path:path.relative(dist,full).replaceAll('\\','/'),bytes:stat.size,sha256:crypto.createHash('sha256').update(await fs.readFile(full)).digest('hex')});}}
-await inventory(dist);await fs.writeFile(path.join(dist,'asset-manifest.json'),JSON.stringify({format:1,version:'0.1.0',files:entries},null,2)+'\n');
+await inventory(dist);await fs.writeFile(path.join(dist,'asset-manifest.json'),JSON.stringify({format:1,version:'0.2.0',files:entries},null,2)+'\n');
 console.log(`Built ${entries.length} static files, ${(entries.reduce((n,f)=>n+f.bytes,0)/1024/1024).toFixed(1)} MiB. No network or font files required.`);

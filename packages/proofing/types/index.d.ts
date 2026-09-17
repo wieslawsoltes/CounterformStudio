@@ -1,9 +1,11 @@
+import {CompilerClient} from '@wieslawsoltes/counterform-compiler';
 /** The proof is shaped from freshly compiled font bytes, not a substitute system font. */
 export class FontProof {
     constructor(host: any, doc: any, { masterId, delay }?: {
         masterId?: any;
-        delay?: number;
+        delay?: number; compiler?: CompilerClient;
     });
+    compiler: CompilerClient;
     changed: Signal;
     errors: Signal;
     host: any;

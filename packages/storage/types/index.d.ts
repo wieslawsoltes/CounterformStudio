@@ -14,13 +14,14 @@ export class ProjectStore {
     list(): Promise<any>;
     load(id: any): Promise<any>;
     remove(id: any): Promise<void>;
-    preference(key: any, value: any, ...args: any[]): Promise<any>;
+    preference(key: string): Promise<any>;
+    preference(key: string, value: any): Promise<any>;
     close(): void;
 }
 export class Autosave {
     constructor(document: any, store: any, { delay, onStatus }?: {
         delay?: number;
-        onStatus?: () => void;
+        onStatus?: (status:string,error?:Error) => void;
     });
     document: any;
     store: any;
@@ -30,7 +31,7 @@ export class Autosave {
     closed: boolean;
     pending: boolean;
     off: any;
-    flush(): Promise<void>;
+    flush(): Promise<boolean>;
     again: boolean;
     dispose(): void;
 }

@@ -6,7 +6,8 @@ export interface Component {id?:string;glyphId?:string;glyphName?:string;transfo
 export interface Anchor extends Point {name:string;}
 export interface Guide extends Point {angle:number;}
 export interface Layer {id:string;masterId:string;name:string;contours:Contour[];components:Component[];anchors:Anchor[];guides:Guide[];color:string;visible:boolean;locked:boolean;advanceWidth:number;}
-export interface Glyph {id:string;name:string;unicodes:number[];category:string;mark:string;export:boolean;note:string;layers:Layer[];}
+export interface ColorLayer {glyphId:string;paletteIndex:number;}
+export interface Glyph {colorLayers?:ColorLayer[];id:string;name:string;unicodes:number[];category:string;mark:string;export:boolean;note:string;layers:Layer[];}
 export interface Axis {tag:string;name:string;min:number;default:number;max:number;}
 export interface Master {id:string;name:string;location:Record<string,number>;}
 export interface Instance {name:string;location:Record<string,number>;}

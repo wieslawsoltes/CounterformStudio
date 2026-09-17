@@ -1,6 +1,6 @@
 # Capability contract and parity ledger
 
-Version 0.1.0, reviewed 2026-09-16. The comparison target is the FontLab **8.4 family**; the official help index currently lists 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
+Version 0.2.0, reviewed 2026-09-17. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
 
 **Working** means implemented and exercised within the documented subset. **Partial** means a narrower implementation exists. **Missing** means no implementation is claimed. An attractive dialog, data field or shader source alone is not counted as feature parity.
 
@@ -34,8 +34,8 @@ Version 0.1.0, reviewed 2026-09-16. The comparison target is the FontLab **8.4 f
 | Full complex-script shaping authoring | Missing | No complete contextual/chaining/multiple/alternate/reverse substitution or mark-to-mark/cursive/RTL script workflow |
 | TrueType bytecode editing / hint debugger | Missing | No instruction editor, interpreter, CVT/fpgm/prep production workflow |
 | PS hints / autohinting | Missing | Output unhinted; imported programs not reconstructed |
-| Color fonts | Missing | No COLRv0/v1 paint graph, gradients, SVG-in-OT, CBDT/sbix authoring/export |
-| TTF import | Partial | Default-instance outlines/metrics/cmap/names/basic kern; simple/composite glyf; advanced tables are not reconstructed |
+| Color fonts | Partial | COLRv0/CPALv0 layer and RGBA palette authoring, Skia/canvas preview, TTF/CFF/variable/WOFF export and bounded TrueType table reconstruction; no COLRv1, CPALv1, gradients, SVG, bitmap tables or palette labels |
+| TTF import | Partial | Default-instance outlines/metrics/cmap/names/basic kern; simple/composite glyf; supported COLRv0/CPALv0 reconstructed; other advanced tables are not reconstructed |
 | CFF / WOFF2 import via Skia | Partial | Actual decoded default-instance outlines; no source hint/layout/color roundtrip |
 | TTF / CFF OTF / WOFF1 export | Working | Actual sfnt binaries accepted by independent fontTools and browser FontFace |
 | WOFF2 export / TTC authoring | Missing | Not offered as export formats |
@@ -46,8 +46,9 @@ Version 0.1.0, reviewed 2026-09-16. The comparison target is the FontLab **8.4 f
 | Live text proof | Working | Browser shaping of the actual compiled font; kern/liga toggles, waterfall, variable coordinates |
 | Production QA | Partial | Structural/geometry/encoding/component/master checks; not OTS or FontBakery certification |
 | Python macro API | Missing | Bounded JSON recipes and JS package APIs only; no FontLab Python compatibility |
-| File persistence | Partial | Counterform files and IndexedDB autosave; no crash WAL, native file watch or git-aware source project |
-| Full keyboard parity | Partial | 99 command registry, core shortcuts/remapping; not a verified exhaustive FontLab key map |
+| File persistence | Partial | Counterform files and IndexedDB autosave; immutable writes and awaitable in-flight/trailing flush; no crash WAL, native file watch or git-aware source project |
+| Full keyboard parity | Partial | 100-command registry, core shortcuts/remapping; not a verified exhaustive FontLab key map |
+| Worker compilation and validation | Implemented; browser-host deployment unqualified locally | Bounded queue, keyed proof replacement, transferable results, hard cancellation and timeout; real Node workers plus the generated relative-URL browser graph exercised in a fresh Node worker host; local browser suite explicitly uses inline mode |
 | WebGPU renderer | Unqualified here | Real Skia automatic backend request; delivered tests exercised native raster only |
 | WebGPU compute | Implemented, GPU unqualified | Independent WGSL interpolation service; CPU numerical path verified |
 | Mobile and accessibility certification | Unqualified | Pointer events, keyboard/input semantics and native controls exist; full touch/VoiceOver audits outstanding |
@@ -68,16 +69,22 @@ Only defined glyph names are accepted. Single substitutions, multiple-input liga
 
 ## Import/export preservation
 
-Counterform source files preserve its own source schema, including every master. Imported production fonts are **not losslessly roundtripped**. TrueType instructions, existing GSUB/GPOS programs, variation tables, color tables and specialized vendor tables are not reconstructed merely because Skia can render them. Import reports expose unreconstructed tables; the Export dialog repeats this warning. Retain the original binary and compare exported tables and shaping before distribution.
+Counterform source files preserve its own source schema, including every master. Imported production fonts are **not losslessly roundtripped**. TrueType instructions, existing GSUB/GPOS programs, variation tables, advanced color tables and specialized vendor tables are not reconstructed merely because Skia can render them. COLRv0 with CPALv0 is reconstructed on the bounded TrueType import path; native CFF/WOFF2 outline import still does not reconstruct those tables. Import reports expose unreconstructed tables; the Export dialog repeats this warning. Retain the original binary and compare exported tables and shaping before distribution.
 
 Open contours are editable source artwork but are excluded from font compilation. Metadata limits, glyph bounds and feature failures can block export. Components are flattened for binary compilation; source files preserve references. The original geometric demonstration intentionally contains unfinished letter construction and is not a commercial typeface.
 
 ## Next acceptance gates
 
 1. Loss-aware source adapters with full layout-table preservation, explicit modified-table ownership and golden roundtrips.
-2. Worker-based compiler/validation; CJK corpus, million-point stress, leak/device-loss and long-session history benchmarks.
+2. Qualify actual browser workers over HTTPS/localhost, then optimize source cloning and incremental synchronization; CJK corpus, million-point stress, leak/device-loss and long-session history benchmarks.
 3. Full feature AST and layout compiler, variable GPOS/HVAR/MVAR, CFF2, WOFF2 and differential shaping fixtures.
-4. Hinting, color-font authoring, richer construction tools and non-destructive transforms as separate npm engines.
+4. Hinting, COLRv1/advanced color-font authoring, richer construction tools and non-destructive transforms as separate npm engines.
 5. Verified native shortcut matrix; secure-origin storage, real WebGPU hardware, Firefox/Safari, mobile and accessibility qualification.
 
-These are outstanding engineering tasks, not features claimed to be present in 0.1.0.
+These are outstanding engineering tasks, not features claimed to be present in 0.2.0.
+
+## 0.2.0 verification and delivery boundary
+
+60 Node tests pass, including actual worker execution, the generated worker graph in a fresh directory without npm/import maps, bounded color tables and autosave races. Eleven independent fontTools checks verify binary tables and variable instances. Twenty-seven browser checks pass (one additional IndexedDB check is explicitly skipped) on both source and static builds, including RGBA editing, invalid-input rollback, compiled color-font pixels, undo, and visibility-driven pane activation. Twenty extracted npm packages and typed consumer APIs pass.
+
+The local Chromium run uses native Skia raster and explicit inline compilation in an opaque-origin local-assets harness. It does **not** qualify browser Worker startup on Pages, HTTPS/localhost networking, IndexedDB, physical WebGPU, or accessibility. Normal CI is configured to require the real worker backend and IndexedDB. That updated CI has not run remotely for this local patch. Source/asset cloning still consumes caller-thread time. No broad FontLab feature-parity claim is made.

@@ -1,0 +1,193 @@
+{
+  "mode": "isolated-local-assets",
+  "tests": [
+    {
+      "name": "workspace boot and real Skia surface",
+      "passed": true,
+      "ms": 5.9
+    },
+    {
+      "name": "ten upstream components and extensible commands",
+      "passed": true,
+      "ms": 18.3
+    },
+    {
+      "name": "Ribbon has executable items",
+      "passed": true,
+      "ms": 20.0
+    },
+    {
+      "name": "real pointer node drag is one undoable transaction",
+      "passed": true,
+      "ms": 771.6
+    },
+    {
+      "name": "B\u00e9zier handle drag and undo",
+      "passed": true,
+      "ms": 246.1
+    },
+    {
+      "name": "rectangle tool writes editable source",
+      "passed": true,
+      "ms": 296.6
+    },
+    {
+      "name": "ellipse tool writes cubic source",
+      "passed": true,
+      "ms": 295.5
+    },
+    {
+      "name": "modifier-sensitive keyboard nudge",
+      "passed": true,
+      "ms": 179.4
+    },
+    {
+      "name": "typing in an input never invokes outline shortcuts",
+      "passed": true,
+      "ms": 185.0
+    },
+    {
+      "name": "native Skia overlap removal and undo",
+      "passed": true,
+      "ms": 86.4
+    },
+    {
+      "name": "native Skia stroke expansion",
+      "passed": true,
+      "ms": 163.6
+    },
+    {
+      "name": "compiler service returns byte-identical actual font data on its reported backend",
+      "passed": true,
+      "ms": 127.1
+    },
+    {
+      "name": "color layer editor, transactional RGBA validation, compiled color pixels and undo",
+      "passed": true,
+      "ms": 4527.4
+    },
+    {
+      "name": "palette duplication, equal-length entries, foreground, layer reorder and removal",
+      "passed": true,
+      "ms": 5847.8
+    },
+    {
+      "name": "inspector metric editing participates in history",
+      "passed": true,
+      "ms": 166.2
+    },
+    {
+      "name": "TreeDataGrid font inventory is live",
+      "passed": true,
+      "ms": 502.5
+    },
+    {
+      "name": "GridWeb kerning edit synchronizes source and undo",
+      "passed": true,
+      "ms": 400.4
+    },
+    {
+      "name": "OpenType feature editing recompiles a real proof font",
+      "passed": true,
+      "ms": 798.2
+    },
+    {
+      "name": "SkiaSharp-compatible CFF import retrieves real outlines",
+      "passed": true,
+      "ms": 211.6
+    },
+    {
+      "name": "RichTextWeb notes persist editable rich-document source",
+      "passed": true,
+      "ms": 298.7
+    },
+    {
+      "name": "variable instance preview is read-only and reversible",
+      "passed": true,
+      "ms": 920.8
+    },
+    {
+      "name": "command palette keyboard dispatch and focus dialog",
+      "passed": true,
+      "ms": 590.0
+    },
+    {
+      "name": "shortcuts, validation, tables, export and capability dialogs",
+      "passed": true,
+      "ms": 2543.7
+    },
+    {
+      "name": "compute interface verifies numeric results on selected backend",
+      "passed": true,
+      "ms": 4.7
+    },
+    {
+      "name": "storage capability qualification",
+      "passed": null,
+      "skipped": true,
+      "reason": "Not qualified: opaque-origin isolated rendering"
+    },
+    {
+      "name": "light and dark workspace appearance",
+      "passed": true,
+      "ms": 885.9
+    },
+    {
+      "name": "no unhandled page exceptions",
+      "passed": true,
+      "ms": 0.0
+    },
+    {
+      "name": "component lifetime disposes the complete workspace",
+      "passed": true,
+      "ms": 121.3
+    }
+  ],
+  "pageErrors": [],
+  "environment": {
+    "secure": false,
+    "webgpuExposed": false,
+    "renderer": "canvas",
+    "compiler": "inline (explicit)",
+    "skia": true,
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36"
+  },
+  "compiler": {
+    "equal": true,
+    "backend": "inline (explicit)"
+  },
+  "colorPixels": {
+    "red": 5368,
+    "blue": 6807,
+    "tables": [
+      "COLR",
+      "CPAL",
+      "GDEF",
+      "GPOS",
+      "OS/2",
+      "cmap",
+      "gasp",
+      "glyf",
+      "head",
+      "hhea",
+      "hmtx",
+      "kern",
+      "loca",
+      "maxp",
+      "name",
+      "post"
+    ],
+    "sceneLayers": 2
+  },
+  "compute": {
+    "available": false,
+    "backend": "cpu-f64",
+    "result": [
+      75,
+      85,
+      95,
+      105
+    ]
+  },
+  "storage": "Not qualified: opaque-origin isolated rendering"
+}

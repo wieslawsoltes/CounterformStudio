@@ -146,7 +146,7 @@ export class GlyphRenderer {
         this.drawFallback(); this.drawCount++; this.frame.emit({ frames: this.drawCount, ms: performance.now() - start, backend: this.backend }); }
     pathCache() { if (!this.needsPaths)
         return; for (const p of this.paths)
-        p.Dispose(); this.paths = [makePath(this.S, this.scene.contours), makePath(this.S, this.scene.editable), makePath(this.S, this.scene.ghost || [])]; this.needsPaths = false; }
+        p.Dispose(); this.paths = [makePath(this.S, this.scene.contours), makePath(this.S, this.scene.editable), makePath(this.S, this.scene.ghost || []), ...(this.scene.colorLayers || []).map(layer => makePath(this.S,layer.contours))]; this.needsPaths = false; }
     paintNative({ Canvas, Info, Surface }) {
         if (this.disposed)
             return;
@@ -169,7 +169,15 @@ export class GlyphRenderer {
             if (this.showFill || this.preview) {
                 paint.Color = S.SKColor.Parse(this.preview ? '#18222e' : this.dark ? '#b9c4d4' : '#293847');
                 paint.Style = S.SKPaintStyle.Fill;
-                c.DrawPath(this.paths[0], paint);
+                if (this.scene.colorLayers?.length) {
+                    this.scene.colorLayers.forEach((layer,i) => {
+                        // SKColor.Parse follows .NET/Skia ARGB; CSS/source colors are RGBA.
+                        const rgba = layer.color;
+                        const argb = rgba?.length === 9 ? '#' + rgba.slice(7) + rgba.slice(1,7) : rgba;
+                        paint.Color = S.SKColor.Parse(argb || (this.dark ? '#b9c4d4' : '#293847'));
+                        c.DrawPath(this.paths[3+i],paint);
+                    });
+                } else c.DrawPath(this.paths[0], paint);
             }
             if (!this.preview) {
                 paint.Color = S.SKColor.Parse('#357bf5');
@@ -185,7 +193,7 @@ export class GlyphRenderer {
         }
     }
     drawFallback() { const { ctx } = this.size(this.native); ctx.save(); ctx.translate(this.camera.x, this.camera.y); ctx.scale(this.camera.scale, -this.camera.scale); trace(ctx, this.scene.contours); ctx.fillStyle = '#293847'; if (this.showFill || this.preview)
-        ctx.fill(); if (!this.preview) {
+        { if (this.scene.colorLayers?.length) { for (const layer of this.scene.colorLayers) {trace(ctx,layer.contours);ctx.fillStyle=layer.color || '#293847';ctx.fill();} trace(ctx,this.scene.editable); } else ctx.fill(); } if (!this.preview) {
         ctx.strokeStyle = '#357bf5';
         ctx.lineWidth = 1.15 / this.camera.scale;
         ctx.stroke();

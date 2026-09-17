@@ -1,3 +1,4 @@
+import { validateColorSource } from '@wieslawsoltes/counterform-color';
 import { uid, bounds, transformContours, rectangle, ellipse, reverseContour, node, contour } from '@wieslawsoltes/counterform-geometry';
 export class Signal {
     #listeners = new Set();
@@ -129,6 +130,7 @@ export function validateDocumentShape(d) {
             }
         }
     }
+    validateColorSource(d);
     return d;
 }
 export function duplicateGlyph(g, newName) { const x = structuredClone(g); x.id = uid('g'); x.name = newName; x.unicodes = []; for (const l of x.layers) {

@@ -52,7 +52,10 @@ import '@wieslawsoltes/counterform-workbench/styles.css';
 import '@wieslawsoltes/dockyard/styles.css';
 import '@wieslawsoltes/treedatagridweb/styles.css';
 
-const studio = await mountStudio(document.querySelector('#app'), { document: doc, restore: false });
+const studio = await mountStudio(document.querySelector('#app'), {
+  document: doc, restore: false,
+  compilerOptions: { workerURL: new URL('./app/workers/compiler.js', location.href) }
+});
 await studio.commands.run('view.kerning');
 // Later:
 studio.dispose();
@@ -88,10 +91,63 @@ compute.dispose();
 
 CPU fallback is Float64; GPU output is Float32. Source coordinates are not replaced by GPU results. Compilation remains deterministic CPU code.
 
+## Worker compilation without a workspace
+
+```js
+import { CompilerClient } from '@wieslawsoltes/counterform-compiler';
+const compiler = new CompilerClient({
+  workerURL: new URL('./compiler.worker.js', import.meta.url),
+  maxQueue: 16,
+  timeout: 60000
+});
+const controller = new AbortController();
+try {
+  const result = await compiler.compile(doc, {format:'variable'}, {
+    signal: controller.signal, key:'preview', priority:10
+  });
+  console.log(result.bytes.byteLength, result.mime);
+} finally { compiler.dispose(); }
+```
+
+A standalone consumer bundles `@wieslawsoltes/counterform-compiler/worker` to that URL. Counterform's own build instead generates a relative-import graph with no runtime bundler/CDN. Do not assume the page's import map works inside a worker. For Node:
+
+```js
+import {Worker} from 'node:worker_threads';
+import {CompilerClient} from '@wieslawsoltes/counterform-compiler';
+const compiler = new CompilerClient({
+  workerFactory: () => new Worker(new URL(import.meta.resolve(
+    '@wieslawsoltes/counterform-compiler/node-worker'
+  )))
+});
+try { console.log((await compiler.compile(doc)).bytes.byteLength); }
+finally { compiler.dispose(); }
+```
+
+## Color layers with stable source identities
+
+```js
+import {compileColorTables,FOREGROUND} from '@wieslawsoltes/counterform-color';
+import {exportGlyphOrder,compileTrueType} from '@wieslawsoltes/counterform-font-io';
+history.execute('Color A', () => {
+  doc.data.palettes=[['#ff3300','#0066ff80'],['#33ff00','#8800ffaa']];
+  doc.glyph('A').colorLayers=[
+    {glyphId:doc.glyph('A').id,paletteIndex:0},
+    {glyphId:doc.glyph('O').id,paletteIndex:1},
+    {glyphId:doc.glyph('H').id,paletteIndex:FOREGROUND}
+  ];
+});
+const tables=compileColorTables(doc.data,exportGlyphOrder(doc));
+const font=compileTrueType(doc); // automatically includes COLR and CPAL
+```
+
+Only COLRv0/CPALv0 is reconstructed on supported TrueType imports. CFF native outline import and advanced paint tables retain their documented losses. Palette entries are CSS RGBA hex; CPAL BGRA and Skia ARGB differences are handled by their respective adapters.
+
 ## Package inventory
 
 - `automation` — Declarative, bounded font transformation recipes without arbitrary code execution.
 - `binary` — Bounded sfnt readers/writers, checksums, UTF-16BE and CRC32.
+- `color` — COLRv0/CPALv0 validation, binary compilation and bounded reconstruction.
+- `compiler` — Prioritized, cancellable worker compilation/validation and table inspection.
 - `commands` — Scoped keyboard routing, command palette search, enablement and configurable shortcuts.
 - `compute` — WebGPU weighted coordinate interpolation with a Float64 CPU fallback.
 - `editor` — Pointer and keyboard Bézier editing with RBush picking and atomic undo transactions.

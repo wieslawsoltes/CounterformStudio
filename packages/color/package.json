@@ -1,0 +1,33 @@
+{
+  "name": "@wieslawsoltes/counterform-color",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "COLRv0/CPAL color-font source validation, binary compilation and decoding.",
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@wieslawsoltes/counterform-binary": "0.2.0"
+  }
+}
