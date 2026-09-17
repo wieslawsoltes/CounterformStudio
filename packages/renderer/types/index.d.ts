@@ -60,6 +60,8 @@ export class GlyphRenderer {
     showGrid: boolean;
     showNodes: boolean;
     showFill: boolean;
+    /** Subdued outline fill while editing; preview and color-font rendering are unaffected. */
+    dimFill: boolean;
     showGuides: boolean;
     preview: boolean;
     dark: boolean;

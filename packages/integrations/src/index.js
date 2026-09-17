@@ -29,19 +29,25 @@ function categoryMatches(row, category) { const cp = row.character.codePointAt(0
     return cp >= 48 && cp <= 57; if (category === 'components')
     return row.components > 0; if (category === 'marks')
     return row.category === 'Mark'; return true; }
-/** Virtualized SVG glyph tiles. Only viewport rows exist in the DOM. */
+let glyphGridInstance = 0;
+/** Virtualized SVG glyph tiles with a single keyboard focus owner. Only viewport rows exist in the DOM. */
 export class GlyphTiles {
-    constructor(host, doc, state, onSelect, { cellSize = 65, category = true } = {}) { Object.assign(this, { host, doc, state, onSelect, cellSize, category }); this.rows = []; this.scroll = document.createElement('div'); this.scroll.className = 'cf-glyph-scroll'; this.scroll.tabIndex = 0; this.scroll.setAttribute('role', 'grid'); this.scroll.setAttribute('aria-label', 'Font glyphs'); this.content = document.createElement('div'); this.content.className = 'cf-glyph-spacer'; this.scroll.append(this.content); host.append(this.scroll); this.scroll.addEventListener('scroll', () => this.schedule()); this.scroll.addEventListener('click', e => { const b = e.target.closest('[data-glyph]'); if (b)
-        onSelect(b.dataset.glyph); }); this.scroll.addEventListener('dblclick', e => { const b = e.target.closest('[data-glyph]'); if (b)
-        this.onOpen?.(b.dataset.glyph); }); this.scroll.addEventListener('keydown', e => { const delta = ({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -this.columns, ArrowDown: this.columns })[e.key]; if (delta) {
-        e.preventDefault();
-        const i = this.rows.findIndex(r => r.id === state.GetValue('glyphId')), next = this.rows[Math.max(0, Math.min(this.rows.length - 1, i + delta))];
-        if (next) {
-            onSelect(next.id);
-            this.scroll.scrollTop = Math.max(0, Math.floor((i + delta) / this.columns) * this.cellSize - this.scroll.clientHeight / 2);
+    constructor(host, doc, state, onSelect, { cellSize = 65, category = true } = {}) { Object.assign(this, { host, doc, state, onSelect, cellSize, category }); this.gridId = ++glyphGridInstance; this.rows = []; this.scroll = document.createElement('div'); this.scroll.className = 'cf-glyph-scroll'; this.scroll.tabIndex = 0; this.scroll.setAttribute('role', 'grid'); this.scroll.setAttribute('aria-label', 'Font glyphs'); this.content = document.createElement('div'); this.content.className = 'cf-glyph-spacer'; this.content.setAttribute('role','rowgroup'); this.scroll.append(this.content); host.append(this.scroll); this.scroll.addEventListener('scroll', () => this.schedule()); this.scroll.addEventListener('click', e => { const b = e.target.closest('[data-glyph]'); if (b) {
+        onSelect(b.dataset.glyph); this.scroll.focus({preventScroll:true}); } }); this.scroll.addEventListener('dblclick', e => { const b = e.target.closest('[data-glyph]'); if (b)
+        this.onOpen?.(b.dataset.glyph); }); this.scroll.addEventListener('keydown', e => {
+        if (e.altKey || e.metaKey || e.ctrlKey || e.isComposing || e.defaultPrevented) return;
+        const current = this.rows.findIndex(r => r.id === state.GetValue('glyphId'));
+        const pageRows = Math.max(1, Math.floor(this.scroll.clientHeight / (this.cellSize + 8)));
+        const delta = ({ArrowLeft:-1,ArrowRight:1,ArrowUp:-this.columns,ArrowDown:this.columns,PageUp:-this.columns*pageRows,PageDown:this.columns*pageRows})[e.key];
+        let next = e.key === 'Home' ? 0 : e.key === 'End' ? this.rows.length-1 : delta !== undefined ? current < 0 ? 0 : current+delta : null;
+        if (next !== null && this.rows.length) {
+            e.preventDefault();next=Math.max(0,Math.min(this.rows.length-1,next));onSelect(this.rows[next].id);
+            const top=Math.floor(next/this.columns)*(this.cellSize+8),bottom=top+this.cellSize+8;
+            if (top < this.scroll.scrollTop) this.scroll.scrollTop=top;
+            else if (bottom > this.scroll.scrollTop+this.scroll.clientHeight) this.scroll.scrollTop=bottom-this.scroll.clientHeight;
         }
-    } if (e.key === 'Enter')
-        this.onOpen?.(state.GetValue('glyphId')); }); this.sub = state.glyphs.Connect().subscribe(() => this.filter()); this.stateSub = state.Changed.subscribe(e => { if (['query', 'category'].includes(e.PropertyName))
+        if (e.key === 'Enter' && this.rows.length) {e.preventDefault();this.onOpen?.(this.rows[Math.max(0,current)].id);}
+    }); this.sub = state.glyphs.Connect().subscribe(() => this.filter()); this.stateSub = state.Changed.subscribe(e => { if (['query', 'category'].includes(e.PropertyName))
         this.filter();
     else if (e.PropertyName === 'glyphId' || e.PropertyName === 'masterId')
         this.schedule(); }); this.resize = new ResizeObserver(() => this.schedule()); this.resize.observe(host); this.filter(); }
@@ -56,7 +62,10 @@ export class GlyphTiles {
         const first = Math.max(0, Math.floor(this.scroll.scrollTop / rowHeight) - 1), last = Math.min(rows, Math.ceil((this.scroll.scrollTop + this.scroll.clientHeight) / rowHeight) + 1), selected = this.state.GetValue('glyphId'), master = this.state.GetValue('masterId'), upm = this.doc.info.unitsPerEm;
         this.scroll.setAttribute('aria-rowcount', rows);
         this.scroll.setAttribute('aria-colcount', this.columns);
-        for (let ri = first; ri < last; ri++)
+        this.scroll.removeAttribute('aria-activedescendant');
+        for (let ri = first; ri < last; ri++) {
+            const row=document.createElement('div');row.setAttribute('role','row');row.setAttribute('aria-rowindex',ri+1);
+            row.style.cssText=`position:absolute;left:0;right:0;top:${ri*rowHeight}px;height:${rowHeight}px`;this.content.append(row);
             for (let ci = 0; ci < this.columns; ci++) {
                 const r = this.rows[ri * this.columns + ci];
                 if (!r)
@@ -64,10 +73,11 @@ export class GlyphTiles {
                 const el = document.createElement('button');
                 el.className = 'cf-glyph-cell' + (r.id === selected ? ' selected' : '');
                 el.dataset.glyph = r.id;
-                el.setAttribute('role', 'gridcell');
+                el.setAttribute('role', 'gridcell');el.tabIndex=-1;el.id=`cf-glyph-grid-${this.gridId}-${ri*this.columns+ci}`;el.setAttribute('aria-colindex',ci+1);
+                if(r.id===selected)this.scroll.setAttribute('aria-activedescendant',el.id);
                 el.setAttribute('aria-selected', String(r.id === selected));
                 el.title = `${r.name} · ${r.unicode || 'Unencoded'} · ${r.advance} u`;
-                el.style.cssText = `position:absolute;left:${ci * size}px;top:${ri * rowHeight}px;width:${size}px;height:${rowHeight}px`;
+                el.style.cssText = `position:absolute;left:${ci * size}px;top:0;width:${size}px;height:${rowHeight}px`;
                 let cs = [];
                 try {
                     cs = this.doc.resolve(r.id, master);
@@ -75,8 +85,9 @@ export class GlyphTiles {
                 catch { }
                 const b = bounds(cs), span = Math.max(upm, r.advance, b.width), origin = (span - r.advance) / 2;
                 el.innerHTML = `<svg viewBox="${-origin} ${-this.doc.info.ascender} ${span} ${upm}" aria-hidden="true"><path transform="scale(1,-1)" d="${toSVG(cs)}"/></svg><span>${escapeHTML(r.name)}</span><i class="cf-glyph-state ${r.components ? 'component' : ''}"></i>`;
-                this.content.append(el);
+                row.append(el);
             }
+        }
     }
     dispose() { this.sub.unsubscribe(); this.stateSub.unsubscribe(); this.resize.disconnect(); cancelAnimationFrame(this.pending); this.host.replaceChildren(); }
 }

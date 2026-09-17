@@ -1,5 +1,10 @@
 /** Original vector paths. No icon fonts, inline scripts, remote URLs or external artwork. */
 export const iconPaths = Object.freeze({
+    "search": "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z M15 15l6 6",
+    "minus": "M5 12h14",
+    "plus": "M12 5v14M5 12h14",
+    "chevronRight": "M9 5l7 7-7 7",
+    "chevronLeft": "M15 5l-7 7 7 7",
   "paintGraph": "M3 3h18v10H3Z M6 5v6 M9 5v6 M12 5v6 M15 5v6 M18 5v6 M12 13v4 M5 17h14 M5 17v4 M19 17v4",
   "select": "M5 3v17l5-5 5 6 3-2-5-6 7-2Z",
   "pen": "m4 20 3-10L17 3l4 4-7 10Z M4 20l8-8 M9 9l6 6",
@@ -71,6 +76,11 @@ export const iconPaths = Object.freeze({
 });
 export const iconNames = Object.freeze(Object.keys(iconPaths));
 const iconURLs = Object.freeze({
+    "search": new URL("./assets/search.svg", import.meta.url).href,
+    "minus": new URL("./assets/minus.svg", import.meta.url).href,
+    "plus": new URL("./assets/plus.svg", import.meta.url).href,
+    "chevronRight": new URL("./assets/chevronRight.svg", import.meta.url).href,
+    "chevronLeft": new URL("./assets/chevronLeft.svg", import.meta.url).href,
   "paintGraph": new URL("./assets/paintGraph.svg", import.meta.url).href,
     "select": new URL("./assets/select.svg", import.meta.url).href,
     "pen": new URL("./assets/pen.svg", import.meta.url).href,
@@ -148,15 +158,16 @@ export function createIcon(name, doc = document) {
     const path = doc.createElementNS(svg.namespaceURI,'path'); path.setAttribute('d',iconPaths[name]);svg.append(path);return svg;
 }
 const commandIcons = Object.freeze({
+ 'view.font':'font','view.library':'grid','view.ribbon':'layers','view.paper':'preview','view.trueFill':'fill','workspace.focus':'fullscreen','workspace.reset':'history','workspace.preferences':'settings',
  'file.original':'open','file.metadataExport':'export',
  'file.recovery':'history','outline.modifiers':'layers','outline.bake':'check','master.metrics':'measure',
  'file.new':'new','file.open':'open','file.save':'save','file.recent':'history','file.export':'export','file.demo':'font',
  'edit.undo':'undo','edit.redo':'redo','edit.copy':'copy','edit.cut':'scissors','edit.paste':'paste','edit.delete':'delete','edit.selectAll':'select','edit.deselect':'select','edit.invert':'select',
  'node.smooth':'smooth','node.corner':'corner','node.alignX':'alignX','node.alignY':'alignY','node.distributeX':'distributeX','node.distributeY':'distributeY','node.start':'anchor',
  'outline.extrema':'extrema','outline.overlap':'overlap','outline.union':'overlap','outline.difference':'overlap','outline.intersect':'overlap','outline.xor':'overlap','outline.reverse':'reverse','outline.winding':'reverse','outline.close':'close','outline.open':'scissors','outline.join':'join','outline.round':'round','outline.stroke':'brush','outline.transform':'scale','outline.mirrorX':'mirror','outline.mirrorY':'mirror','outline.lines':'line','outline.curves':'smooth','outline.clean':'clean',
- 'glyph.new':'new','glyph.duplicate':'copy','glyph.delete':'delete','glyph.center':'alignX','glyph.anchor':'anchor','glyph.component':'layers','glyph.decompose':'layers','glyph.svg':'export','glyph.next':'redo','glyph.previous':'undo','glyph.guide':'guide',
+ 'glyph.new':'new','glyph.duplicate':'copy','glyph.delete':'delete','glyph.center':'alignX','glyph.anchor':'anchor','glyph.component':'layers','glyph.decompose':'layers','glyph.svg':'export','glyph.next':'chevronRight','glyph.previous':'chevronLeft','glyph.guide':'guide',
  'font.info':'font','font.validate':'check','font.tables':'grid','kern.pair':'kern','kern.groups':'layers','color.edit':'palette','color.paint':'paintGraph','master.add':'layers','axis.add':'axes','master.instance':'font','master.compatibility':'check',
- 'view.glyph':'pen','view.catalog':'grid','view.kerning':'kern','view.features':'code','view.notes':'note','view.masters':'axes','view.proof':'preview','view.output':'code','view.inspector':'settings','view.fit':'fit','view.zoomIn':'zoom','view.zoomOut':'zoom','view.grid':'grid','view.fill':'fill','view.nodes':'select','view.guides':'guide','view.preview':'preview','view.snap':'snap','view.theme':'palette','view.fullscreen':'fullscreen',
+ 'view.glyph':'pen','view.catalog':'grid','view.kerning':'kern','view.features':'code','view.notes':'note','view.masters':'axes','view.proof':'preview','view.output':'code','view.inspector':'settings','view.fit':'fit','view.zoomIn':'plus','view.zoomOut':'minus','view.grid':'grid','view.fill':'fill','view.nodes':'select','view.guides':'guide','view.preview':'preview','view.snap':'snap','view.theme':'palette','view.fullscreen':'fullscreen',
  'layout.undo':'undo','layout.redo':'redo','commands.palette':'search','commands.bindings':'keyboard','automation.recipe':'play','compute.verify':'check','features.apply':'code','app.about':'help','tool.options':'settings','glyph.clearGuides':'guide','glyph.lock':'lock'
 });
 export function commandIcon(id) {

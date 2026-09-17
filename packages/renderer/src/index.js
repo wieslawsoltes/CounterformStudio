@@ -96,6 +96,7 @@ export class GlyphRenderer {
         this.showGuides = true;
         this.preview = false;
         this.dark = false;
+        this.dimFill = false;
         this.backend = S ? 'initializing' : 'Canvas 2D fallback';
         this.drawCount = 0;
         this.pending = 0;
@@ -194,7 +195,7 @@ export class GlyphRenderer {
                         paint.Color = S.SKColor.Parse(argb || (this.dark ? '#b9c4d4' : '#293847'));
                         c.DrawPath(this.paths[3+i],paint);
                     });
-                } else c.DrawPath(this.paths[0], paint);
+                } else { if(this.dimFill&&!this.preview)paint.Color=S.SKColor.Parse(this.dark?'#4b4d50':'#e6e7e8');c.DrawPath(this.paths[0], paint); }
             }
             if (!this.preview) {
                 paint.Color = S.SKColor.Parse('#357bf5');
@@ -210,14 +211,14 @@ export class GlyphRenderer {
         }
     }
     drawFallback() { const { ctx } = this.size(this.native); ctx.save(); ctx.translate(this.camera.x, this.camera.y); ctx.scale(this.camera.scale, -this.camera.scale); trace(ctx, this.scene.contours); ctx.fillStyle = '#293847'; if (this.showFill || this.preview)
-        { if (this.scene.colorLayers?.length) { for (const layer of this.scene.colorLayers) {trace(ctx,layer.contours);ctx.fillStyle=layer.color || '#293847';ctx.fill();} trace(ctx,this.scene.editable); } else ctx.fill(); } if (!this.preview) {
+        { if (this.scene.colorLayers?.length) { for (const layer of this.scene.colorLayers) {trace(ctx,layer.contours);ctx.fillStyle=layer.color || '#293847';ctx.fill();} trace(ctx,this.scene.editable); } else {if(this.dimFill&&!this.preview)ctx.fillStyle=this.dark?'#4b4d50':'#e6e7e8';ctx.fill();} } if (!this.preview) {
         ctx.strokeStyle = '#357bf5';
         ctx.lineWidth = 1.15 / this.camera.scale;
         ctx.stroke();
     } ctx.restore(); }
     drawBackground() {
         const { ctx, w, h } = this.size(this.background), cam = this.camera, metric = this.scene.metrics;
-        ctx.fillStyle = this.dark ? '#202a39' : '#f6f8fb';
+        ctx.fillStyle = this.dark ? '#262728' : '#fafafa';
         ctx.fillRect(0, 0, w, h);
         if (this.preview) {
             ctx.fillStyle = '#fff';
@@ -225,12 +226,12 @@ export class GlyphRenderer {
             return;
         }
         const origin = cam.screen({ x: 0, y: 0 }), advance = cam.screen({ x: this.scene.advanceWidth, y: 0 });
-        ctx.fillStyle = this.dark ? '#253042' : '#fff';
+        ctx.fillStyle = this.dark ? '#28292b' : '#fff';
         ctx.fillRect(origin.x, 24, advance.x - origin.x, h - 24);
         if (this.showGrid) {
             const target = 42 / cam.scale, base = 10 ** Math.floor(Math.log10(target)), step = [1, 2, 5, 10].map(x => x * base).find(x => x >= target) || base * 10;
             const lo = cam.world({ x: 24, y: h }), hi = cam.world({ x: w, y: 24 });
-            ctx.strokeStyle = this.dark ? '#2e3b4d' : '#eaf0f7';
+            ctx.strokeStyle = this.dark ? '#363739' : '#ededed';
             ctx.lineWidth = 1;
             ctx.beginPath();
             for (let x = Math.ceil(lo.x / step) * step; x < hi.x; x += step) {
@@ -249,7 +250,7 @@ export class GlyphRenderer {
             ctx.font = '10px ui-monospace, SFMono-Regular, monospace';
             for (const [value, label] of [[metric.ascender, 'Ascender'], [metric.capHeight, 'Cap height'], [metric.xHeight, 'x-height'], [0, 'Baseline'], [metric.descender, 'Descender']]) {
                 const y = cam.screen({ x: 0, y: value }).y;
-                ctx.strokeStyle = value === 0 ? '#7c97b6' : '#b3c7df';
+                ctx.strokeStyle = value === 0 ? '#909ca6' : '#c1c5cc';
                 ctx.setLineDash(value === 0 ? [] : [4, 4]);
                 ctx.beginPath();
                 ctx.moveTo(24, y + .5);
@@ -278,13 +279,13 @@ export class GlyphRenderer {
             }
             ctx.setLineDash([]);
         }
-        ctx.fillStyle = this.dark ? '#263142' : '#edf2f8';
+        ctx.fillStyle = this.dark ? '#303133' : '#ededee';
         ctx.fillRect(0, 0, w, 24);
         ctx.fillRect(0, 0, 24, h);
-        ctx.fillStyle = '#7c8ca3';
+        ctx.fillStyle = '#707477';
         ctx.font = '9px ui-monospace, SFMono-Regular, monospace';
         const step = cam.scale > 2 ? 10 : cam.scale > .45 ? 100 : 500, lo = cam.world({ x: 24, y: h }), hi = cam.world({ x: w, y: 24 });
-        ctx.strokeStyle = '#b6c6d9';
+        ctx.strokeStyle = '#b9bcbf';
         ctx.beginPath();
         for (let x = Math.ceil(lo.x / step) * step; x < hi.x; x += step) {
             const px = cam.screen({ x, y: 0 }).x;
@@ -303,7 +304,7 @@ export class GlyphRenderer {
             ctx.restore();
         }
         ctx.stroke();
-        ctx.fillStyle = '#dce6f2';
+        ctx.fillStyle = '#dedfe0';
         ctx.fillRect(0, 0, 24, 24);
     }
     drawOverlay() {

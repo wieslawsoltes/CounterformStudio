@@ -29,6 +29,11 @@ with tempfile.TemporaryDirectory(prefix='counterform-consumer-') as tmp:
             assert 'package/types/index.d.ts' in entries and 'package/src/index.js' in entries
             assert not any(Path(n).suffix.lower() in fonts for n in entries)
             meta = json.load(archive.extractfile('package/package.json'))
+            if meta['name'] == '@wieslawsoltes/counterform-workbench':
+                for css in ['styles.css','legacy.css','workspace.css']:
+                    assert 'package/src/'+css in entries, 'Missing layered workspace style: '+css
+                assert 'package/src/workspace-preferences.js' in entries
+                assert 'package/types/workspace-preferences.d.ts' in entries
             record = records[file.name]
             assert meta['name'] == record['name'] and meta['version'] == version, 'Archive metadata mismatch.'
             assert meta.get('dependencies', {}) == record['dependencies'], 'Archive dependencies differ from manifest.'
@@ -58,6 +63,8 @@ import {History} from '@wieslawsoltes/counterform-history';
 import {CompilerClient} from '@wieslawsoltes/counterform-compiler';
 import {compileColorTables} from '@wieslawsoltes/counterform-color';
 import {Worker} from 'node:worker_threads';
+const {normalizeWorkspacePreferences}=await import('@wieslawsoltes/counterform-workbench/preferences');
+assert.equal(normalizeWorkspacePreferences({theme:'dark'}).canvas,'paper');
 const doc=createDemoFont(); assert.equal(doc.data.glyphs.length,102);
 for(const compile of [compileTrueType,compileOpenTypeCFF,compileVariableTrueType])assert(compile(doc).byteLength>1000);
 assert(new History(doc));

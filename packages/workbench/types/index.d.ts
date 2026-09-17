@@ -5,8 +5,12 @@ export function mountStudio(host: any, { document: initialDocument, skiaOptions,
     compilerOptions?: import("@wieslawsoltes/counterform-compiler").CompilerOptions;
     restore?: boolean;
 }): Promise<StudioWorkbench>;
-export const version: "0.2.0";
+export const version: "0.5.1";
 export class StudioWorkbench {
+    workspaceUI: import("./workspace-ui.js").WorkspaceUI;
+    fontPane: HTMLDivElement;
+    dockHost: HTMLDivElement;
+    setGlyphMetric(key: "lsb" | "advanceWidth" | "rsb", value: number): void;
     compiler: import("@wieslawsoltes/counterform-compiler").CompilerClient;
     showPaints():any;
     showColors(): any;

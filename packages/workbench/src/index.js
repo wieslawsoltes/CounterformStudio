@@ -1,3 +1,4 @@
+import {WorkspaceUI, registerWorkspaceCommands} from './workspace-ui.js';
 import {captureOriginal} from '@wieslawsoltes/counterform-preservation';
 import {RevisionJournal,registerProductionCommands,attachJournal,showModifiers} from './production-ui.js';
 import {ribbonTabs,registerAuthoringCommands,createStudioMenus,createToolRail} from './authoring-ui.js';
@@ -23,7 +24,7 @@ import { applyRecipe, recipes } from '@wieslawsoltes/counterform-automation';
 import { CoordinateCompute } from '@wieslawsoltes/counterform-compute';
 import { fromSVG, toSVG, bounds, transformContours, uid, rectangle, ellipse } from '@wieslawsoltes/counterform-geometry';
 import { el, button, toast, dialog, field, section, setValue, formDialog, escapeHTML } from './ui.js';
-export const version = '0.5.0';
+export const version = '0.5.1';
 const brand = `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M32 9A16 16 0 1 0 32 31L27 25A8 8 0 1 1 27 15Z" fill="currentColor"/><path d="M24 17H36V23H24Z" fill="#91b9ff"/></svg>`;
 /** Mount a complete local-first authoring workspace. Consumers own the returned lifetime. */
 export async function mountStudio(host, { document: initialDocument = null, skiaOptions = {}, compilerOptions = {}, restore = true } = {}) {
@@ -71,9 +72,12 @@ export class StudioWorkbench {
         this.editor = new GlyphEditor(this.doc, this.history, this.renderer);
         this.registerCommands();
         this.constructPanels();
+        this.workspaceUI = new WorkspaceUI(this);
+        this.workspaceUI.prepare();
         this.constructLayout();
         this.constructRibbon();
         this.bind();
+        await this.workspaceUI.install();
         this.ready = true;
         try {
             const saved = await this.store.preference('keymap');
@@ -86,7 +90,7 @@ export class StudioWorkbench {
         this.selectGlyph(this.doc.glyph('A')?.id || this.doc.data.glyphs[0]?.id);
         this.updateAll();
         requestAnimationFrame(() => { this.renderer.fit(); this.renderer.overlay.focus({ preventScroll: true }); });
-        this.autosave = new Autosave(this.doc, this.store, { onStatus: (s, e) => { this.saveLabel.textContent = s === 'saved' ? 'Saved locally' : s === 'saving' ? 'Saving…' : 'Storage unavailable'; if (e)
+        this.autosave = new Autosave(this.doc, this.store, { onStatus: (s, e) => { this.saveLabel.dataset.state=s;this.saveLabel.textContent = s === 'saved' ? 'Saved locally' : s === 'saving' ? 'Saving…' : 'Storage unavailable'; if (e)
                 this.record('Autosave', e.message); if (s === 'saved')
                 this.store.preference('lastProject', this.doc.data.id).catch(() => { }); } });
         attachJournal(this);
@@ -126,7 +130,7 @@ export class StudioWorkbench {
         this.contextbar.append(this.glyphLabel, this.contextMetrics, el('div', 'cf-spacer'), this.masterSelect, button('Fit', () => this.renderer.fit(), { title: 'Fit glyph · F' }));
         this.toolRail = el('div', 'cf-toolrail');
         const drawing = el('div', 'cf-drawing');
-        drawing.append(this.toolRail, this.canvasHost);
+        drawing.append(this.canvasHost);
         this.editorPane.append(this.contextbar, drawing);
         this.modeLabel = el('div', 'cf-mode-label');
         this.canvasHost.append(this.modeLabel);
@@ -218,12 +222,26 @@ export class StudioWorkbench {
         otoolbar.append(el('strong', '', 'Activity & diagnostics'), button('Clear', () => { this.log = []; this.renderLog(); }), button('Validate font', () => this.showValidation()));
         this.outputPane.append(otoolbar, this.outputList);
     }
-    constructLayout() { const doc = (id, title, content) => new LayoutDocument({ ContentId: id, Title: title, Content: content, CanClose: false }), anchor = (id, title, content) => new LayoutAnchorable({ ContentId: id, Title: title, Content: content, CanClose: false, CanHide: false }); this.layout = new LayoutRoot({ RootPanel: new LayoutPanel({ Orientation: 'Horizontal', Children: [new LayoutAnchorablePane({ DockWidth: 246, DockMinWidth: 180, Children: [anchor('library', 'Glyph library', this.library)] }), new LayoutPanel({ Orientation: 'Vertical', Children: [new LayoutDocumentPane({ Children: [doc('glyph', 'Outline editor', this.editorPane), doc('catalog', 'Font inventory', this.table.element), doc('kerning', 'Kerning', this.kerningPane), doc('features', 'OpenType', this.featuresPane), doc('notes', 'Notes', this.notesPane)] }), new LayoutAnchorablePane({ DockHeight: 208, DockMinHeight: 120, Children: [anchor('proof', 'Live proof', this.proofPane), anchor('output', 'Output', this.outputPane)] })] }), new LayoutAnchorablePane({ DockWidth: 276, DockMinWidth: 220, Children: [anchor('inspector', 'Inspector', this.inspector), anchor('masters', 'Masters & axes', this.mastersPane)] })] }) }); this.dock = new DockingManager(this.workHost, { Layout: this.layout, Theme: 'light', Error: (_, e) => this.record('Workspace', e.Error?.message || e.Message || 'Layout error') }); this.dock.Activate('glyph'); }
-    activate(id) { const m = this.dock.Find(id); if (m) {
-        this.dock.Activate(m);
-        if (m.IsHidden)
-            m.Show?.();
-    } }
+    constructLayout() {
+        const doc = (id, title, content) => new LayoutDocument({ContentId:id, Title:title, Content:content, CanClose:false});
+        const anchor = (id, title, content) => new LayoutAnchorable({ContentId:id, Title:title, Content:content, CanClose:false, CanHide:true});
+        this.layout = new LayoutRoot({RootPanel:new LayoutPanel({Orientation:'Horizontal', Children:[
+            new LayoutAnchorablePane({DockWidth:208, DockMinWidth:170, Children:[anchor('library','Glyph navigator',this.library)]}),
+            new LayoutPanel({Orientation:'Vertical', Children:[
+                new LayoutDocumentPane({Children:[doc('font','Font',this.fontPane),doc('glyph','Glyph',this.editorPane),doc('catalog','Table',this.table.element),doc('kerning','Kerning',this.kerningPane),doc('features','Features',this.featuresPane),doc('notes','Notes',this.notesPane)]}),
+                new LayoutAnchorablePane({DockHeight:180,DockMinHeight:105,Children:[anchor('proof','Preview',this.proofPane),anchor('output','Output',this.outputPane)]})
+            ]}),
+            new LayoutAnchorablePane({DockWidth:282,DockMinWidth:240,Children:[anchor('inspector','Properties',this.inspector),anchor('masters','Variations',this.mastersPane)]})
+        ]})});
+        this.dockHost=el('div','cf-dock-host');
+        this.workHost.append(this.toolRail,this.dockHost);
+        this.dock = new DockingManager(this.dockHost,{Layout:this.layout,Theme:'light',Error:(_,e)=>this.record('Workspace',e.Error?.message||e.Message||'Layout error')});
+        this.dock.Activate('glyph');
+    }
+    activate(id) {
+        const model=this.dock.Find(id);
+        if(model){if(model.IsHidden)model.Show?.();this.dock.Activate(model);}
+    }
     constructRibbon() { this.ribbon=createRibbon(this.commands,ribbonTabs);this.ribbonHost.append(this.ribbon);this.buildMenus();createToolRail(this); }
     registerCommands() {
         const r = (id, label, execute, keys = [], extra = {}) => this.commands.register({ id, label, execute, keys, repeat: false, ...extra }), edit = { scope: 'editor', enabled: () => this.editor.canEdit };
@@ -301,6 +319,7 @@ export class StudioWorkbench {
         r('app.about', 'About & capabilities', () => this.showAbout());
         registerAuthoringCommands(this);
         registerProductionCommands(this);
+        registerWorkspaceCommands(this);
     }
     buildMenus() {createStudioMenus(this);}
     buildInspector() {
@@ -322,14 +341,7 @@ export class StudioWorkbench {
             const f = field(label, 0, { type: 'number', step: 1 });
             this.inspectorFields[key] = f.input;
             metricGrid.append(f.element);
-            f.input.addEventListener('change', () => this.safe(() => { const v = Number(f.input.value); if (!Number.isFinite(v))
-                throw new Error('Enter a finite metric'); this.editor.transaction('Change ' + label, () => { if (key === 'advanceWidth') {
-                if (v < 0 || v > 65535)
-                    throw new Error('Advance must be 0–65535');
-                this.editor.layer.advanceWidth = v;
-            }
-            else
-                setSidebearing(this.doc, this.editor.glyphId, this.editor.masterId, key === 'lsb' ? 'left' : 'right', v); }); }));
+            f.input.addEventListener('change', () => this.safe(() => this.setGlyphMetric(key, f.input.value === '' ? NaN : f.input.valueAsNumber)));
         }
         metrics.element.append(metricGrid);
         this.outlineStats = el('div', 'cf-outline-stats');
@@ -389,6 +401,17 @@ export class StudioWorkbench {
         this.disposables.push(this.frameSub);
     }
     safe(action) { return Promise.resolve().then(action).catch(e => { toast(e.message, 'error'); this.record('Error', e.stack || e.message); this.updateInspector(); }); }
+    /** Single validation/history boundary shared by the property bar and Metrics palette. */
+    setGlyphMetric(key, value) {
+        if (!['lsb', 'advanceWidth', 'rsb'].includes(key)) throw new TypeError('Unknown glyph metric');
+        if (!this.editor.canEdit) throw new Error('The source layer is not editable');
+        if (!Number.isFinite(value)) throw new RangeError('Enter a finite metric');
+        if (key === 'advanceWidth' && (value < 0 || value > 65535)) throw new RangeError('Advance must be 0–65535');
+        this.editor.transaction('Change ' + ({lsb:'Left',advanceWidth:'Advance',rsb:'Right'})[key], () => {
+            if (key === 'advanceWidth') this.editor.layer.advanceWidth = value;
+            else setSidebearing(this.doc, this.editor.glyphId, this.editor.masterId, key === 'lsb' ? 'left' : 'right', value);
+        });
+    }
     selectGlyph(id) { if (!id)
         return; this.previewInstance = false; this.editor.readOnly = false; this.proof?.update({ masterId: this.editor.masterId, variable: false }); this.editor.setGlyph(id); this.state.SetValue('glyphId', this.editor.glyphId); this.state.SetValue('masterId', this.editor.masterId); this.updateInspector(); this.updateStatus(); }
     selectMaster(id) { this.previewInstance = false; this.editor.readOnly = false; this.editor.setMaster(id); this.state.SetValue('masterId', id); this.state.sync(); this.proof.update({ masterId: id, variable: false }); this.kerning.refresh(); this.updateMasterControls(); this.renderMasters(); this.updateInspector(); }
@@ -447,13 +470,13 @@ export class StudioWorkbench {
         }
     }
     updateStatus() { if (!this.editor)
-        return; this.projectLabel.textContent = this.doc.info.familyName; this.statusLeft.textContent = `${this.doc.data.glyphs.length} glyphs  ·  ${this.doc.data.masters.length} masters  ·  ${this.doc.info.unitsPerEm} UPM`; this.statusRight.textContent = `${this.previewInstance ? 'Instance preview · ' : ''}${this.renderer.backend}  ·  ${Math.round(this.renderer.camera.scale * 100)}%  ·  ${this.editor.snap ? 'Snap 1u' : 'Snap off'}`; if (this.modeLabel) {
+        return; this.projectLabel.textContent = this.doc.info.familyName; this.statusLeft.textContent = `${this.doc.data.glyphs.length} glyphs  ·  ${this.doc.data.masters.length} masters  ·  ${this.doc.info.unitsPerEm} UPM`; this.statusRight.textContent = `${this.previewInstance ? 'Instance preview · ' : ''}${this.renderer.backend}  ·  ${this.editor.snap ? 'Snap 1u' : 'Snap off'}`; if (this.modeLabel) {
         this.modeLabel.textContent = this.previewInstance ? 'INTERPOLATED PREVIEW · READ ONLY' : this.editor.layer?.locked ? 'LOCKED SOURCE LAYER' : '';
         this.modeLabel.hidden = !this.modeLabel.textContent;
     } this.header.classList.toggle('is-dirty', this.doc.dirty); }
     updateAll() { this.updateMasterControls(); this.renderMasters(); this.updateInspector(); this.updateStatus(); this.renderLog(); }
-    zoom(factor) { this.renderer.camera.zoomAt(factor, { x: this.canvasHost.clientWidth / 2, y: this.canvasHost.clientHeight / 2 }); this.renderer.invalidate(); this.updateStatus(); }
-    toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; this.host.dataset.theme = this.theme; document.documentElement.dataset.cfTheme=this.theme; this.dock.Theme = this.theme; this.ribbon.setAttribute('theme', this.theme); this.renderer.dark = this.theme === 'dark'; this.renderer.invalidate(); this.table.element.setAttribute('theme', this.theme); this.kerning.element.setAttribute('theme', this.theme); }
+    zoom(factor) { this.renderer.camera.zoomAt(factor, { x: this.canvasHost.clientWidth / 2, y: this.canvasHost.clientHeight / 2 }); this.renderer.invalidate(); this.updateStatus(); this.workspaceUI?.updateZoom(); }
+    toggleTheme() { this.workspaceUI.setPreference('theme',this.theme==='light'?'dark':'light'); }
     async newFont() { if (this.doc.dirty && !confirm('Create a new font? The current project will be saved to local recovery storage when available.'))
         return; const saved = await this.autosave.flush(); if (!saved && this.doc.dirty && !confirm('Local recovery could not save this project. Continue without a recovery copy?')) return; const data = createFont('Untitled Family'); data.glyphs = [createGlyph('.notdef', null), createGlyph('space', 32), createGlyph('A', 65)]; this.replaceDocument(new FontDocument(data)); this.activate('glyph'); }
     replaceDocument(document, confirmDiscard = false) { if (confirmDiscard && this.doc.dirty && !confirm('Replace the current workspace? Save a project file first to keep a portable copy.'))
@@ -681,7 +704,7 @@ export class StudioWorkbench {
         row.append(el('time', '', item.at.slice(11, 19)), el('strong', '', item.category), el('span', '', item.message));
         this.outputList.append(row);
     } }
-    dispose() { clearTimeout(this.axisTimer); this.autosave?.dispose(); this.notes?.dispose(); this.proof?.dispose(); this.tiles?.dispose(); this.table?.dispose(); this.kerning?.dispose(); for (const dispose of [...this.disposables])
+    dispose() { this.workspaceUI?.dispose(); clearTimeout(this.axisTimer); this.autosave?.dispose(); this.notes?.dispose(); this.proof?.dispose(); this.tiles?.dispose(); this.table?.dispose(); this.kerning?.dispose(); for (const dispose of [...this.disposables])
         dispose?.(); this.editor?.dispose(); this.renderer?.dispose(); this.compute?.dispose(); this.state?.Dispose(); this.commands?.dispose(); this.dock?.Dispose(); this.store.close(); this.host.replaceChildren(); this.menus?.close(false); }
 }
 

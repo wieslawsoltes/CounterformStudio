@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-varstore",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "OpenType item variation stores and index maps",
   "type": "module",
   "sideEffects": false,
@@ -23,6 +23,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@wieslawsoltes/counterform-binary": "0.5.0"
+    "@wieslawsoltes/counterform-binary": "0.5.1"
   }
 }

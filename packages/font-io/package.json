@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-font-io",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "description": "TrueType/CFF OpenType compilation, WOFF containers and bounded font import.",
   "main": "./src/index.js",
@@ -28,11 +28,11 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-binary": "0.5.0",
-    "@wieslawsoltes/counterform-model": "0.5.0",
-    "@wieslawsoltes/counterform-geometry": "0.5.0",
-    "@wieslawsoltes/counterform-opentype": "0.5.0",
-    "@wieslawsoltes/counterform-color": "0.5.0"
+    "@wieslawsoltes/counterform-binary": "0.5.1",
+    "@wieslawsoltes/counterform-model": "0.5.1",
+    "@wieslawsoltes/counterform-geometry": "0.5.1",
+    "@wieslawsoltes/counterform-opentype": "0.5.1",
+    "@wieslawsoltes/counterform-color": "0.5.1"
   },
   "keywords": [
     "font-editor",

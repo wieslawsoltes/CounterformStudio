@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-preservation",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Byte-exact original font archives and guarded metadata-only editing",
   "type": "module",
   "sideEffects": false,
@@ -23,6 +23,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@wieslawsoltes/counterform-binary": "0.5.0"
+    "@wieslawsoltes/counterform-binary": "0.5.1"
   }
 }

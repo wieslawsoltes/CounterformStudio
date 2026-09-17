@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-icons",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "description": "Original font-authoring SVG icons; framework-independent DOM and URL entrypoints.",
   "main": "./src/index.js",

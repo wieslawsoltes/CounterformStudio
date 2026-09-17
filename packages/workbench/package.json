@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-workbench",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "description": "Counterform Studio dockable font-authoring workspace and application composition.",
   "main": "./src/index.js",
@@ -10,7 +10,11 @@
       "import": "./src/index.js"
     },
     "./package.json": "./package.json",
-    "./styles.css": "./src/styles.css"
+    "./styles.css": "./src/styles.css",
+    "./preferences": {
+      "types": "./types/workspace-preferences.d.ts",
+      "import": "./src/workspace-preferences.js"
+    }
   },
   "files": [
     "src",
@@ -21,7 +25,7 @@
   ],
   "license": "MIT",
   "sideEffects": [
-    "./src/styles.css"
+    "./src/*.css"
   ],
   "engines": {
     "node": ">=22"
@@ -31,31 +35,31 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-integrations": "0.5.0",
-    "@wieslawsoltes/counterform-model": "0.5.0",
-    "@wieslawsoltes/counterform-history": "0.5.0",
-    "@wieslawsoltes/counterform-commands": "0.5.0",
-    "@wieslawsoltes/counterform-renderer": "0.5.0",
-    "@wieslawsoltes/counterform-editor": "0.5.0",
+    "@wieslawsoltes/counterform-integrations": "0.5.1",
+    "@wieslawsoltes/counterform-model": "0.5.1",
+    "@wieslawsoltes/counterform-history": "0.5.1",
+    "@wieslawsoltes/counterform-commands": "0.5.1",
+    "@wieslawsoltes/counterform-renderer": "0.5.1",
+    "@wieslawsoltes/counterform-editor": "0.5.1",
     "@wieslawsoltes/dockyard": "0.1.0",
-    "@wieslawsoltes/counterform-proofing": "0.5.0",
-    "@wieslawsoltes/counterform-storage": "0.5.0",
-    "@wieslawsoltes/counterform-font-io": "0.5.0",
-    "@wieslawsoltes/counterform-variations": "0.5.0",
-    "@wieslawsoltes/counterform-validation": "0.5.0",
-    "@wieslawsoltes/counterform-ufo": "0.5.0",
-    "@wieslawsoltes/counterform-opentype": "0.5.0",
-    "@wieslawsoltes/counterform-automation": "0.5.0",
-    "@wieslawsoltes/counterform-compute": "0.5.0",
-    "@wieslawsoltes/counterform-geometry": "0.5.0",
-    "@wieslawsoltes/counterform-color": "0.5.0",
-    "@wieslawsoltes/counterform-compiler": "0.5.0",
-    "@wieslawsoltes/counterform-icons": "0.5.0",
-    "@wieslawsoltes/counterform-menus": "0.5.0",
-    "@wieslawsoltes/counterform-modifiers": "0.5.0",
-    "@wieslawsoltes/counterform-journal": "0.5.0",
-    "@wieslawsoltes/counterform-preservation": "0.5.0",
-    "@wieslawsoltes/counterform-colrv1": "0.5.0"
+    "@wieslawsoltes/counterform-proofing": "0.5.1",
+    "@wieslawsoltes/counterform-storage": "0.5.1",
+    "@wieslawsoltes/counterform-font-io": "0.5.1",
+    "@wieslawsoltes/counterform-variations": "0.5.1",
+    "@wieslawsoltes/counterform-validation": "0.5.1",
+    "@wieslawsoltes/counterform-ufo": "0.5.1",
+    "@wieslawsoltes/counterform-opentype": "0.5.1",
+    "@wieslawsoltes/counterform-automation": "0.5.1",
+    "@wieslawsoltes/counterform-compute": "0.5.1",
+    "@wieslawsoltes/counterform-geometry": "0.5.1",
+    "@wieslawsoltes/counterform-color": "0.5.1",
+    "@wieslawsoltes/counterform-compiler": "0.5.1",
+    "@wieslawsoltes/counterform-icons": "0.5.1",
+    "@wieslawsoltes/counterform-menus": "0.5.1",
+    "@wieslawsoltes/counterform-modifiers": "0.5.1",
+    "@wieslawsoltes/counterform-journal": "0.5.1",
+    "@wieslawsoltes/counterform-preservation": "0.5.1",
+    "@wieslawsoltes/counterform-colrv1": "0.5.1"
   },
   "keywords": [
     "font-editor",

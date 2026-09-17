@@ -1,13 +1,14 @@
 # Capability contract and parity ledger
 
-Version 0.5.0, reviewed 2026-09-17. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
+Version 0.5.1, reviewed 2026-09-17. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
 
 **Working** means implemented and exercised within the documented subset. **Partial** means a narrower implementation exists. **Missing** means no implementation is claimed. An attractive dialog, data field or shader source alone is not counted as feature parity.
 
 | Area | Status | Delivered contract / boundary |
 |---|---|---|
-| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six classic ribbon tabs, SVG icons, nine menus covering all 137 current commands; not every native FontLab command |
-| Glyph library and font inventory | Working | Virtual tiles; reactive keyed projection; TreeDataGrid editable widths/export flags |
+| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 73 original SVG icons, nine menus covering all 145 current commands; not every native FontLab command |
+| Glyph library and font inventory | Working | Full virtual Font window and optional navigator; stable grid keyboard focus; reactive keyed projection; retained TreeDataGrid editable widths/export flags |
+| Workspace presentation and preferences | Working | Neutral light/dark chrome, independent paper canvas, collapsible palettes, direct metrics, panel rail, reversible Focus/Reset, device-local preferences; native pixel/behavior parity is not claimed |
 | Unicode mapping | Working | Scalar values including supplementary planes; no UVS/cmap14 authoring |
 | Pen and outline selection | Working | Endpoints, absolute cubic handles, drag construction, marquee/lasso, insertion, deletion |
 | Shape tools | Working | Rectangle, ellipse, open line, polygon, star and rounded rectangle; constrained drawing and bounded options |
@@ -55,7 +56,7 @@ Version 0.5.0, reviewed 2026-09-17. The comparison target is the FontLab **8.4 f
 | Production QA | Partial | Structural/geometry/encoding/component/master checks; not OTS or FontBakery certification |
 | Python macro API | Missing | Bounded JSON recipes and JS package APIs only; no FontLab Python compatibility |
 | File persistence | Partial | Counterform files, immutable IndexedDB autosave, full-snapshot revision journal with SHA-256 chain, atomic CAS writes, corruption-prefix recovery and restore-as-copy UI; no incremental delta journal, native file watch or git-aware project |
-| Full keyboard parity | Partial | 137-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
+| Full keyboard parity | Partial | 145-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
 | Worker compilation and validation | Working; physical hardware unqualified | Bounded queue, keyed proof replacement, transferable results, hard cancellation and timeout; real Node workers plus the generated relative-URL browser graph exercised in a fresh Node worker host; local isolated browser suite explicitly uses inline mode; source/distribution/Pages CI exercises real browser workers |
 | WebGPU renderer | Unqualified here | Real Skia automatic backend request; local isolated tests exercise native raster; CI also tests WebGL through SwiftShader, not physical GPUs |
 | WebGPU compute | Implemented, GPU unqualified | Independent WGSL interpolation service; CPU numerical path verified |
@@ -86,3 +87,5 @@ Full FEA grammar and additional GPOS attachments; avar/FeatureVariations; TrueTy
 ## Verification and delivery
 
 See [0.5.0 release notes](RELEASE-0.5.0.md), [delivery status](DELIVERY-STATUS.md) and associated verification artifacts. The complete 0.5.0 source is committed on `main` at `12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`. Delivery status links the new verification runs; the original local evidence remains under `docs/verification/0.5.0`. Results from earlier releases do not certify this source, and software-rendered CI does not certify physical GPU performance. No full-parity percentage is asserted.
+
+For the 0.5.1 desktop redesign, see [workspace design](WORKSPACE-DESIGN.md) and [0.5.1 release notes](RELEASE-0.5.1.md). The commit-associated CI records the new workspace interaction and deployment results.

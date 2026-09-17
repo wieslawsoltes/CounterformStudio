@@ -2,12 +2,12 @@
 
 Counterform Studio dockable font-authoring workspace and application composition.
 
-Version **0.5.0**. ES modules with TypeScript declarations. No application-global singleton is required by the pure authoring engines. The renderer/editor/workbench packages require a browser DOM.
+Version **0.5.1**. ES modules with TypeScript declarations. No application-global singleton is required by the pure authoring engines. The renderer/editor/workbench packages require a browser DOM.
 
 ## Install
 
 ```sh
-npm install ./wieslawsoltes-counterform-workbench-0.5.0.tgz
+npm install ./wieslawsoltes-counterform-workbench-0.5.1.tgz
 ```
 
 Install the companion Counterform tarballs together when using unpublished packages. Package manifests declare the exact source dependencies; no implementation is hidden in the application entry point. `npm run bootstrap` links the supplied workspace and vendor snapshots for offline development.
@@ -19,3 +19,18 @@ The public module is `src/index.js`; declarations are in `types/index.d.ts`. Rea
 ## Licensing
 
 MIT for Counterform code. Dependencies retain their licenses; see `THIRD_PARTY_NOTICES.md`.
+
+## Desktop presentation
+
+The default is a compact, neutral workspace with a white glyph canvas and subdued outline fill. The full labeled RibbonWeb ribbon remains available through Window → Expanded ribbon. Dockyard retains ownership of every editor and palette. Window → Workspace preferences changes device-local appearance without modifying font source. See `docs/WORKSPACE-DESIGN.md` in the source repository.
+
+```js
+import {mountStudio} from '@wieslawsoltes/counterform-workbench';
+import {normalizeWorkspacePreferences} from '@wieslawsoltes/counterform-workbench/preferences';
+const studio = await mountStudio(document.querySelector('#studio'), {restore:false});
+studio.workspaceUI.setPreference('ribbon', 'expanded');
+studio.workspaceUI.setPreference('canvas', 'paper');
+// Keep this lifetime and call studio.dispose() on unmount.
+```
+
+The preference normalizer is headless. Workbench mounting requires a browser DOM. Import `@wieslawsoltes/counterform-workbench/styles.css` through your bundler, or include the supplied CSS from the pinned source layout.

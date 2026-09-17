@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 — desktop workspace
+
+Compact neutral chrome, paper-first light/dark editing, full Font window, retained table inventory, collapsible palettes, contour selection, direct metrics, adjacent glyphs, panel rail, Focus/Reset, ordered device preferences, stable virtual-grid keyboard focus, and typed presentation controls. All ten vendors, 30 packages and original font engines are retained. Five new vector icons bring the total to 73; eight new workspace commands bring the total to 145. Added headless preference tests and 15 browser UX gates.
+
+
 ## 0.5.0 — 2026-09-17
 
 Add the thirtieth standalone package, `colrv1`: all 18 static paint formats, 28 composite modes, bounded graph reconstruction and static clip boxes. Add CPALv1 named palettes/entries and usability flags with collision-free name allocation, including CFF2 variable exports. Integrate the transactional paint-tree/property/JSON editor, gradients and transforms, compiled FontFace proof and exact-revision native Skia color rendering. Retain optional COLRv0 fallbacks and editable source contours. Add the paint-graph ribbon icon and command (68 icons, 137 commands).

@@ -43,3 +43,9 @@ F10 enters the menubar; arrows, Home/End and label typeahead navigate; Escape cl
 ## Color paint graph
 
 Open `color.paint` from the OpenType ribbon, Font menu, Inspector or command search. It has no assigned global default shortcut. Within its tree, Up/Down select visible rows, Home/End select first/last, Right expands or enters a child, Left collapses or selects a parent, and Delete removes an optional selected layer. A required child or sole layer cannot be deleted into an invalid graph. The tree uses roving tab focus; the properties and preview use native form controls. Numeric edits and JSON replacement are source transactions. Undo/Redo use the document history and rerender the selected graph; text inputs retain native editing semantics. Escape closes the current dialog through the existing modal contract. Browser/assistive-technology certification beyond the recorded Chromium checks remains outstanding.
+
+## Desktop workspace (0.5.1)
+
+Mod+Alt+1 opens the Font window. Mod+Comma opens Workspace preferences. Mod+Shift+Backslash toggles Focus workspace; Window → Reset workspace layout restores the standard arrangement. These new defaults are remappable, and all eight added workspace actions are available through the Window/View menus.
+
+Font-grid arrows, Home/End and PageUp/PageDown retain focus on the grid; Enter opens the selected glyph. The adjacent-glyph strip and Elements list support arrows and Home/End with Enter/Space activation. Palette headings toggle with Enter/Space. Escape in Properties returns to the glyph canvas. The Panels list uses Up/Down and Home/End with roving focus. The tool box adjusts its arrow navigation to its displayed one/two-column layout. Inputs still own their editing shortcuts.
