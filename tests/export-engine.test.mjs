@@ -54,3 +54,7 @@ test('real compiler worker supports every new export and validates unknown forma
     const d=createDemoFont(),c=new CompilerClient({workerFactory:()=>new Worker(new URL(import.meta.resolve('@wieslawsoltes/counterform-compiler/node-worker')))});
     try{for(const format of ['cff2','variable-cff2','woff2','variable-woff2','cff2-woff2']){const {bytes,mime}=await c.compile(d,{format});assert(bytes.length>1000);assert(mime.startsWith('font/'));}await assert.rejects(c.compile(d,{format:'unknown'}));}finally{c.dispose();d.dispose();}
 });
+
+test('WOFF2 padding and known tags are canonical for every remainder; DSIG is excluded',()=>{
+ const d=createDemoFont();for(let n=0;n<4;n++){const b=compileTrueType(d,{extraTables:new Map([['ZZZZ',new Uint8Array(n+1)],['DSIG',new Uint8Array(8)]])}),w=encodeWOFF2(b);assert.equal(w.length%4,0);assert.equal(new DataView(w.buffer).getUint16(12),readDirectory(b).tables.size-1);const names=new TextDecoder('latin1').decode(w.subarray(48,110));assert(!names.includes('head'));}d.dispose();
+});

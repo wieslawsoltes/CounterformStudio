@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-opentype",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Strict OpenType feature parsing and GSUB, GPOS, GDEF and kerning table compilation.",
   "main": "./src/index.js",
@@ -28,7 +28,8 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-binary": "0.3.0"
+    "@wieslawsoltes/counterform-binary": "0.4.0",
+    "@wieslawsoltes/counterform-varstore": "0.4.0"
   },
   "keywords": [
     "font-editor",

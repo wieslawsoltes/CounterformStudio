@@ -1,3 +1,5 @@
+import {captureOriginal} from '@wieslawsoltes/counterform-preservation';
+import {RevisionJournal,registerProductionCommands,attachJournal,showModifiers} from './production-ui.js';
 import {ribbonTabs,registerAuthoringCommands,createStudioMenus,createToolRail} from './authoring-ui.js';
 import { CompilerClient } from '@wieslawsoltes/counterform-compiler';
 import { showColorEditor } from './colors.js';
@@ -19,7 +21,7 @@ import { applyRecipe, recipes } from '@wieslawsoltes/counterform-automation';
 import { CoordinateCompute } from '@wieslawsoltes/counterform-compute';
 import { fromSVG, toSVG, bounds, transformContours, uid, rectangle, ellipse } from '@wieslawsoltes/counterform-geometry';
 import { el, button, toast, dialog, field, section, setValue, formDialog, escapeHTML } from './ui.js';
-export const version = '0.3.0';
+export const version = '0.4.0';
 const brand = `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M32 9A16 16 0 1 0 32 31L27 25A8 8 0 1 1 27 15Z" fill="currentColor"/><path d="M24 17H36V23H24Z" fill="#91b9ff"/></svg>`;
 /** Mount a complete local-first authoring workspace. Consumers own the returned lifetime. */
 export async function mountStudio(host, { document: initialDocument = null, skiaOptions = {}, compilerOptions = {}, restore = true } = {}) {
@@ -32,12 +34,16 @@ export class StudioWorkbench {
     async initialize() {
         this.host.innerHTML = `<div class="cf-loading">${brand}<h1>Counterform <span>Studio</span></h1><p>Preparing the type-design workspace</p><div class="cf-loading-bar"></div></div>`;
         this.store = new ProjectStore();
+        this.journal = new RevisionJournal();
         let initial = this.options.initialDocument;
         try {
             if (!initial && this.options.restore) {
                 const last = await this.store.preference('lastProject');
-                if (last)
+                if (last) {
                     initial = await this.store.load(last);
+                    const meta=(await this.store.list()).find(p=>p.id===last),recovery=await this.journal.recover(last),latest=recovery.snapshots.at(-1);
+                    if(latest && latest.time>(meta?.modified||0)){initial=latest.data;if(recovery.issue)initial.id=uid('font');this.record('Recovery',recovery.issue||'Restored the latest committed journal revision');}
+                }
             }
         }
         catch (e) {
@@ -81,6 +87,7 @@ export class StudioWorkbench {
         this.autosave = new Autosave(this.doc, this.store, { onStatus: (s, e) => { this.saveLabel.textContent = s === 'saved' ? 'Saved locally' : s === 'saving' ? 'Saving…' : 'Storage unavailable'; if (e)
                 this.record('Autosave', e.message); if (s === 'saved')
                 this.store.preference('lastProject', this.doc.data.id).catch(() => { }); } });
+        attachJournal(this);
         this.autosave.flush();
         this.record('Workspace', 'Ready. Original demonstration outlines; no external font files are loaded.');
         return this;
@@ -285,11 +292,14 @@ export class StudioWorkbench {
         r('compute.verify', 'Verify GPU interpolation', () => this.verifyCompute());
         r('app.about', 'About & capabilities', () => this.showAbout());
         registerAuthoringCommands(this);
+        registerProductionCommands(this);
     }
     buildMenus() {createStudioMenus(this);}
     buildInspector() {
         this.inspector.replaceChildren();
         this.inspectorFields = {};
+        const modifiers=section("Outline modifiers",{extra:button("Edit stack",()=>showModifiers(this),{className:"cf-mini"})});
+        modifiers.element.append(el("p","cf-muted","Non-destructive result; source nodes remain editable."));this.inspector.append(modifiers.element);
         const glyphSection = section('Glyph properties'), name = field('Name', ''), unicode = field('Unicode', '');
         this.inspectorFields.name = name.input;
         this.inspectorFields.unicode = unicode.input;
@@ -479,8 +489,11 @@ export class StudioWorkbench {
             imported = new FontDocument(parseProject(await file.text()));
         else if (name.endsWith('.ufoz') || name.endsWith('.zip'))
             imported = await importUFO(new Uint8Array(await file.arrayBuffer()));
-        else
-            imported = await importFont(new Uint8Array(await file.arrayBuffer()), { skia: this.S, onProgress: (done, total) => this.statusLeft.textContent = `Importing glyph ${done}/${total}` });
+        else {
+            const original=new Uint8Array(await file.arrayBuffer());
+            imported=await importFont(original,{skia:this.S,onProgress:(done,total)=>this.statusLeft.textContent=`Importing glyph ${done}/${total}`});
+            try{imported.data.originalFont=await captureOriginal(original,imported.data,{filename:file.name});}catch(e){this.record('Original preservation',e.message);}
+        }
         if (this.doc.dirty)
             await this.autosave.flush();
         this.replaceDocument(imported);
@@ -566,7 +579,7 @@ export class StudioWorkbench {
     showColors() { return showColorEditor(this); }
     async showTables() { const {report, byteLength} = await this.compiler.inspect(this.doc, {masterId:this.editor.masterId}), d = dialog('Compiled OpenType tables', { subtitle: `TrueType · ${byteLength.toLocaleString()} bytes · ${report.tables.length} tables`, wide: true }); const table = el('table', 'cf-table'); table.innerHTML = '<thead><tr><th>Tag</th><th>Bytes</th><th>Checksum</th><th>Verified</th></tr></thead>'; const body = el('tbody'); for (const t of report.tables)
         body.innerHTML += `<tr><td><code>${escapeHTML(t.tag)}</code></td><td>${t.length.toLocaleString()}</td><td><code>${t.checksum.toString(16).padStart(8, '0')}</code></td><td>${t.validChecksum ? '✓' : 'Mismatch'}</td></tr>`; table.append(body); d.body.append(table); }
-    showExport() { const d = dialog('Export font', { subtitle: 'Compile actual font binaries from the editable source. No server upload.', wide: true }), form = el('div', 'cf-form-grid'), format = field('Format', 'ttf', { options: [{ value: 'ttf', label: 'TrueType · .ttf' }, { value: 'otf', label: 'OpenType CFF · .otf' }, {value:'cff2',label:'OpenType CFF2 · .otf'}, {value:'variable-cff2',label:'Variable CFF2 · .otf'}, {value:'woff2',label:'WOFF2 TrueType · .woff2'}, {value:'variable-woff2',label:'WOFF2 variable TrueType · .woff2'}, {value:'cff2-woff2',label:'WOFF2 variable CFF2 · .woff2'}, { value: 'woff', label: 'Web Open Font Format · .woff' }, { value: 'variable', label: 'Variable TrueType · .ttf' }, { value: 'ufoz', label: 'UFO 3 source archive · .ufoz' }, { value: 'project', label: 'Counterform source · .counterform' }] }), master = field('Source master', this.editor.masterId, { options: this.doc.data.masters.map(m => ({ value: m.id, label: m.name })) }), name = field('File name', this.doc.info.familyName.replace(/[^a-zA-Z0-9_-]/g, '') + '-' + (this.doc.data.masters.find(m => m.id === this.editor.masterId)?.name || 'Regular'), {}); form.append(format.element, master.element, name.element); const note = el('div', 'cf-export-note'); note.innerHTML = '<strong>Export contract</strong><p>Static export includes contours, Unicode, metrics, names, pair kerning and supported GSUB/GPOS rules. Variable TrueType includes fvar, gvar, STAT, HVAR and optional MVAR. Variable CFF2 includes cubic blend programs and variable metrics. WOFF2 uses portable Brotli stored blocks (valid but not size-optimized). Variable kerning and hinting remain separate authoring contracts. UFO preserves all source masters in layers and embeds Counterform metadata.</p><p>COLRv0/CPALv0 color layers are compiled and reconstructed on supported TrueType imports. Other imported layout tables, hint programs and advanced color paint graphs are not reconstructed. Keep the original font and review import warnings.</p>'; const errors = [], check = el('div', 'cf-export-check', 'Validation runs in the compiler worker when you export.'); const progress = el('p', 'cf-muted'); d.body.append(form, check, note, progress); d.footer.append(button('Cancel', () => d.close()), button('Export', async () => { if (errors.length && !['project', 'ufoz'].includes(format.input.value))
+    showExport() { const d = dialog('Export font', { subtitle: 'Compile actual font binaries from the editable source. No server upload.', wide: true }), form = el('div', 'cf-form-grid'), format = field('Format', 'ttf', { options: [{ value: 'ttf', label: 'TrueType · .ttf' }, { value: 'otf', label: 'OpenType CFF · .otf' }, {value:'cff2',label:'OpenType CFF2 · .otf'}, {value:'variable-cff2',label:'Variable CFF2 · .otf'}, {value:'woff2',label:'WOFF2 TrueType · .woff2'}, {value:'variable-woff2',label:'WOFF2 variable TrueType · .woff2'}, {value:'cff2-woff2',label:'WOFF2 variable CFF2 · .woff2'}, { value: 'woff', label: 'Web Open Font Format · .woff' }, { value: 'variable', label: 'Variable TrueType · .ttf' }, { value: 'ufoz', label: 'UFO 3 source archive · .ufoz' }, { value: 'project', label: 'Counterform source · .counterform' }] }), master = field('Source master', this.editor.masterId, { options: this.doc.data.masters.map(m => ({ value: m.id, label: m.name })) }), name = field('File name', this.doc.info.familyName.replace(/[^a-zA-Z0-9_-]/g, '') + '-' + (this.doc.data.masters.find(m => m.id === this.editor.masterId)?.name || 'Regular'), {}); form.append(format.element, master.element, name.element); const note = el('div', 'cf-export-note'); note.innerHTML = '<strong>Export contract</strong><p>Static export includes contours, Unicode, metrics, names, pair kerning and supported GSUB/GPOS rules. Variable TrueType includes fvar, gvar, STAT, HVAR and optional MVAR. Variable CFF2 includes cubic blend programs and variable metrics. WOFF2 uses portable Brotli stored blocks (valid but not size-optimized). Variable kerning and mark-to-base anchors use GDEF variation stores. Hinting remains a separate authoring contract. UFO preserves all source masters in layers and embeds Counterform metadata.</p><p>COLRv0/CPALv0 color layers are compiled and reconstructed on supported TrueType imports. Other imported layout tables, hint programs and advanced color paint graphs are not reconstructed. Keep the original font and review import warnings.</p>'; const errors = [], check = el('div', 'cf-export-check', 'Validation runs in the compiler worker when you export.'); const progress = el('p', 'cf-muted'); d.body.append(form, check, note, progress); d.footer.append(button('Cancel', () => d.close()), button('Export', async () => { if (errors.length && !['project', 'ufoz'].includes(format.input.value))
         throw new Error('Resolve validation errors before exporting'); if (!name.input.value.trim())
         throw new Error('Choose a file name'); progress.textContent = 'Compiling in worker…';
         const abort = new AbortController();
@@ -650,7 +663,7 @@ export class StudioWorkbench {
     showRecipe() { const d = dialog('Batch outline recipe', { subtitle: 'Declarative, deterministic operations. No eval and no untrusted JavaScript execution.', wide: true }), text = el('textarea', 'cf-code-editor'); text.style.minHeight = '300px'; text.value = JSON.stringify(recipes.clean, null, 2); const target = field('Target', 'current', { options: [{ value: 'current', label: 'Current glyph / current master' }, { value: 'all', label: 'All glyphs / all masters' }] }); d.body.append(target.element, text); d.footer.append(button('Cancel', () => d.close()), button('Run recipe', () => { const recipe = JSON.parse(text.value); this.history.execute('Run outline recipe', () => applyRecipe(this.doc, recipe, { glyphIds: target.input.value === 'current' ? [this.editor.glyphId] : null, masterIds: target.input.value === 'current' ? [this.editor.masterId] : null })); d.close(); }, { className: 'primary' })); }
     async verifyCompute() { const available = this.compute.device || await this.compute.initialize(), masters = [new Float32Array([0, 10, 20, 30]), new Float32Array([100, 110, 120, 130])], weights = [.25, .75], result = await this.compute.interpolate(masters, weights), expected = [75, 85, 95, 105]; if (!result.every((v, i) => Math.abs(v - expected[i]) < .001))
         throw new Error('Compute verification failed'); const message = `Interpolation verified: ${this.compute.backend} · [${[...result].join(', ')}]`; this.record('Compute', message); toast(message); return { available: !!available, backend: this.compute.backend, result: [...result] }; }
-    showAbout() { const d = dialog('Counterform Studio', { subtitle: `Version ${version} · original, modular font-authoring software`, wide: true }); d.body.innerHTML = `<div class="cf-about-brand">${brand}<div><h1>Make every curve count.</h1><p>A local-first workspace built from your browser-native components.</p></div></div><h3>Implemented in this build</h3><p>Editable cubic outlines; Skia rendering and path operations; node/handle tools; Unicode and metrics; components and anchors; multi-master interpolation; static TrueType/CFF and variable TrueType compilation; supported GSUB/GPOS; WOFF; UFO sources; live compiled-font proofing; COLRv0 palette and layer authoring; cancellable worker compilation; recovery, undo, recipes and remappable commands.</p><h3>Explicit parity boundaries</h3><p>This is not a feature-complete FontLab replacement. Full hinting authoring, complete Adobe feature syntax, all language-system shaping workflows, CFF2 variable export, variable GPOS/HVAR/MVAR, all color-font paint editing, arbitrary VFC/VFJ import, lossless compiled-font reconstruction, full native shortcut parity and Python macro compatibility remain outside this release.</p><h3>Component runtime</h3><div class="cf-component-grid">${Object.entries(componentVersions).map(([name, v]) => `<div><strong>${name}</strong><span>${v}</span></div>`).join('')}</div><p class="cf-muted">SkiaSharpWeb’s SK* API is consumed unchanged. Font authoring and compilation live in Counterform packages. No font data leaves the browser unless you explicitly download it.</p>`; d.footer.append(button('Keyboard shortcuts', () => { d.close(); this.showBindings(); }), button('Close', () => d.close(), { className: 'primary' })); }
+    showAbout() { const d = dialog('Counterform Studio', { subtitle: `Version ${version} · original, modular font-authoring software`, wide: true }); d.body.innerHTML = `<div class="cf-about-brand">${brand}<div><h1>Make every curve count.</h1><p>A local-first workspace built from your browser-native components.</p></div></div><h3>Implemented in this build</h3><p>Editable cubic outlines; Skia rendering and path operations; node/handle tools; Unicode and metrics; components and anchors; multi-master interpolation; static TrueType/CFF and variable TrueType compilation; supported GSUB/GPOS; WOFF; UFO sources; live compiled-font proofing; COLRv0 palette and layer authoring; cancellable worker compilation; recovery, undo, recipes and remappable commands.</p><h3>Explicit parity boundaries</h3><p>This is not a feature-complete FontLab replacement. Full hinting authoring, complete Adobe feature syntax, all language-system shaping workflows, variable GPOS, all color-font paint editing, arbitrary VFC/VFJ import, lossless compiled-font reconstruction, full native shortcut parity and Python macro compatibility remain outside this release.</p><h3>Component runtime</h3><div class="cf-component-grid">${Object.entries(componentVersions).map(([name, v]) => `<div><strong>${name}</strong><span>${v}</span></div>`).join('')}</div><p class="cf-muted">SkiaSharpWeb’s SK* API is consumed unchanged. Font authoring and compilation live in Counterform packages. No font data leaves the browser unless you explicitly download it.</p>`; d.footer.append(button('Keyboard shortcuts', () => { d.close(); this.showBindings(); }), button('Close', () => d.close(), { className: 'primary' })); }
     record(category, message) { this.log.push({ at: new Date().toISOString(), category, message }); if (this.log.length > 500)
         this.log.shift(); this.renderLog(); }
     renderLog() { if (!this.outputList)

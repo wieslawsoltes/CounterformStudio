@@ -1,5 +1,8 @@
 import { Writer, readDirectory, checksum } from '@wieslawsoltes/counterform-binary';
 
+const knownTags=['cmap','head','hhea','hmtx','maxp','name','OS/2','post','cvt ','fpgm','glyf','loca','prep','CFF ','VORG','EBDT','EBLC','gasp','hdmx','kern','LTSH','PCLT','VDMX','vhea','vmtx','BASE','GDEF','GPOS','GSUB','EBSC','JSTF','MATH','CBDT','CBLC','COLR','CPAL','SVG ','sbix','acnt','avar','bdat','bloc','bsln','cvar','fdsc','feat','fmtx','fvar','gvar','hsty','just','lcar','mort','morx','opbd','prop','trak','Zapf','Silf','Glat','Gloc','Feat','Sill'];
+const tagIndex=new Map(knownTags.map((t,i)=>[t,i]));
+
 /** Canonical unsigned Base128 as specified by WOFF2. */
 export function uintBase128(value) {
     if (!Number.isSafeInteger(value) || value<0 || value>0xffffffff) throw new RangeError('Invalid UIntBase128');
@@ -23,7 +26,8 @@ export function brotliStore(data) {
     }
     put(1,1);put(1,1);align();return out.finish();
 }
-/** Lossless, null-transform WOFF2 wrapping of one sfnt face, not a collection. */
+/** Null-transform WOFF2 wrapping of one face. As required by WOFF2, DSIG is dropped
+ * and head.flags bit 11 is set. Outlines/layout/other table bytes are retained. */
 export function encodeWOFF2(input,{compress=brotliStore,maxBytes=64*1024*1024}={}) {
     const bytes=input instanceof Uint8Array?input:new Uint8Array(input);
     if(bytes.length>maxBytes)throw new RangeError('Font size budget exceeded');
@@ -31,7 +35,7 @@ export function encodeWOFF2(input,{compress=brotliStore,maxBytes=64*1024*1024}={
     const {tables,flavor}=readDirectory(bytes);
     if(!tables.size || tables.size>4096 || !tables.has('head'))throw new Error('Invalid sfnt table inventory');
     // Keep glyf immediately before loca, even though null-transform fonts do not require it.
-    const entries=[...tables.values()].sort((a,b)=>a.tag<b.tag?-1:a.tag>b.tag?1:0);
+    const entries=[...tables.values()].filter(t=>t.tag!=='DSIG').map(t=>{if(t.tag!=='head')return t;const b=t.bytes.slice();if(b.length<54)throw new Error('Truncated head');const v=new DataView(b.buffer);v.setUint32(8,0);v.setUint16(16,v.getUint16(16)|0x0800);return {...t,bytes:b};}).sort((a,b)=>a.tag<b.tag?-1:a.tag>b.tag?1:0);
     const loca=entries.findIndex(e=>e.tag==='loca'),glyf=entries.findIndex(e=>e.tag==='glyf');
     if((loca>=0)!==(glyf>=0))throw new Error('glyf and loca must occur together');
     if(loca>=0)entries.splice(glyf+1,0,...entries.splice(loca,1));
@@ -39,14 +43,16 @@ export function encodeWOFF2(input,{compress=brotliStore,maxBytes=64*1024*1024}={
     for(const table of entries){
         if(!/^[ -~]{4}$/.test(table.tag))throw new Error('Invalid font table tag');
         if(table.tag!=='head'&&checksum(table.bytes)!==table.checksum)throw new Error(`${table.tag}: checksum mismatch`);
-        directory.u8((['glyf','loca'].includes(table.tag)?0xc0:0)|63).tag(table.tag).raw(uintBase128(table.length));
+        const flag=tagIndex.get(table.tag)??63;directory.u8((['glyf','loca'].includes(table.tag)?0xc0:0)|flag);if(flag===63)directory.tag(table.tag);directory.raw(uintBase128(table.length));
         stream.raw(table.bytes);sfntSize+=Math.ceil(table.length/4)*4;
     }
     if(stream.pos>maxBytes)throw new RangeError('Table expansion budget exceeded');
     const compressed=compress(stream.finish());
     if(!(compressed instanceof Uint8Array)||compressed.length>maxBytes+1048576)throw new TypeError('Invalid Brotli encoder result');
-    const w=new Writer().tag('wOF2').u32(flavor).u32(48+directory.pos+compressed.length)
+    // Final block padding is necessary for the widely deployed reference decoder.
+    const padding=(4-(48+directory.pos+compressed.length)%4)%4;
+    const w=new Writer().tag('wOF2').u32(flavor).u32(48+directory.pos+compressed.length+padding)
         .u16(entries.length).u16(0).u32(sfntSize).u32(compressed.length).u16(1).u16(0).zeros(20)
-        .raw(directory.finish()).raw(compressed);
+        .raw(directory.finish()).raw(compressed).zeros(padding);
     return w.finish();
 }

@@ -1,0 +1,10 @@
+import {createDemoFont} from '@wieslawsoltes/counterform-model';
+import {evaluateModifiers, type Modifier} from '@wieslawsoltes/counterform-modifiers';
+import {RevisionJournal, MemoryJournalBackend} from '@wieslawsoltes/counterform-journal';
+import {captureOriginal, exportMetadataOnly} from '@wieslawsoltes/counterform-preservation';
+import {compileTrueType} from '@wieslawsoltes/counterform-font-io';
+const doc=createDemoFont();const mods:Modifier[]=[{type:'scale',x:1.2,y:1,origin:{x:50,y:0}}];
+evaluateModifiers(doc.resolve('A'),mods);doc.layer(doc.glyph('A')!.id)!.modifiers=mods;
+doc.data.masters[0].metrics={ascender:900};
+const journal=new RevisionJournal(new MemoryJournalBackend());await journal.append(doc.data);await journal.recover(doc.data.id);await journal.close();
+const archive=await captureOriginal(compileTrueType(doc),doc.data);await exportMetadataOnly(archive,doc.data);

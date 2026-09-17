@@ -1,3 +1,4 @@
+import {compileLayout} from '@wieslawsoltes/counterform-opentype';
 import { Writer, readDirectory, sfnt } from '@wieslawsoltes/counterform-binary';
 import { FontDocument } from '@wieslawsoltes/counterform-model';
 import { segments } from '@wieslawsoltes/counterform-geometry';
@@ -101,6 +102,7 @@ export function compileOpenTypeCFF2(doc,{variable=false,masterId=doc.data.master
         tables.set('CFF2',compileCFF2Table(masters.map(m=>glyphs.map(g=>doc.glyph(g.id)?doc.resolve(g.id,m.id):[])),
             {unitsPerEm:info.unitsPerEm,axes:doc.data.axes,model}));
         if(variable){
+            for(const [tag,bytes]of compileLayout(doc.data,glyphs,base.id,model).tables)tables.set(tag,bytes);
             const meta=variationMetadata(doc.data);for(const [tag,bytes]of meta.tables)tables.set(tag,bytes);
             tables.set('name',nameTable(info,meta.names));
             for(const [tag,bytes]of compileMetricVariations(doc,model,glyphs))tables.set(tag,bytes);

@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-commands",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Scoped keyboard routing, command palette search, enablement and configurable shortcuts.",
   "main": "./src/index.js",
@@ -28,7 +28,7 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-model": "0.3.0"
+    "@wieslawsoltes/counterform-model": "0.4.0"
   },
   "keywords": [
     "font-editor",

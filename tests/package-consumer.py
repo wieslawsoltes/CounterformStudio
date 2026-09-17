@@ -61,7 +61,7 @@ import {Worker} from 'node:worker_threads';
 const doc=createDemoFont(); assert.equal(doc.data.glyphs.length,102);
 for(const compile of [compileTrueType,compileOpenTypeCFF,compileVariableTrueType])assert(compile(doc).byteLength>1000);
 assert(new History(doc));
-for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
+for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction','modifiers','journal','preservation','cff2','woff2','varstore'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
 doc.glyph('A').colorLayers=[{glyphId:doc.glyph('O').id,paletteIndex:1}];
 assert(compileColorTables(doc.data,doc.data.glyphs).has('COLR'));
 const compiler=new CompilerClient({workerFactory:()=>new Worker(new URL(import.meta.resolve('@wieslawsoltes/counterform-compiler/node-worker')))});
@@ -69,6 +69,9 @@ try {
     const {bytes}=await compiler.compile(doc,{format:'ttf'});
     assert.deepEqual(bytes,compileTrueType(doc));
     assert((await compiler.inspect(doc)).report.tables.some(t=>t.tag==='COLR'));
+    for(const format of ['cff2','variable-cff2','woff2','variable-woff2','cff2-woff2'])assert((await compiler.compile(doc,{format})).bytes.length>1000);
+    const {captureOriginal,restoreOriginal}=await import('@wieslawsoltes/counterform-preservation');const archive=await captureOriginal(bytes,doc.data);assert.deepEqual(await restoreOriginal(archive),bytes);
+    const {RevisionJournal,MemoryJournalBackend}=await import('@wieslawsoltes/counterform-journal');const j=new RevisionJournal(new MemoryJournalBackend());await j.append(doc.data);assert.equal((await j.recover(doc.data.id)).issue,null);await j.close();
 } finally {compiler.dispose();}
 console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0, real Node compiler worker and headless module imports');
 ''')

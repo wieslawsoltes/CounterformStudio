@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-color",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "COLRv0/CPAL color-font source validation, binary compilation and decoding.",
   "main": "./src/index.js",
@@ -28,6 +28,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@wieslawsoltes/counterform-binary": "0.3.0"
+    "@wieslawsoltes/counterform-binary": "0.4.0"
   }
 }

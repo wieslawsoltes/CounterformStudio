@@ -1,3 +1,4 @@
+import {compileLayout} from '@wieslawsoltes/counterform-opentype';
 import { compileMetricVariations, masterInfo, metricTags } from './metrics.js';
 export { compileMetricVariations, masterInfo } from './metrics.js';
 import { clamp, segments, splitCubic, mix, distance } from '@wieslawsoltes/counterform-geometry';
@@ -106,7 +107,7 @@ export function interpolateLayer(layers, weights) { const errors = compatibility
             n[h][dim] = sum(l => l.contours[ci].nodes[ni][h][dim]); })); out.anchors.forEach((a, j) => { a.x = sum(l => l.anchors[j].x); a.y = sum(l => l.anchors[j].y); }); out.components.forEach((c, j) => c.transform = c.transform.map((_, k) => sum(l => l.components[j].transform[k]))); return out; }
 export function instanceDocument(doc, location, { name = 'Instance' } = {}) { if (!doc.data.axes.length)
     return new FontDocument(structuredClone(doc.data)); const model = modelForDocument(doc), weights = model.weights(normalizeLocation(location, doc.data.axes)), data = structuredClone(doc.data), masters = doc.data.masters; data.glyphs = doc.data.glyphs.map(g => { const layers = masters.map(m => g.layers.find(l => l.masterId === m.id)); if (layers.some(l => !l))
-    throw new Error(`${g.name}: missing master layer`); const layer = interpolateLayer(layers, weights); layer.masterId = 'instance'; return { ...structuredClone(g), layers: [layer] }; }); const keys = new Set(masters.flatMap(m => Object.keys(doc.data.kerning[m.id] || {}))), kern = {}; for (const k of keys)
+    throw new Error(`${g.name}: missing master layer`); const evaluated=doc.data.glyphs.some(g=>g.layers.some(l=>l.modifiers?.some(m=>m.enabled!==false))); const sources=evaluated?layers.map((l,i)=>({...l,contours:doc.resolve(g.id,masters[i].id),components:[],modifiers:[]})):layers; const layer = interpolateLayer(sources, weights); layer.masterId = 'instance'; return { ...structuredClone(g), layers: [layer] }; }); const keys = new Set(masters.flatMap(m => Object.keys(doc.data.kerning[m.id] || {}))), kern = {}; for (const k of keys)
     kern[k] = weights.reduce((s, w, i) => s + w * (doc.data.kerning[masters[i].id]?.[k] || 0), 0); data.kerning = { instance: kern }; data.masters = [{ id: 'instance', name, location: {} }]; data.axes = []; data.instances = []; for (const key of Object.keys(metricTags)) data.info[key] = model.interpolate(normalizeLocation(location, doc.data.axes), masters.map(m => masterInfo(doc,m)[key])); data.info.styleName = name; if (location.wght !== undefined)
     data.info.weightClass = Math.round(location.wght); return new FontDocument(data); }
 function uniformQuadratics(curves, tolerance, depth = 0) {
@@ -205,6 +206,7 @@ export function compileVariableTrueType(doc, { tolerance = .25 } = {}) {
         w.raw(b);
     const names = [], tables = new Map([['gvar', w.finish()], ['fvar', fvar(doc.data, names)], ['STAT', stat(doc.data)]]);
     for (const [tag, bytes] of compileMetricVariations(doc,model,glyphs)) tables.set(tag,bytes);
+    for(const [tag,bytes] of compileLayout(doc.data,glyphs,baseId,model).tables)tables.set(tag,bytes);
     const compiled = new FontDocument({...doc.data,info:masterInfo(doc,masters[baseIndex])});
     try { return compileTrueType(compiled, { masterId: baseId, quadraticContours: baseContours, extraTables: tables, extraNames: names }); } finally { compiled.dispose(); }
 }

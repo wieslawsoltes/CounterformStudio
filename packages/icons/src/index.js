@@ -146,6 +146,8 @@ export function createIcon(name, doc = document) {
     const path = doc.createElementNS(svg.namespaceURI,'path'); path.setAttribute('d',iconPaths[name]);svg.append(path);return svg;
 }
 const commandIcons = Object.freeze({
+ 'file.original':'open','file.metadataExport':'export',
+ 'file.recovery':'history','outline.modifiers':'layers','outline.bake':'check','master.metrics':'measure',
  'file.new':'new','file.open':'open','file.save':'save','file.recent':'history','file.export':'export','file.demo':'font',
  'edit.undo':'undo','edit.redo':'redo','edit.copy':'copy','edit.cut':'scissors','edit.paste':'paste','edit.delete':'delete','edit.selectAll':'select','edit.deselect':'select','edit.invert':'select',
  'node.smooth':'smooth','node.corner':'corner','node.alignX':'alignX','node.alignY':'alignY','node.distributeX':'distributeX','node.distributeY':'distributeY','node.start':'anchor',

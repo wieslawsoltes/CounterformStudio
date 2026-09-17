@@ -1,0 +1,28 @@
+{
+  "name": "@wieslawsoltes/counterform-preservation",
+  "version": "0.4.0",
+  "description": "Byte-exact original font archives and guarded metadata-only editing",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@wieslawsoltes/counterform-binary": "0.4.0"
+  }
+}

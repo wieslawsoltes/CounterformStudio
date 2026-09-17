@@ -24,7 +24,7 @@ export function parseFeatures(source: any, glyphNames?: any[]): {
     }[];
 };
 export function layoutTable(features: any, lookups: any): Uint8Array<ArrayBuffer>;
-export function compileLayout(data: any, glyphs: any, masterId: any): {
+export function compileLayout(data: any, glyphs: any, masterId: any, variationModel?: any): {
     tables: Map<any, any>;
     parsed: {
         classes: any;

@@ -28,6 +28,7 @@ with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=executable, headless=True,
         args=['--no-sandbox', '--use-angle=swiftshader', '--enable-webgl', '--enable-unsafe-swiftshader'])
     page = browser.new_page(viewport={'width': 1600, 'height': 1000}, device_scale_factor=1)
+    page.on('console', lambda m: print('BROWSER', m.type, m.text, flush=True) if m.type=='error' else None)
     page.on('pageerror', lambda e: report['pageErrors'].append(str(e)))
     def check(name, run):
         start = time.perf_counter()
@@ -129,6 +130,59 @@ with sync_playwright() as p:
             assert result['backend'] == ('inline (explicit)' if args.isolated else 'worker'),result
             report['compiler']=result
         check('compiler service returns byte-identical actual font data on its reported backend',compiler_service)
+        def export_faces():
+            result=js("""async()=>{const results=[];for(const format of ['cff2','variable-cff2','woff2','variable-woff2','cff2-woff2']){const {bytes}=await counterform.compiler.compile(counterform.doc,{format});const face=new FontFace('CFExport'+results.length,bytes);try{await face.load();results.push({format,bytes:bytes.length,status:face.status});}catch(e){results.push({format,status:face.status,error:e.message});}}return results;}""")
+            assert len(result)==5 and all(r['status']=='loaded' and r['bytes']>1000 for r in result), result
+            report['exportFaces']=result
+        check('browser sanitizer loads five CFF2 and WOFF2 exports',export_faces)
+        def modifiers():
+            js("counterform.selectGlyph(counterform.doc.glyph('A').id);window.modifierSource=JSON.stringify(counterform.editor.layer.contours);window.modifierBefore=counterform.doc.resolve('A')[0].nodes[0].x;counterform.commands.run('outline.modifiers')")
+            d=page.locator('dialog[open]')
+            d.get_by_role('button',name='Add step',exact=True).click()
+            page.wait_for_function("counterform.editor.layer.modifiers?.length===1")
+            expect("JSON.stringify(counterform.editor.layer.contours)===modifierSource && counterform.doc.resolve('A')[0].nodes[0].x===modifierBefore+20")
+            d.get_by_role('button',name='Bypass',exact=True).click()
+            page.wait_for_function("counterform.editor.layer.modifiers[0].enabled===false")
+            expect("counterform.doc.resolve('A')[0].nodes[0].x===modifierBefore")
+            d.get_by_role('button',name='Enable',exact=True).click()
+            page.wait_for_function("counterform.editor.layer.modifiers[0].enabled===true")
+            page.screenshot(path=str(out/'outline-modifiers.png'))
+            d.get_by_role('button',name='Bake result',exact=True).click()
+            page.wait_for_function("counterform.editor.layer.modifiers.length===0")
+            expect("counterform.editor.layer.contours[0].nodes[0].x===modifierBefore+20")
+            js('counterform.history.undo()')
+            expect("counterform.editor.layer.modifiers.length===1 && JSON.stringify(counterform.editor.layer.contours)===modifierSource")
+            close_dialog()
+            js('counterform.history.undo();counterform.history.undo();counterform.history.undo()')
+            expect("!counterform.editor.layer.modifiers?.length && JSON.stringify(counterform.editor.layer.contours)===modifierSource")
+        check('modifier UI preserves source, bypasses and bakes in one undo transaction',modifiers)
+        def master_metrics():
+            js("window.metricsBefore=counterform.doc.data.masters[0].metrics;counterform.editor.setMaster(counterform.doc.data.masters[0].id);counterform.commands.run('master.metrics')")
+            d=page.locator('dialog[open]')
+            d.get_by_role('spinbutton',name='ascender',exact=True).fill('950')
+            d.get_by_role('button',name='Apply',exact=True).click()
+            page.wait_for_function("counterform.doc.data.masters[0].metrics?.ascender===950")
+            js('counterform.history.undo()')
+            expect('JSON.stringify(counterform.doc.data.masters[0].metrics)===JSON.stringify(metricsBefore)')
+        check('source-master vertical metrics dialog commits and undoes overrides',master_metrics)
+        def original_preservation():
+            result=js("""async()=>{const p=await import('@wieslawsoltes/counterform-preservation');const {bytes}=await counterform.compiler.compile(counterform.doc,{format:'ttf'});const archive=await p.captureOriginal(bytes,counterform.doc.data,{filename:'procedural.ttf'});counterform.doc.data.originalFont=archive;const source=structuredClone(counterform.doc.data);source.info.familyName='Preserved Test';const revised=await p.exportMetadataOnly(archive,source);const face=new FontFace('CFPreserved',revised.bytes);await face.load();const original=await p.restoreOriginal(archive);return {same:bytes.every((b,i)=>b===original[i])&&bytes.length===original.length,status:face.status};}""")
+            assert result['same'] and result['status']=='loaded',result
+            js("counterform.commands.run('file.metadataExport')")
+            d=page.locator('dialog[open]');browser_expect(d.get_by_text('Source is unchanged: output will be byte-identical.',exact=True)).to_be_visible()
+            close_dialog()
+            js('delete counterform.doc.data.originalFont')
+        def recovery_journal():
+            result=js("""async()=>{await counterform.journal.flush();const id=counterform.doc.data.id;const recovery=await counterform.journal.recover(id);if(recovery.issue)throw new Error(recovery.issue);if(!recovery.snapshots.length)throw new Error('No journal entries');await counterform.commands.run('file.recovery');return recovery.snapshots.length;}""")
+            assert result>0
+            d=page.locator('dialog[open]');browser_expect(d.get_by_role('button',name='Inspect revisions').first).to_be_visible();d.get_by_role('button',name='Inspect revisions').first.click()
+            browser_expect(d.get_by_role('button',name='Recover as new project').first).to_be_visible()
+            page.screenshot(path=str(out/'recovery-journal.png'))
+            close_dialog()
+        for name,run in [('archived original and metadata-only export load through browser sanitizer',original_preservation),('live journal verifies source snapshots and exposes recovery controls',recovery_journal)]:
+            if args.isolated:
+                report['tests'].append({'name':name,'passed':None,'skipped':True,'reason':'Opaque isolated origin has no Web Crypto/IndexedDB'})
+            else:check(name,run)
         def color_editor():
             js("counterform.selectGlyph(counterform.doc.glyph('A').id);window.colorUndo=counterform.history.undoStack.length;counterform.showColors()")
             d=page.locator('dialog[open]')
@@ -197,14 +251,14 @@ with sync_playwright() as p:
             js('counterform.history.undo()')
         check('inspector metric editing participates in history',metrics)
         def authoring_surfaces():
-            expect("counterform.commands.commands.size===130 && counterform.menuDefinitions.length===9")
+            expect("counterform.commands.commands.size===136 && counterform.menuDefinitions.length===9")
             expect("(()=>{const covered=new Set(counterform.menuDefinitions.flatMap(m=>m.items));return [...counterform.commands.commands.keys()].every(id=>covered.has(id))})()")
             browser_expect(page.locator('.cf-toolrail [data-tool]')).to_have_count(24)
             expect("[...document.querySelectorAll('.cf-toolrail [data-tool]')].every(b=>b.querySelector('svg path'))")
             page.wait_for_function("[...counterform.ribbon.shadowRoot.querySelectorAll('.ribbon-icon img, img')].length>10 && [...counterform.ribbon.shadowRoot.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth>0)")
             report['authoring']=js("async()=>{const i=await import('@wieslawsoltes/counterform-icons');const e=await import('@wieslawsoltes/counterform-editor');return {commands:[...counterform.commands.commands.values()].map(c=>({id:c.id,label:c.label,keys:counterform.commands.bindings.get(c.id),icon:i.commandIcon(c.id)})),menus:counterform.menuDefinitions,tools:e.tools.map(t=>({id:t.id,label:t.label,key:t.key})),iconCount:i.iconNames.length};}")
             page.screenshot(path=str(out/'authoring-workspace.png'))
-        check('all 130 commands are available through nine menus and 24 vector tool buttons',authoring_surfaces)
+        check('all 136 commands are available through nine menus and 24 vector tool buttons',authoring_surfaces)
         def menu_keyboard():
             page.keyboard.press('F10')
             expect("document.activeElement.textContent==='File' && document.activeElement.getAttribute('role')==='menuitem'")

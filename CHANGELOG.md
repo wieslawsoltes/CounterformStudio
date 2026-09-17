@@ -1,3 +1,7 @@
+# 0.4.0
+
+CFF2/WOFF2 export; HVAR/MVAR; variable kerning and anchors; non-destructive outline stacks; integrity-checked recovery journal; guarded original/metadata-only font preservation. See docs/RELEASE-0.4.0.md.
+
 # Changelog
 
 ## 0.3.0

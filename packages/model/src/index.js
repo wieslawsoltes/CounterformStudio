@@ -1,3 +1,4 @@
+import {validateModifiers,evaluateModifiers} from '@wieslawsoltes/counterform-modifiers';
 import { validateColorSource } from '@wieslawsoltes/counterform-color';
 import { uid, bounds, transformContours, rectangle, ellipse, reverseContour, node, contour } from '@wieslawsoltes/counterform-geometry';
 export class Signal {
@@ -66,7 +67,7 @@ export class FontDocument {
                 throw new Error(`Missing component ${comp.glyphId || comp.glyphName}`);
             result.push(...transformContours(this.resolve(target.id, mid, path, depth + 1), comp.transform || [1, 0, 0, 1, 0, 0]));
         }
-        return result;
+        return l.modifiers?.length ? evaluateModifiers(result,l.modifiers) : result;
     }
     metrics(gid, mid) { const l = this.layer(gid, mid); if (!l)
         return null; const b = bounds(this.resolve(gid, mid)); return { ...b, advanceWidth: l.advanceWidth, lsb: b.minX, rsb: l.advanceWidth - b.maxX }; }
@@ -85,6 +86,7 @@ export function validateDocumentShape(d) {
     for (const m of d.masters) {
         if (!safeId(m.id) || masterIds.has(m.id) || typeof m.name !== 'string' || !m.location || Object.values(m.location).some(v => !Number.isFinite(v)))
             throw new Error('Invalid master identity/location');
+        if(m.metrics && (typeof m.metrics!=='object'||Object.entries(m.metrics).some(([k,v])=>!['ascender','descender','lineGap','capHeight','xHeight'].includes(k)||!Number.isFinite(v)||Math.abs(v)>32767)))throw new RangeError('Invalid source master metrics');
         masterIds.add(m.id);
     }
     if (!Array.isArray(d.axes) || d.axes.length > 16 || !Array.isArray(d.instances) || !d.kerning || !d.groups || typeof d.features !== 'string' || d.features.length > 4 * 1024 * 1024)
@@ -109,6 +111,7 @@ export function validateDocumentShape(d) {
         if (!Array.isArray(g.layers) || g.layers.length > 128)
             throw new Error('Invalid glyph layers');
         for (const l of g.layers) {
+            validateModifiers(l.modifiers);
             if (!masterIds.has(l.masterId) || !Array.isArray(l.guides) || !Array.isArray(l.contours) || !Array.isArray(l.components) || !Array.isArray(l.anchors) || !Number.isFinite(l.advanceWidth))
                 throw new Error('Invalid layer');
             if (l.anchors.some(a => !finite(a) || typeof a.name !== 'string') || l.guides.some(a => !finite(a) || !Number.isFinite(a.angle ?? 0)))
@@ -144,9 +147,8 @@ export function duplicateGlyph(g, newName) { const x = structuredClone(g); x.id 
 export function setSidebearing(doc, gid, mid, side, value) { const l = doc.layer(gid, mid), m = doc.metrics(gid, mid); if (!Number.isFinite(value))
     throw new TypeError('Sidebearing must be finite'); if (side === 'left') {
     const dx = value - m.lsb;
-    transformContours(l.contours, [1, 0, 0, 1, dx, 0]);
-    for (const c of l.components)
-        c.transform[4] += dx;
+    if(l.modifiers?.some(m=>m.enabled!==false))l.modifiers.push({type:'translate',x:dx,y:0});
+    else {transformContours(l.contours, [1, 0, 0, 1, dx, 0]);for(const c of l.components)c.transform[4]+=dx;}
     for (const a of l.anchors)
         a.x += dx;
     l.advanceWidth += dx;

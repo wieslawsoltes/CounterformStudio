@@ -1,0 +1,28 @@
+{
+  "name": "@wieslawsoltes/counterform-modifiers",
+  "version": "0.4.0",
+  "description": "Non-destructive, deterministic outline modifier stacks",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@wieslawsoltes/counterform-geometry": "0.4.0"
+  }
+}

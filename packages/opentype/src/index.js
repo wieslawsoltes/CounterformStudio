@@ -1,3 +1,4 @@
+import {VariationStoreBuilder,variationIndex} from '@wieslawsoltes/counterform-varstore';
 import { Writer, Reader } from '@wieslawsoltes/counterform-binary';
 export const pairKey = (left, right) => JSON.stringify([left, right]);
 export function parsePairKey(key) {
@@ -173,23 +174,27 @@ function ligatureLookup(rules, ids) {
     return w.raw(coverage(entries.map(([g]) => g))).finish();
 }
 function pairLookup(pairs) {
-    const groups = new Map();
-    for (const p of pairs) {
-        if (!groups.has(p.left))
-            groups.set(p.left, new Map());
-        groups.get(p.left).set(p.right, p.value);
-    }
-    const entries = [...groups].sort((a, b) => a[0] - b[0]);
-    const w = new Writer().u16(1).u16(0).u16(4).u16(0).u16(entries.length);
-    for (const _e of entries)
-        w.u16(0);
-    entries.forEach(([, values], i) => { offset16(w, 10 + i * 2, w.pos); const rs = [...values].sort((a, b) => a[0] - b[0]); w.u16(rs.length); for (const [g, v] of rs)
-        w.u16(g).i16(v); });
-    offset16(w, 2, w.pos);
-    return w.raw(coverage(entries.map(([g]) => g))).finish();
+    const groups = new Map(), variable=pairs.some(p=>p.variation);
+    for(const p of pairs){if(!groups.has(p.left))groups.set(p.left,new Map());groups.get(p.left).set(p.right,p);}
+    const entries=[...groups].sort((a,b)=>a[0]-b[0]),w=new Writer().u16(1).u16(0).u16(variable?0x44:4).u16(0).u16(entries.length).zeros(entries.length*2);
+    entries.forEach(([,values],i)=>{
+        offset16(w,10+i*2,w.pos);const pairStart=w.pos,devices=[];
+        const records=[...values].sort((a,b)=>a[0]-b[0]);w.u16(records.length);
+        for(const [gid,p] of records){w.u16(gid).i16(p.value);if(variable){const at=w.pos;w.u16(0);if(p.variation)devices.push({at,index:p.variation});}}
+        // Device/VariationIndex offsets in format 1 are relative to PairSet, NOT PairPos.
+        for(const d of devices){offset16(w,d.at,w.pos-pairStart);w.raw(variationIndex(d.index));}
+    });
+    offset16(w,2,w.pos);return w.raw(coverage(entries.map(([g])=>g))).finish();
 }
-function anchor(w, a) { w.u16(1).i16(Math.round(a.x)).i16(Math.round(a.y)); }
-function markBaseLookup(glyphs, masterId) {
+function anchor(w,a,variation=null){
+    const x=Math.round(a.x),y=Math.round(a.y);if(![x,y].every(v=>Number.isInteger(v)&&v>=-32768&&v<=32767))throw new RangeError('Anchor outside int16 coordinates');
+    const vx=variation?.x,vy=variation?.y,start=w.pos;
+    if(!vx&&!vy){w.u16(1).i16(x).i16(y);return;}
+    w.u16(3).i16(x).i16(y).u16(0).u16(0);
+    if(vx){offset16(w,start+6,w.pos-start);w.raw(variationIndex(vx));}
+    if(vy){offset16(w,start+8,w.pos-start);w.raw(variationIndex(vy));}
+}
+function markBaseLookup(glyphs, masterId, anchorVariation=()=>null) {
     const marks = [], bases = [], classes = new Map();
     for (let i = 0; i < glyphs.length; i++) {
         const l = glyphs[i].layers.find(l => l.masterId === masterId);
@@ -223,14 +228,14 @@ function markBaseLookup(glyphs, masterId) {
     w.u16(marks.length);
     for (const m of marks)
         w.u16(m.class).u16(0);
-    marks.forEach((m, i) => { offset16(w, ms + 4 + i * 4, w.pos - ms); anchor(w, m.a); });
+    marks.forEach((m, i) => { offset16(w, ms + 4 + i * 4, w.pos - ms); anchor(w, m.a, anchorVariation(m.id,m.a.name)); });
     offset16(w, 10, w.pos);
     const bs = w.pos;
     w.u16(bases.length).zeros(bases.length * classes.size * 2);
     bases.forEach((b, i) => { for (const a of b.anchors) {
         const c = classes.get(a.name);
         offset16(w, bs + 2 + (i * classes.size + c) * 2, w.pos - bs);
-        anchor(w, a);
+        anchor(w, a, anchorVariation(b.id,a.name));
     } });
     return w.finish();
 }
@@ -256,7 +261,7 @@ export function layoutTable(features, lookups) {
     lookups.forEach((l, i) => { offset16(w, lookupStart + 2 + i * 2, w.pos - lookupStart); w.u16(l.type).u16(0).u16(1).u16(8).raw(l.bytes); });
     return w.finish();
 }
-export function compileLayout(data, glyphs, masterId) {
+export function compileLayout(data, glyphs, masterId, variationModel=null) {
     const parsed = parseFeatures(data.features || '', glyphs.map(g => g.name)), ids = new Map(glyphs.map((g, i) => [g.name, i])), sub = [], pos = [], sf = new Map(), pf = new Map();
     const add = (list, fs, tag, type, b) => { if (!b)
         return; const index = list.push({ type, bytes: b }) - 1; if (!fs.has(tag))
@@ -270,20 +275,31 @@ export function compileLayout(data, glyphs, masterId) {
         if (pairs.length)
             add(pos, pf, f.tag, 2, pairLookup(pairs.map(p => ({ left: ids.get(p.left), right: ids.get(p.right), value: p.value }))));
     }
-    const kern = expandKerning(data, masterId, glyphs);
+    let kern = expandKerning(data, masterId, glyphs);
+    const store=variationModel?new VariationStoreBuilder(data.axes,variationModel.supports.slice(1)):null;
+    const deltaIndex=values=>store.add(variationModel.deltas(values.map(Math.round)).slice(1));
+    if(store){
+        const sets=data.masters.map(m=>new Map(expandKerning(data,m.id,glyphs).map(p=>[`${p.left},${p.right}`,p]))),keys=new Set(sets.flatMap(m=>[...m.keys()]));
+        if(keys.size>500000)throw new RangeError('Variable kerning expansion exceeds pair budget');
+        const base=data.masters.findIndex(m=>m.id===masterId);
+        kern=[...keys].map(key=>{const p=sets.find(m=>m.has(key)).get(key);return {left:p.left,right:p.right,value:sets[base].get(key)?.value||0,variation:deltaIndex(sets.map(m=>m.get(key)?.value||0))};});
+        for(const g of glyphs){const baseNames=g.layers.find(l=>l.masterId===masterId)?.anchors.map(a=>a.name).sort()||[];
+            for(const m of data.masters){const names=g.layers.find(l=>l.masterId===m.id)?.anchors.map(a=>a.name).sort()||[];if(JSON.stringify(names)!==JSON.stringify(baseNames))throw new Error(`${g.name}: incompatible variable anchors`);}}
+    }
+    const anchorVariation=(gid,name)=>!store?null:Object.fromEntries(['x','y'].map(dim=>[dim,deltaIndex(data.masters.map(m=>glyphs[gid].layers.find(l=>l.masterId===m.id).anchors.find(a=>a.name===name)[dim]))]));
     if (kern.length)
         add(pos, pf, 'kern', 2, pairLookup(kern));
-    add(pos, pf, 'mark', 4, markBaseLookup(glyphs, masterId));
+    add(pos, pf, 'mark', 4, markBaseLookup(glyphs, masterId, anchorVariation));
     const result = new Map(), gsub = layoutTable(sf, sub), gpos = layoutTable(pf, pos);
     if (gsub)
         result.set('GSUB', gsub);
     if (gpos)
         result.set('GPOS', gpos);
     const classes = glyphs.map((g, i) => ({ i, class: g.category === 'Mark' ? 3 : g.category === 'Ligature' ? 2 : 1 }));
-    const gdef = new Writer().u32(0x10000).u16(12).u16(0).u16(0).u16(0).u16(2).u16(classes.length);
-    for (const c of classes)
-        gdef.u16(c.i).u16(c.i).u16(c.class);
-    result.set('GDEF', gdef.finish());
+    const definition=new Writer().u16(2).u16(classes.length);
+    for(const c of classes)definition.u16(c.i).u16(c.i).u16(c.class);
+    const gdef=store?.rows.length?new Writer().u32(0x10003).u16(18).u16(0).u16(0).u16(0).u16(0).u32(18+definition.pos).raw(definition.finish()).raw(store.encode()):new Writer().u32(0x10000).u16(12).u16(0).u16(0).u16(0).raw(definition.finish());
+    result.set('GDEF',gdef.finish());
     return { tables: result, parsed, kern };
 }
 /** Legacy kern is emitted alongside GPOS for consumers that do not implement layout. */
