@@ -85,4 +85,4 @@ Full FEA grammar and additional GPOS attachments; avar/FeatureVariations; TrueTy
 
 ## Verification and delivery
 
-See [0.5.0 release notes](RELEASE-0.5.0.md), [delivery status](DELIVERY-STATUS.md) and associated verification artifacts. The last confirmed remote baseline is `a24fdc3bdc0a321d6504fd4a387180b296e1104c`; its full CI, Pages and live HTTPS checks passed in run `35249506480`. The new 0.5.0 increment is a locally committed patch until a push and a fresh CI run are confirmed. That earlier remote run does not certify the new source. No full-parity percentage is asserted.
+See [0.5.0 release notes](RELEASE-0.5.0.md), [delivery status](DELIVERY-STATUS.md) and associated verification artifacts. The complete 0.5.0 source is committed on `main` at `12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`. Delivery status links the new verification runs; the original local evidence remains under `docs/verification/0.5.0`. Results from earlier releases do not certify this source, and software-rendered CI does not certify physical GPU performance. No full-parity percentage is asserted.

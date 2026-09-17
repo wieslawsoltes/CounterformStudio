@@ -1,6 +1,6 @@
 # Counterform Studio 0.5.0 — static color paint authoring
 
-Date: 2026-09-17. Delivery: locally committed patch on `a24fdc3bdc0a321d6504fd4a387180b296e1104c`; not yet pushed or deployed. The source version is not evidence of publication.
+Date: 2026-09-17. The complete editable 0.5.0 source is committed on `main` at `12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`. See [delivery status](DELIVERY-STATUS.md) for remote verification and publication. The local measurements below remain the original delivery evidence, not a substitute for CI results.
 
 ## Implemented
 

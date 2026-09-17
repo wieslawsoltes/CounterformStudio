@@ -1,15 +1,23 @@
 # Delivery status
 
-## Confirmed remote baseline
+## 0.5.0 is committed on main
 
-`a24fdc3bdc0a321d6504fd4a387180b296e1104c` is the last confirmed remote `main` revision, containing the 0.4.0 production engines and contextual layout compiler. GitHub Actions run `35249506480` completed verification, Pages deployment and live HTTPS checks successfully. Its source archive was retrieved through the connected GitHub artifact API and verified against artifact SHA-256 `aba54791d71eae7e336fb9689485fd2f4db1ac8ae4c2ab7408e262d3fdeb891e` before development.
+The complete editable 0.5.0 implementation, package metadata, documentation and original local verification evidence are committed at [`12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`](https://github.com/wieslawsoltes/CounterformStudio/commit/12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed). Fresh verified paint-graph, compositing and sweep-gradient screenshots are committed at [`2cd720ebf79bda203baf521fa9fb09c7f68a2b50`](https://github.com/wieslawsoltes/CounterformStudio/commit/2cd720ebf79bda203baf521fa9fb09c7f68a2b50).
 
-## Local 0.5.0 increment
+All 109 delivered UTF-8 source records passed before/after Git-blob checks. The committed application, packages, scripts, tests and pinned vendor trees match the supplied release. The three documentation screenshots were regenerated in CI rather than copied from the original local raster capture.
 
-The static COLRv1/CPALv1 increment is committed locally on that exact baseline and delivered as an apply-ready Git patch and complete source. The active connector exposes repository reads but no commit/ref-write actions, and command-line Git cannot resolve the GitHub host in this execution environment. No new remote push, CI run or Pages deployment is claimed. Apply the patch to a clean checkout, push, and use the resulting CI run as the publication gate.
+## Fresh remote verification
 
-The local release manifest records actual core, independent font, type, package-consumer and source/distribution browser results. The browser environment requires explicit isolated-assets mode: inline compiler, native Skia raster, no secure context. Browser workers and IndexedDB passed on the prior remote baseline, not as new secure-origin qualification of 0.5.0. Fresh packaged Node workers are tested separately.
+[Commit verification run 35268489109](https://github.com/wieslawsoltes/CounterformStudio/actions/runs/35268489109) passed core tests, strict TypeScript compilation, independent font checks, static assembly and all 30 fresh npm-package consumers. Source and distribution browser suites each passed **60 checks, with zero skips and zero unhandled page exceptions**. They exercised the actual browser compiler worker, secure-origin persistence/recovery and Skia WebGL through SwiftShader. These results do not certify physical GPU performance, Safari/Firefox or assistive technologies.
+
+The downloadable `counterform-v5-commit-verification` artifact has SHA-256 `9d102f418c0eb9fbe854b5af693bbaf5aecd4a98d26b5e5441d3515024db4bfd`. It contains the committed source archive, fresh test reports, screenshots and all 30 packed npm packages. Packages are packed and integrity-checked, not published to the npm registry.
+
+The [normal verification and Pages workflow](https://github.com/wieslawsoltes/CounterformStudio/actions/workflows/ci.yml) is the publication gate. Its `verify`, `deploy` and `live-pages` jobs distinguish build verification, Pages publication and qualification of the exact deployed commit. A successful commit-import run alone is not a Pages-deployment claim.
+
+## Historical local evidence
+
+The initial 0.5.0 patch was based on `a24fdc3bdc0a321d6504fd4a387180b296e1104c`. Its original isolated-browser results are retained unchanged under `docs/verification/0.5.0`: 57 checks and three explicit secure-origin skips per browser suite. Those historical local skips are not the new remote results above. Older release notes describing patch-only delivery record the state at their original delivery time.
 
 ## Source authority
 
-Editable `app`, `packages`, `scripts`, `tests` and documentation are authoritative. `.delivery` and `.recovery` archives retain historical provenance; their already-applied source-import workflows are retired. Do not rerun an archived importer over new development. Ordinary pushes run tests before Pages deployment; pull requests test without deploying. The post-deployment test requires the exact asset-manifest commit and verifies the HTTPS subpath, compiler workers, icons, keyboard menus, IndexedDB and disposal.
+Editable `app`, `packages`, `scripts`, `tests` and documentation are authoritative. The one-shot source-import workflow has been retired after successful restoration. `.delivery`, `.import` and `.recovery` archives retain historical provenance and must not overwrite subsequent development. Ordinary pushes run the normal verification workflow before Pages deployment; pull requests test without deploying. The post-deployment check requires the exact asset-manifest commit and tests the HTTPS repository subpath, compiler workers, icons, keyboard menus, IndexedDB and disposal.

@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.5.0 — 2026-09-17 (local patch delivery)
+## 0.5.0 — 2026-09-17
 
 Add the thirtieth standalone package, `colrv1`: all 18 static paint formats, 28 composite modes, bounded graph reconstruction and static clip boxes. Add CPALv1 named palettes/entries and usability flags with collision-free name allocation, including CFF2 variable exports. Integrate the transactional paint-tree/property/JSON editor, gradients and transforms, compiled FontFace proof and exact-revision native Skia color rendering. Retain optional COLRv0 fallbacks and editable source contours. Add the paint-graph ribbon icon and command (68 icons, 137 commands).
 
-Fix cross-glyph paint validation in scoped undo transactions, self references when duplicating color glyphs, range-input initialization, and nested-dialog disposal. Add Node, independent fontTools colorLib, typed-consumer, packaged-worker and browser pixel/interaction tests. Retire the already-applied contextual delivery workflow. See `docs/RELEASE-0.5.0.md` for measured qualification and remaining gaps. This local patch is not a confirmed GitHub deployment.
+Fix cross-glyph paint validation in scoped undo transactions, self references when duplicating color glyphs, range-input initialization, and nested-dialog disposal. Add Node, independent fontTools colorLib, typed-consumer, packaged-worker and browser pixel/interaction tests. Retire the already-applied contextual delivery workflow. See `docs/RELEASE-0.5.0.md` for measured qualification and remaining gaps. The complete implementation is committed on `main`; see `docs/DELIVERY-STATUS.md` for publication and verification status.
 
 ## 0.4.0 contextual continuation
 
