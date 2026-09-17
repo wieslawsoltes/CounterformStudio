@@ -1,14 +1,14 @@
-name: Commit verified production authoring engines
+name: Commit verified contextual layout compiler
 on:
   push:
     branches: [main]
-    paths: ['.delivery/production.*.xzpart', '.delivery/restore-production.py', '.github/workflows/production-delivery.yml']
+    paths: ['.delivery/contextual.*.xzpart', '.delivery/restore-contextual.py', '.github/workflows/contextual-delivery.yml']
   workflow_dispatch:
 permissions:
   contents: write
   actions: write
 concurrency:
-  group: counterform-production-delivery
+  group: counterform-contextual-delivery
   cancel-in-progress: false
 jobs:
   materialize:
@@ -20,15 +20,15 @@ jobs:
         with: {node-version: '22'}
       - uses: actions/setup-python@v5
         with: {python-version: '3.13'}
-      - run: python .delivery/restore-production.py
+      - run: python .delivery/restore-contextual.py
       - run: npm test
-      - name: Commit editable source and dispatch full verification
+      - name: Commit source and dispatch full verification
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app packages scripts tests docs README.md CHANGELOG.md package.json .gitignore
-          git diff --cached --quiet || git commit -m 'feat: release 0.4.0 variable positioning, modifier stacks, recovery and source preservation'
+          git add packages tests docs package.json
+          git diff --cached --quiet || git commit -m 'feat: compile contextual OpenType lookups with script-language selection'
           git push origin HEAD:main
           gh workflow run ci.yml --ref main
