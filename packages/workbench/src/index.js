@@ -1,3 +1,4 @@
+import {ribbonTabs,registerAuthoringCommands,createStudioMenus,createToolRail} from './authoring-ui.js';
 import { CompilerClient } from '@wieslawsoltes/counterform-compiler';
 import { showColorEditor } from './colors.js';
 import { FontDocument, createFont, createGlyph, createDemoFont, duplicateGlyph, addMaster, setSidebearing } from '@wieslawsoltes/counterform-model';
@@ -18,7 +19,7 @@ import { applyRecipe, recipes } from '@wieslawsoltes/counterform-automation';
 import { CoordinateCompute } from '@wieslawsoltes/counterform-compute';
 import { fromSVG, toSVG, bounds, transformContours, uid, rectangle, ellipse } from '@wieslawsoltes/counterform-geometry';
 import { el, button, toast, dialog, field, section, setValue, formDialog, escapeHTML } from './ui.js';
-export const version = '0.2.0';
+export const version = '0.3.0';
 const brand = `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M32 9A16 16 0 1 0 32 31L27 25A8 8 0 1 1 27 15Z" fill="currentColor"/><path d="M24 17H36V23H24Z" fill="#91b9ff"/></svg>`;
 /** Mount a complete local-first authoring workspace. Consumers own the returned lifetime. */
 export async function mountStudio(host, { document: initialDocument = null, skiaOptions = {}, compilerOptions = {}, restore = true } = {}) {
@@ -209,15 +210,7 @@ export class StudioWorkbench {
         if (m.IsHidden)
             m.Show?.();
     } }
-    constructRibbon() { const tabs = [{ id: 'design', label: 'Design', groups: [{ id: 'nodes', label: 'Nodes', commands: ['node.smooth', 'node.corner', 'outline.extrema'] }, { id: 'paths', label: 'Contours', commands: ['outline.overlap', 'outline.reverse', 'outline.winding'] }, { id: 'transform', label: 'Transform', commands: ['outline.transform', 'outline.mirrorX', 'outline.round'] }] }, { id: 'spacing', label: 'Spacing', groups: [{ id: 'metrics', label: 'Metrics', commands: ['font.info', 'glyph.center', 'kern.pair'] }, { id: 'kern', label: 'Kerning', commands: ['view.kerning', 'kern.groups'] }] }, { id: 'masters', label: 'Masters', groups: [{ id: 'masters', label: 'Design space', commands: ['view.masters', 'master.add', 'axis.add', 'master.compatibility', 'master.instance'] }] }, { id: 'opentype', label: 'OpenType', groups: [{ id: 'compile', label: 'Compilation', commands: ['view.features', 'features.apply', 'font.validate', 'font.tables'] }, { id: 'components', label: 'Construction', commands: ['glyph.component', 'glyph.decompose', 'glyph.anchor', 'color.edit'] }] }, { id: 'workspace', label: 'Workspace', groups: [{ id: 'layout', label: 'Layout', commands: ['layout.undo', 'layout.redo', 'view.theme', 'view.fullscreen'] }, { id: 'tools', label: 'Tools', commands: ['commands.palette', 'commands.bindings', 'automation.recipe', 'app.about'] }] }]; this.ribbon = createRibbon(this.commands, tabs); this.ribbonHost.append(this.ribbon); this.buildMenus(); for (const tool of tools) {
-        const b = button(tool.icon, () => this.editor.setTool(tool.id), { className: 'cf-tool' + (tool.id === this.editor.tool ? ' active' : ''), title: `${tool.label} · ${tool.key}` });
-        const paths = { select: 'M5 3v16l4-5 5 7 3-2-5-7 6-1Z', pen: 'M6 18 4 20l2-8 8-8 6 6-8 8Z M14 4l6 6 M6 18l6-6', rect: 'M4 4h16v16H4Z', ellipse: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18', insert: 'M3 18c5-20 13 12 18-12 M12 7v10 M7 12h10', eraser: 'm4 15 9-11 8 6-9 11H9Z M8 10l8 6', measure: 'M3 8h18v8H3Z M7 8v4 M11 8v3 M15 8v4 M19 8v3', pan: 'M7 13V6a2 2 0 0 1 4 0v5-8a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8-3a2 2 0 0 1 4 0v7c0 5-3 8-7 8h-2c-2 0-3-1-4-3L4 15c-2-3 0-4 2-3Z' };
-        if (paths[tool.id])
-            b.innerHTML = '<svg viewBox="0 0 26 26" aria-hidden="true"><path d="' + paths[tool.id] + '"/></svg>';
-        b.dataset.tool = tool.id;
-        b.setAttribute('aria-label', tool.label);
-        this.toolRail.append(b);
-    } this.toolRail.append(el('div', 'cf-tool-spacer'), button('◧', () => this.commands.run('view.fill'), { className: 'cf-tool', title: 'Toggle fill' }), button('⊞', () => this.commands.run('view.grid'), { className: 'cf-tool', title: 'Toggle grid' }), button('?', () => this.showBindings(), { className: 'cf-tool', title: 'Keyboard shortcuts' })); }
+    constructRibbon() { this.ribbon=createRibbon(this.commands,ribbonTabs);this.ribbonHost.append(this.ribbon);this.buildMenus();createToolRail(this); }
     registerCommands() {
         const r = (id, label, execute, keys = [], extra = {}) => this.commands.register({ id, label, execute, keys, repeat: false, ...extra }), edit = { scope: 'editor', enabled: () => this.editor.canEdit };
         r('color.edit', 'Color layers & palettes', () => this.showColors());
@@ -227,16 +220,16 @@ export class StudioWorkbench {
         r('file.export', 'Export font', () => this.showExport(), ['Mod+E']);
         r('file.recent', 'Recent projects', () => this.showRecent());
         r('file.demo', 'Open demonstration', () => this.replaceDocument(createDemoFont(), true));
-        r('edit.undo', 'Undo', () => this.history.undo(), ['Mod+Z'], { enabled: () => this.history.canUndo });
-        r('edit.redo', 'Redo', () => this.history.redo(), ['Mod+Shift+Z', 'Mod+Y'], { enabled: () => this.history.canRedo });
+        r('edit.undo', 'Undo', () => this.editor.drag ? this.editor.cancel() : this.history.undo(), ['Mod+Z'], { enabled: () => !!this.history.active || this.history.canUndo });
+        r('edit.redo', 'Redo', () => {this.editor.cancel();this.history.redo();}, ['Mod+Shift+Z', 'Mod+Y'], { enabled: () => this.history.canRedo });
         r('edit.copy', 'Copy contours', () => this.editor.copy(), ['Mod+C'], edit);
         r('edit.cut', 'Cut contours', () => this.editor.cut(), ['Mod+X'], edit);
         r('edit.paste', 'Paste contours', () => this.editor.paste(), ['Mod+V'], edit);
         r('edit.delete', 'Delete selection', () => this.editor.deleteSelection(), ['Delete', 'Backspace'], edit);
         r('edit.selectAll', 'Select all nodes', () => this.editor.selectAll(), ['Mod+A'], edit);
-        r('edit.deselect', 'Deselect', () => this.editor.clearSelection(), ['Escape'], { scope: 'editor' });
+        r('edit.deselect', 'Deselect / cancel gesture', () => {this.editor.cancel();this.editor.penId=null;this.editor.clearSelection();}, ['Escape'], { scope: 'editor' });
         for (const t of tools)
-            r('tool.' + t.id, t.label + ' tool', () => this.editor.setTool(t.id), t.id === 'select' ? ['A', '1'] : t.id === 'pen' ? ['P', '5'] : [t.key], { scope: 'editor' });
+            r('tool.' + t.id, t.label + ' tool', () => {this.editor.setTool(t.id);this.activate('glyph');this.renderer.overlay.focus({preventScroll:true});}, t.id === 'select' ? ['A', '1'] : t.id === 'pen' ? ['P', '5'] : [t.key], { scope: 'editor' });
         r('node.smooth', 'Make smooth', () => this.editor.nodeStyle(true), ['Shift+S'], edit);
         r('node.corner', 'Make corner', () => this.editor.nodeStyle(false), ['Shift+C'], edit);
         r('node.alignX', 'Align X', () => this.editor.align('x'), [], edit);
@@ -291,27 +284,9 @@ export class StudioWorkbench {
         r('automation.recipe', 'Run recipe', () => this.showRecipe());
         r('compute.verify', 'Verify GPU interpolation', () => this.verifyCompute());
         r('app.about', 'About & capabilities', () => this.showAbout());
+        registerAuthoringCommands(this);
     }
-    buildMenus() { const menus = { File: ['file.new', 'file.open', 'file.recent', 'file.save', 'file.export', 'glyph.svg', 'file.demo'], Edit: ['edit.undo', 'edit.redo', 'edit.cut', 'edit.copy', 'edit.paste', 'edit.selectAll', 'edit.delete'], View: ['view.glyph', 'view.catalog', 'view.kerning', 'view.features', 'view.notes', 'view.fit', 'view.preview', 'view.theme', 'view.fullscreen'], Font: ['font.info', 'glyph.new', 'master.add', 'axis.add', 'master.instance', 'font.validate', 'font.tables'], Glyph: ['glyph.duplicate', 'glyph.delete', 'glyph.anchor', 'glyph.component', 'glyph.decompose', 'outline.overlap', 'outline.union', 'outline.difference', 'outline.intersect', 'outline.xor', 'outline.stroke'], Tools: ['outline.transform', 'node.alignX', 'node.alignY', 'automation.recipe', 'compute.verify', 'commands.bindings'], Window: ['view.inspector', 'view.masters', 'view.proof', 'view.output', 'layout.undo', 'layout.redo'], Help: ['commands.palette', 'commands.bindings', 'app.about'] }; for (const [name, ids] of Object.entries(menus)) {
-        const b = button(name, () => { this.openMenu?.remove(); const menu = el('div', 'cf-menu'); menu.setAttribute('role', 'menu'); for (const id of ids) {
-            const c = this.commands.commands.get(id), item = button(c.label, () => { menu.remove(); return this.commands.run(id); });
-            item.setAttribute('role', 'menuitem');
-            item.disabled = !this.commands.canExecute(id);
-            const key = el('kbd', '', (this.commands.bindings.get(id) || []).slice(0, 1).map(k => formatBinding(k, this.commands.isMac)).join(''));
-            item.append(key);
-            menu.append(item);
-        } document.body.append(menu); const r = b.getBoundingClientRect(); menu.style.left = r.left + 'px'; menu.style.top = r.bottom + 5 + 'px'; this.openMenu = menu; const dismiss = e => { if (!menu.contains(e.target) && e.target !== b) {
-            menu.remove();
-            document.removeEventListener('pointerdown', dismiss, true);
-        } }; setTimeout(() => document.addEventListener('pointerdown', dismiss, true)); menu.addEventListener('keydown', e => { const items = [...menu.querySelectorAll('button:not(:disabled)')], i = items.indexOf(document.activeElement); if (e.key === 'Escape') {
-            menu.remove();
-            b.focus();
-        } if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
-        } }); menu.querySelector('button:not(:disabled)')?.focus(); });
-        this.menuHost.append(b);
-    } }
+    buildMenus() {createStudioMenus(this);}
     buildInspector() {
         this.inspector.replaceChildren();
         this.inspectorFields = {};
@@ -374,7 +349,7 @@ export class StudioWorkbench {
     bind() {
         this.disposables.push(this.commands.attach(window, { capture: true }), this.commands.errors.subscribe(({ error }) => { toast(error.message, 'error'); this.record('Command', error.message); }), this.commands.executed.subscribe(({ id }) => { this.record('Command', this.commands.commands.get(id)?.label || id); this.updateStatus(); }), this.editor.changed.subscribe(e => { this.updateInspector(); this.updateStatus(); if (e.kind === 'tool')
             for (const b of this.toolRail.querySelectorAll('[data-tool]'))
-                b.classList.toggle('active', b.dataset.tool === e.tool); }), this.editor.selectionChanged.subscribe(() => this.updateInspector()), this.history.subscribe(() => { this.updateStatus(); this.ribbon?.requestRender(); }), this.doc.changed.subscribe(e => { if (e.kind === 'replace' || e.kind === 'structure') {
+                {b.classList.toggle('active', b.dataset.tool === e.tool);b.setAttribute('aria-pressed',String(b.dataset.tool===e.tool));} if(e.kind==='error')toast(e.error.message,'error'); }), this.editor.selectionChanged.subscribe(() => this.updateInspector()), this.history.subscribe(() => { this.updateStatus(); this.ribbon?.requestRender(); }), this.doc.changed.subscribe(e => { if (e.kind === 'replace' || e.kind === 'structure') {
             this.updateMasterControls();
             this.renderMasters();
             this.featureText.value = this.doc.data.features;
@@ -460,7 +435,7 @@ export class StudioWorkbench {
     } this.header.classList.toggle('is-dirty', this.doc.dirty); }
     updateAll() { this.updateMasterControls(); this.renderMasters(); this.updateInspector(); this.updateStatus(); this.renderLog(); }
     zoom(factor) { this.renderer.camera.zoomAt(factor, { x: this.canvasHost.clientWidth / 2, y: this.canvasHost.clientHeight / 2 }); this.renderer.invalidate(); this.updateStatus(); }
-    toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; this.host.dataset.theme = this.theme; this.dock.Theme = this.theme; this.ribbon.setAttribute('theme', this.theme); this.renderer.dark = this.theme === 'dark'; this.renderer.invalidate(); this.table.element.setAttribute('theme', this.theme); this.kerning.element.setAttribute('theme', this.theme); }
+    toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; this.host.dataset.theme = this.theme; document.documentElement.dataset.cfTheme=this.theme; this.dock.Theme = this.theme; this.ribbon.setAttribute('theme', this.theme); this.renderer.dark = this.theme === 'dark'; this.renderer.invalidate(); this.table.element.setAttribute('theme', this.theme); this.kerning.element.setAttribute('theme', this.theme); }
     async newFont() { if (this.doc.dirty && !confirm('Create a new font? The current project will be saved to local recovery storage when available.'))
         return; const saved = await this.autosave.flush(); if (!saved && this.doc.dirty && !confirm('Local recovery could not save this project. Continue without a recovery copy?')) return; const data = createFont('Untitled Family'); data.glyphs = [createGlyph('.notdef', null), createGlyph('space', 32), createGlyph('A', 65)]; this.replaceDocument(new FontDocument(data)); this.activate('glyph'); }
     replaceDocument(document, confirmDiscard = false) { if (confirmDiscard && this.doc.dirty && !confirm('Replace the current workspace? Save a project file first to keep a portable copy.'))
@@ -685,6 +660,6 @@ export class StudioWorkbench {
         this.outputList.append(row);
     } }
     dispose() { clearTimeout(this.axisTimer); this.autosave?.dispose(); this.notes?.dispose(); this.proof?.dispose(); this.tiles?.dispose(); this.table?.dispose(); this.kerning?.dispose(); for (const dispose of this.disposables)
-        dispose?.(); this.editor?.dispose(); this.renderer?.dispose(); this.compute?.dispose(); this.state?.Dispose(); this.commands?.dispose(); this.dock?.Dispose(); this.store.close(); this.host.replaceChildren(); this.openMenu?.remove(); }
+        dispose?.(); this.editor?.dispose(); this.renderer?.dispose(); this.compute?.dispose(); this.state?.Dispose(); this.commands?.dispose(); this.dock?.Dispose(); this.store.close(); this.host.replaceChildren(); this.menus?.close(false); }
 }
 

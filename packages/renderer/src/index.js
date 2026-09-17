@@ -354,6 +354,10 @@ export class GlyphRenderer {
             ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
             ctx.strokeRect(a.x + .5, a.y + .5, b.x - a.x, b.y - a.y);
         }
+        if (this.toolPreview?.points.length) {
+            const points=this.toolPreview.points.map(p=>cam.screen(p));ctx.strokeStyle='#5887df';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();
+            points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));if(this.toolPreview.closed)ctx.closePath();ctx.stroke();ctx.setLineDash([]);
+        }
         if (this.measure) {
             const a = cam.screen(this.measure.a), b = cam.screen(this.measure.b);
             ctx.strokeStyle = '#dd8245';

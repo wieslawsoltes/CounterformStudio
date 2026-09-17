@@ -22,5 +22,5 @@ await fs.writeFile(path.join(dist,'.nojekyll'),'');
 await fs.writeFile(path.join(dist,'_headers'),'/*\n  Cross-Origin-Opener-Policy: same-origin\n  Cross-Origin-Embedder-Policy: require-corp\n  Cross-Origin-Resource-Policy: same-origin\n  X-Content-Type-Options: nosniff\n');
 const entries=[];
 async function inventory(dir){for(const file of (await fs.readdir(dir)).sort()){const full=path.join(dir,file),stat=await fs.stat(full);if(stat.isDirectory())await inventory(full);else entries.push({path:path.relative(dist,full).replaceAll('\\','/'),bytes:stat.size,sha256:crypto.createHash('sha256').update(await fs.readFile(full)).digest('hex')});}}
-await inventory(dist);await fs.writeFile(path.join(dist,'asset-manifest.json'),JSON.stringify({format:1,version:'0.2.0',files:entries},null,2)+'\n');
+await inventory(dist);await fs.writeFile(path.join(dist,'asset-manifest.json'),JSON.stringify({format:1,version:JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8')).version,files:entries},null,2)+'\n');
 console.log(`Built ${entries.length} static files, ${(entries.reduce((n,f)=>n+f.bytes,0)/1024/1024).toFixed(1)} MiB. No network or font files required.`);

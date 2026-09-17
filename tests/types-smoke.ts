@@ -27,3 +27,13 @@ const autosave=new Autosave(doc,new ProjectStore());
 const saved:Promise<boolean>=autosave.flush();
 void mountStudio(document.createElement('div'),{document:doc,restore:false,compilerOptions:options});
 compiler.dispose(); autosave.dispose();
+
+import {polygon,knifeContour,roundedRectangle} from '@wieslawsoltes/counterform-construction';
+import {createIcon,iconURL,commandIcon} from '@wieslawsoltes/counterform-icons';
+import {CommandMenus} from '@wieslawsoltes/counterform-menus';
+import {CommandRegistry} from '@wieslawsoltes/counterform-commands';
+import {GlyphEditor} from '@wieslawsoltes/counterform-editor';
+const pg=polygon(0,0,100,100,6);const pieces=knifeContour(roundedRectangle(0,0,100,100,10),{x:-10,y:50},{x:110,y:50});
+const icon:SVGSVGElement=createIcon(commandIcon('tool.pen'));const url:string=iconURL('pen');
+const menuRegistry=new CommandRegistry();menuRegistry.register({id:'test',label:'Test',execute:()=>{}});
+const menus=new CommandMenus(document.createElement('nav'),menuRegistry,[{label:'File',items:['test']}]);menus.dispose();

@@ -17,7 +17,7 @@ export class CommandRegistry {
     context: () => string;
     register(command: any): () => void;
     canExecute(id: any): any;
-    run(id: any, parameter: any): Promise<boolean>;
+    run(id: any, parameter?: any): Promise<boolean>;
     attach(target: any, { capture }?: {
         capture?: boolean;
     }): () => any;

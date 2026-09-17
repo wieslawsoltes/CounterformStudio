@@ -20,3 +20,5 @@ __pycache__/
 app/workers/
 
 /test-results/
+
+/index.html

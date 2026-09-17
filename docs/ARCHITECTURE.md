@@ -86,3 +86,7 @@ The editor's native Skia path projection draws every color layer back-to-front a
 ## Save completion and shutdown
 
 ProjectStore captures and validates its snapshot before awaiting database open. Concurrent open calls share a promise; closing during open invalidates and closes a late result. Autosave exposes one shared flush promise that drains the active snapshot and any trailing edits. Intermediate snapshots are not announced as saved. Errors return false and can be retried. Disposal suppresses new/trailing work and callbacks while allowing an already-started write to settle. This is not a crash write-ahead log or a full durability guarantee.
+
+## Authoring extensions (0.3.0)
+
+The standalone `construction` package depends only on `geometry`; it has no renderer or DOM dependency. `icons` owns original SVG paths and packaged assets. `menus` accepts a registry interface and optional icon/shortcut formatting factories; its DOM lifetime is explicitly disposed. The editor's `interactions.js` implements bounded pointer state machines and source history transactions. Workbench `authoring-ui.js` composes tool options, guide editing, ribbon definitions and menu definitions; there is one command registry, not separate menu/ribbon business logic. Counterform now has 23 npm package boundaries.

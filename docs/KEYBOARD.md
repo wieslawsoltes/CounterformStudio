@@ -33,3 +33,9 @@ The workbench installs its dispatcher in window capture phase to prevent Dockyar
 Browser/OS-reserved key combinations cannot be guaranteed available on every browser. Every registered action remains accessible through menus, the ribbon or command search. Key conflict reporting is syntactic/contextual; equivalent physical mappings across non-US layouts and Mod aliases require further qualification.
 
 `color.edit` opens Color layers & palettes from the ribbon, Inspector or command palette. It has no default shortcut, avoiding a collision with established outline-editing bindings.
+
+## 0.3.0 authoring additions
+
+L: Line; Shift+L: Polygon; Shift+O: Star; Shift+R: Rounded rectangle; Q: Lasso; D: Pencil; B: Pressure brush; K: Knife; C: Scissors; V: Move; T: Rotate; S: Scale; Y: Slant; Shift+A: Anchor; I: Guides; Z: Zoom; Shift+Enter: drawing options; Ctrl/Cmd+J: join endpoints; Ctrl/Cmd+Shift+A: invert selection. Shift+F1 opens the tool reference. All drawing shortcuts are editor-scoped and do not steal typing from inputs.
+
+F10 enters the menubar; arrows, Home/End and label typeahead navigate; Escape closes a menu and restores focus. The tool rail has roving tab stops and arrow navigation. Escape and Undo cancel active drawing before another edit can be applied. The complete current binding map is available through Help → Keyboard shortcuts, including remapping. These bindings are Counterform's contract, not an exhaustive verified native FontLab/macOS/Windows shortcut matrix.

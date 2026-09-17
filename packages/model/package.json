@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-model",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Serializable font documents, glyphs, masters, layers, components, anchors and source validation.",
   "main": "./src/index.js",
@@ -28,8 +28,8 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-geometry": "0.2.0",
-    "@wieslawsoltes/counterform-color": "0.2.0"
+    "@wieslawsoltes/counterform-geometry": "0.3.0",
+    "@wieslawsoltes/counterform-color": "0.3.0"
   },
   "keywords": [
     "font-editor",

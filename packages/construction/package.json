@@ -1,0 +1,30 @@
+{
+  "name": "@wieslawsoltes/counterform-construction",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Headless shape, freehand, B\u00e9zier surgery and outline transformation algorithms.",
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@wieslawsoltes/counterform-geometry": "0.3.0"
+  }
+}

@@ -1,22 +1,26 @@
 # Capability contract and parity ledger
 
-Version 0.2.0, reviewed 2026-09-17. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
+Version 0.3.0, reviewed 2026-09-17. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
 
 **Working** means implemented and exercised within the documented subset. **Partial** means a narrower implementation exists. **Missing** means no implementation is claimed. An attractive dialog, data field or shader source alone is not counted as feature parity.
 
 | Area | Status | Delivered contract / boundary |
 |---|---|---|
-| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard and RibbonWeb components; desktop browser layout |
+| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six classic ribbon tabs, SVG icons, nine menus covering all 130 current commands; not every native FontLab command |
 | Glyph library and font inventory | Working | Virtual tiles; reactive keyed projection; TreeDataGrid editable widths/export flags |
 | Unicode mapping | Working | Scalar values including supplementary planes; no UVS/cmap14 authoring |
-| Pen and outline selection | Working | Endpoints, absolute cubic handles, drag construction, marquee, insertion, deletion |
-| Rectangle / ellipse | Working | Real contours; constrained drawing |
+| Pen and outline selection | Working | Endpoints, absolute cubic handles, drag construction, marquee/lasso, insertion, deletion |
+| Shape tools | Working | Rectangle, ellipse, open line, polygon, star and rounded rectangle; constrained drawing and bounded options |
+| Pencil and pressure brush | Partial | Simplified freehand polyline; pressure-sensitive filled outline with bounded miter joins/flat caps; no fitted Rapid curves or editable brush skeleton |
+| Knife and Scissors | Partial | Cubic-preserving opening/splitting; Knife requires exactly two transverse crossings, rejects ambiguous geometry |
+| Contour surgery | Working | Open/join endpoints, start point, line/cubic conversion, coincident line-node removal and distribution |
+| Anchors and guides | Working | Pointer editing, per-master numerical guide editor, undo and locked-layer gating |
 | Smooth/corner, extrema, winding | Working | Geometry operations with undo; no proprietary Genius/Tunni semantics |
 | Measurement and coordinates | Partial | Font-unit rulers, metrics, point inspector, drag distance; no curvature/area comparison panels |
 | Snapping and keyboard nudges | Working | Grid/metric snapping, 1/10/0.1 units, shift constraint, Alt handle release |
 | Boolean paths / overlap removal | Working | Native Skia; removal, union, difference, intersection, XOR |
-| Stroke expansion | Working | Native Skia outlined stroke; no pressure brush or variable-width stroke skeleton |
-| Affine transforms | Working | Scale/rotate/slant/translate/mirror; destructive source transform with undo |
+| Stroke expansion | Working | Native Skia outlined stroke; separate polyline pressure brush; no variable-width stroke skeleton |
+| Affine transforms | Working | Numeric and pointer scale/rotate/slant/translate/mirror; destructive source transform with gesture undo |
 | Non-destructive Delta filters | Missing | No modifier/filter evaluation stack |
 | Reusable components | Working | Live source references, affine transforms, decomposition, cycle rejection |
 | Smart / variable components | Partial | Per-master component transforms interpolate; no parameterized glyph replacement or independent component-axis locations |
@@ -47,7 +51,7 @@ Version 0.2.0, reviewed 2026-09-17. The comparison target is the FontLab **8.4 f
 | Production QA | Partial | Structural/geometry/encoding/component/master checks; not OTS or FontBakery certification |
 | Python macro API | Missing | Bounded JSON recipes and JS package APIs only; no FontLab Python compatibility |
 | File persistence | Partial | Counterform files and IndexedDB autosave; immutable writes and awaitable in-flight/trailing flush; no crash WAL, native file watch or git-aware source project |
-| Full keyboard parity | Partial | 100-command registry, core shortcuts/remapping; not a verified exhaustive FontLab key map |
+| Full keyboard parity | Partial | 130-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
 | Worker compilation and validation | Implemented; browser-host deployment unqualified locally | Bounded queue, keyed proof replacement, transferable results, hard cancellation and timeout; real Node workers plus the generated relative-URL browser graph exercised in a fresh Node worker host; local browser suite explicitly uses inline mode |
 | WebGPU renderer | Unqualified here | Real Skia automatic backend request; delivered tests exercised native raster only |
 | WebGPU compute | Implemented, GPU unqualified | Independent WGSL interpolation service; CPU numerical path verified |
@@ -76,15 +80,13 @@ Open contours are editable source artwork but are excluded from font compilation
 ## Next acceptance gates
 
 1. Loss-aware source adapters with full layout-table preservation, explicit modified-table ownership and golden roundtrips.
-2. Qualify actual browser workers over HTTPS/localhost, then optimize source cloning and incremental synchronization; CJK corpus, million-point stress, leak/device-loss and long-session history benchmarks.
+2. Extend browser-worker/IndexedDB qualification (0.2.0 GitHub run 35213392194 passed); optimize source cloning and incremental synchronization; CJK corpus, million-point stress, leak/device-loss and long-session history benchmarks.
 3. Full feature AST and layout compiler, variable GPOS/HVAR/MVAR, CFF2, WOFF2 and differential shaping fixtures.
 4. Hinting, COLRv1/advanced color-font authoring, richer construction tools and non-destructive transforms as separate npm engines.
 5. Verified native shortcut matrix; secure-origin storage, real WebGPU hardware, Firefox/Safari, mobile and accessibility qualification.
 
-These are outstanding engineering tasks, not features claimed to be present in 0.2.0.
+These are outstanding engineering tasks, not features claimed to be present in 0.3.0. Native Element, Metrics, Kerning, Text, Magnet, Matchmaker and Fill tool workflows still need separate implementations; a menu entry leading to an existing dialog is not counted as those pointer tools.
 
-## 0.2.0 verification and delivery boundary
+## Verification and delivery
 
-60 Node tests pass, including actual worker execution, the generated worker graph in a fresh directory without npm/import maps, bounded color tables and autosave races. Eleven independent fontTools checks verify binary tables and variable instances. Twenty-seven browser checks pass (one additional IndexedDB check is explicitly skipped) on both source and static builds, including RGBA editing, invalid-input rollback, compiled color-font pixels, undo, and visibility-driven pane activation. Twenty extracted npm packages and typed consumer APIs pass.
-
-The local Chromium run uses native Skia raster and explicit inline compilation in an opaque-origin local-assets harness. It does **not** qualify browser Worker startup on Pages, HTTPS/localhost networking, IndexedDB, physical WebGPU, or accessibility. Normal CI is configured to require the real worker backend and IndexedDB. That updated CI has not run remotely for this local patch. Source/asset cloning still consumes caller-thread time. No broad FontLab feature-parity claim is made.
+See `RELEASE-0.3.0.md` and the commit-associated CI artifacts for exact checks. The recovered 0.2.0 source passed its real-worker and IndexedDB browser tests and Pages deployment in GitHub run `35213392194`. Local 0.3.0 qualification uses 77 core tests, independent fontTools, extracted npm packages, typed consumers and pointer/menu browser tests; opaque-origin runs explicitly skip IndexedDB. Physical WebGPU, full FontLab parity, mobile and assistive-technology certification remain unclaimed.

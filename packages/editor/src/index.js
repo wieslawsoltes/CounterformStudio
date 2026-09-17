@@ -1,8 +1,10 @@
+import {extraTools,defaultToolOptions,validateToolOptions,beginInteraction,moveInteraction,endInteraction} from './interactions.js';
+import {openContourAt,joinContours,convertSegments,distributeNodes} from '@wieslawsoltes/counterform-construction';
 import { RBush } from '@wieslawsoltes/rbushweb';
 import { Signal } from '@wieslawsoltes/counterform-model';
 import { node, contour, rectangle, ellipse, distance, nearestOnContour, splitSegment, transformContours, smoothNode, moveHandle, reverseContour, addExtrema, correctWinding, bounds, uid, containsPoint } from '@wieslawsoltes/counterform-geometry';
 import { booleanContours, strokeContours } from '@wieslawsoltes/counterform-renderer';
-export const tools = [{ id: 'select', label: 'Contour', key: 'A', icon: '↖' }, { id: 'pen', label: 'Pen', key: 'P', icon: '✒' }, { id: 'rectangle', label: 'Rectangle', key: 'R', icon: '▯' }, { id: 'ellipse', label: 'Ellipse', key: 'O', icon: '○' }, { id: 'insert', label: 'Insert point', key: 'J', icon: '⌁' }, { id: 'eraser', label: 'Eraser', key: '2', icon: '◇' }, { id: 'measure', label: 'Measure', key: 'G', icon: '↔' }, { id: 'pan', label: 'Hand', key: 'H', icon: '✋' }];
+export const tools = [{ id: 'select', label: 'Contour', key: 'A', icon: '↖' }, { id: 'pen', label: 'Pen', key: 'P', icon: '✒' }, { id: 'rectangle', label: 'Rectangle', key: 'R', icon: '▯' }, { id: 'ellipse', label: 'Ellipse', key: 'O', icon: '○' }, { id: 'insert', label: 'Insert point', key: 'J', icon: '⌁' }, { id: 'eraser', label: 'Eraser', key: '2', icon: '◇' }, { id: 'measure', label: 'Measure', key: 'G', icon: '↔' }, { id: 'pan', label: 'Hand', key: 'H', icon: '✋' }, ...extraTools];
 /** Pointer transactions, picking and commands. No global window singleton or document mutation from rendering. */
 export class GlyphEditor {
     changed = new Signal();
@@ -16,6 +18,7 @@ export class GlyphEditor {
         this.masterId = doc.data.masters[0].id;
         this.selection = new Set();
         this.tool = 'select';
+        this.toolOptions = {...defaultToolOptions};
         this.snap = true;
         this.gridStep = 1;
         this.readOnly = false;
@@ -25,10 +28,10 @@ export class GlyphEditor {
         this.abort = new AbortController();
         this.index = new RBush({ getEnvelope: p => p });
         const signal = this.abort.signal, e = renderer.overlay;
-        e.addEventListener('pointerdown', x => this.pointerDown(x), { signal });
-        e.addEventListener('pointermove', x => this.pointerMove(x), { signal });
-        e.addEventListener('pointerup', x => this.pointerUp(x), { signal });
-        e.addEventListener('pointercancel', () => this.cancel(), { signal });
+        e.addEventListener('pointerdown', x => this.handlePointer(() => this.pointerDown(x)), { signal });
+        e.addEventListener('pointermove', x => this.handlePointer(() => this.pointerMove(x)), { signal });
+        e.addEventListener('pointerup', x => this.handlePointer(() => this.pointerUp(x)), { signal });
+        e.addEventListener('pointercancel', x => {if(x.pointerId===this.pointerId)this.cancel();}, { signal });
         e.addEventListener('dblclick', x => this.doubleClick(x), { signal });
         e.addEventListener('contextmenu', x => x.preventDefault(), { signal });
         e.addEventListener('wheel', x => { x.preventDefault(); if (x.ctrlKey || x.metaKey || !x.shiftKey) {
@@ -56,6 +59,8 @@ export class GlyphEditor {
             this.masterId = doc.data.masters[0].id; this.refresh(); });
         this.refresh();
     }
+    handlePointer(action) {try {action();} catch(error) {this.cancel();this.status.emit(error.message);this.changed.emit({kind:'error',error});}}
+    setToolOptions(options) {this.toolOptions=validateToolOptions(options);this.changed.emit({kind:'options'});}
     get glyph() { return this.doc.glyph(this.glyphId); }
     get layer() { return this.doc.layer(this.glyphId, this.masterId); }
     get canEdit() { return !!this.layer && !this.layer.locked && !this.readOnly; }
@@ -71,7 +76,7 @@ export class GlyphEditor {
         throw new Error('Unknown master'); this.cancel(); this.penId = null; this.masterId = id; this.selection.clear(); this.refresh(); this.selectionChanged.emit(this.selection); }
     setTool(id) { if (!tools.some(t => t.id === id))
         throw new Error('Unknown tool'); this.cancel(); this.tool = id; this.penId = null; this.cursor(); this.changed.emit({ kind: 'tool', tool: id }); }
-    cursor() { this.renderer.overlay.style.cursor = this.space || this.tool === 'pan' ? 'grab' : ['pen', 'rectangle', 'ellipse', 'insert', 'measure'].includes(this.tool) ? 'crosshair' : 'default'; }
+    cursor() { this.renderer.overlay.style.cursor = this.space || this.tool === 'pan' ? 'grab' : !['select','eraser'].includes(this.tool) ? 'crosshair' : 'default'; }
     refresh() {
         const l = this.layer;
         if (!l)
@@ -112,11 +117,13 @@ export class GlyphEditor {
     transaction(label, fn) { if (!this.canEdit)
         throw new Error('This layer is read-only; select an unlocked source master to edit.'); const value = this.history.execute(label, fn, this.glyphId); this.refresh(); return value; }
     pointerDown(e) {
+        if (this.pointerId != null) return;
         if (e.button !== 0 && e.button !== 1)
             return;
         const screen = this.local(e), raw = this.renderer.camera.world(screen), p = this.snapPoint(raw, e), el = this.renderer.overlay;
         el.focus({ preventScroll: true });
         el.setPointerCapture(e.pointerId);
+        this.pointerId=e.pointerId;
         e.preventDefault();
         if (e.button === 1 || this.space || this.tool === 'pan') {
             this.drag = { kind: 'pan', screen, camera: { ...this.renderer.camera } };
@@ -129,6 +136,7 @@ export class GlyphEditor {
             this.renderer.invalidate();
             return;
         }
+        if (beginInteraction(this,e,screen,raw,p)) return;
         if (!this.canEdit) {
             this.status.emit('Select a source master and unlock its layer to edit.');
             return;
@@ -193,11 +201,13 @@ export class GlyphEditor {
         }
     }
     pointerMove(e) {
+        if(this.pointerId != null && this.pointerId!==e.pointerId)return;
         const screen = this.local(e), raw = this.renderer.camera.world(screen), p = this.snapPoint(raw, e);
         this.status.emit({ x: raw.x, y: raw.y });
         if (!this.drag)
             return;
         const d = this.drag;
+        if (moveInteraction(this,e,screen,raw,p)) return;
         if (d.kind === 'pan') {
             this.renderer.camera.x = d.camera.x + screen.x - d.screen.x;
             this.renderer.camera.y = d.camera.y + screen.y - d.screen.y;
@@ -276,21 +286,15 @@ export class GlyphEditor {
         }
         this.refresh();
     }
-    pointerUp(e) { if (!this.drag)
-        return; const d = this.drag; this.drag = null; this.renderer.marquee = null; if (this.history.active) {
-        if (d.kind === 'shape') {
-            const c = this.layer.contours.find(c => c.id === d.id);
-            if (!c?.nodes.length)
-                this.history.cancel();
-            else
-                this.history.commit();
-        }
-        else
-            this.history.commit();
-    } this.cursor(); this.refresh(); this.selectionChanged.emit(this.selection); if (this.renderer.overlay.hasPointerCapture(e.pointerId))
-        this.renderer.overlay.releasePointerCapture(e.pointerId); }
-    cancel() { if (this.history.active)
-        this.history.cancel(); this.drag = null; this.renderer.marquee = null; this.cursor(); this.refresh(); }
+    releasePointer() {const el=this.renderer.overlay,id=this.pointerId;this.pointerId=null;if(id!=null&&el.hasPointerCapture(id))el.releasePointerCapture(id);}
+    pointerUp(e) {
+        if(this.pointerId!==e.pointerId)return;
+        if(!this.drag){this.releasePointer();return;}
+        endInteraction(this,e);const d=this.drag;this.drag=null;this.renderer.marquee=null;
+        if(this.history.active){if(d.kind==='shape'&&!this.layer.contours.find(c=>c.id===d.id)?.nodes.length)this.history.cancel();else this.history.commit();}
+        this.cursor();this.refresh();this.selectionChanged.emit(this.selection);this.releasePointer();
+    }
+    cancel() {if(this.history.active)this.history.cancel();this.drag=null;this.renderer.toolPreview=null;this.renderer.marquee=null;this.releasePointer();this.cursor();this.refresh();}
     doubleClick(e) { if (this.tool !== 'select' || !this.canEdit)
         return; const p = this.renderer.camera.world(this.local(e)), hit = this.hit(p); if (hit) {
         const c = this.findNode(hit.nodeId).contour;
@@ -358,6 +362,15 @@ export class GlyphEditor {
         for (const n of c.nodes)
             n.id = uid();
     } this.layer.contours.push(...next); this.select(next.flatMap(c => c.nodes.map(n => n.id))); }); }
+    invertSelection() {this.select(this.layer.contours.flatMap(c=>c.nodes).filter(n=>!this.selection.has(n.id)).map(n=>n.id));}
+    distribute(axis) {this.transaction('Distribute nodes',()=>distributeNodes(this.layer.contours,this.selection,axis));}
+    setStart() {const id=[...this.selection][0],hit=id&&this.findNode(id);if(!hit||!hit.contour.closed)throw new Error('Select one point on a closed contour');this.transaction('Set start point',()=>{const ns=hit.contour.nodes;hit.contour.nodes=[...ns.slice(hit.index),...ns.slice(0,hit.index)];});}
+    openContours() {this.transaction('Open contours',()=>{const ids=new Set(this.selectedContours().filter(c=>c.closed).map(c=>c.id));this.layer.contours=this.layer.contours.map(c=>ids.has(c.id)?openContourAt(c,Math.max(0,c.nodes.findIndex(n=>this.selection.has(n.id)))):c);});}
+    joinSelected() {const hits=[...this.selection].map(id=>this.findNode(id)).filter(Boolean);if(hits.length!==2)throw new Error('Select exactly two open-contour endpoints');const [a,b]=hits;
+        this.transaction('Join contours',()=>{if(a.contour===b.contour){if(a.contour.closed||![a.index,b.index].includes(0)||![a.index,b.index].includes(a.contour.nodes.length-1))throw new Error('Choose the first and last open endpoints');a.contour.closed=true;}
+        else {const joined=joinContours(a.contour,a.index,b.contour,b.index);this.layer.contours=this.layer.contours.filter(c=>c!==a.contour&&c!==b.contour);this.layer.contours.push(joined);this.selection.clear();}});}
+    convertEdges(curve) {this.transaction(curve?'Convert segments to cubic':'Convert segments to lines',()=>{this.layer.contours=this.layer.contours.map(c=>convertSegments(c,curve,this.selection));});}
+    cleanContours() {this.transaction('Remove duplicate line nodes',()=>{for(const c of this.selectedContours()){for(let i=c.nodes.length-1;i>0;i--){const a=c.nodes[i-1],b=c.nodes[i];if(!a.out&&!b.in&&distance(a,b)<1e-8){a.out=b.out;c.nodes.splice(i,1);}}}this.layer.contours=this.layer.contours.filter(c=>c.nodes.length>0);});}
     dispose() { this.cancel(); this.off(); this.abort.abort(); this.changed.clear(); this.selectionChanged.clear(); this.status.clear(); this.index.Clear(); }
 }
 

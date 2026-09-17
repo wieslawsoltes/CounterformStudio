@@ -2,7 +2,7 @@ export const tools: {
     id: string;
     label: string;
     key: string;
-    icon: string;
+    icon?: string;
 }[];
 /** Pointer transactions, picking and commands. No global window singleton or document mutation from rendering. */
 export class GlyphEditor {
@@ -114,6 +114,15 @@ export class GlyphEditor {
         fit?: boolean;
     }): void;
     setMaster(id: any): void;
+    toolOptions: {sides:number;innerRatio:number;cornerRadius:number;brushWidth:number;pencilTolerance:number};
+    setToolOptions(options:Partial<GlyphEditor['toolOptions']>):void;
+    invertSelection():void;
+    distribute(axis:'x'|'y'):void;
+    setStart():void;
+    openContours():void;
+    joinSelected():void;
+    convertEdges(curve:boolean):void;
+    cleanContours():void;
     setTool(id: any): void;
     cursor(): void;
     refresh(): void;

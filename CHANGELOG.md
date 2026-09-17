@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+Add three standalone construction/icon/menu packages, 24 pointer tools, nine menus covering 130 commands, classic ribbon SVG icons and quick access. Add cubic-preserving knife/scissors, freehand/pressure drawing, interactive transforms, guide/anchor editing, source locks, tool options and contour surgery. Fix Escape/Undo cancellation, unrelated pointer gating and optional command parameter declaration. Expand source/distribution UI checks and independent package consumer verification. See docs/RELEASE-0.3.0.md for explicit parity limits.
+
 ## 0.2.0 — 2026-09-17 (local patch delivery)
 
 Added two standalone packages: `color` (COLRv0/CPALv0) and `compiler` (worker service). Color layer/palette authoring is integrated with history, Inspector, Ribbon, Skia rendering, TTF/CFF/variable/WOFF output and supported TrueType import. RGBA input errors roll back without unhandled exceptions. Palette and layer expansion budgets protect binary decoders.
