@@ -5,6 +5,7 @@ import {formatBinding} from '@wieslawsoltes/counterform-commands';
 import {el, button, field, section, dialog, setValue} from './ui.js';
 import {preferenceKey, normalizeWorkspacePreferences, resolvedTheme} from './workspace-preferences.js';
 import {styleRibbon} from './ribbon-theme.js';
+import {WorkspaceFocus} from './workspace-focus.js';
 
 export function registerWorkspaceCommands(app) {
     const r = (id, label, execute, keys = [], extra = {}) => app.commands.register({id, label, execute, keys, repeat:false, ...extra});
@@ -28,6 +29,8 @@ export class WorkspaceUI {
         this.media=matchMedia('(prefers-color-scheme: dark)');
         this.id=++nextWorkspace;this.sections=new Map();this.elementSignature='';this.stripSignature='';
         this.write=Promise.resolve();
+        this.focusRequest=new WorkspaceFocus(app.host.ownerDocument,callback=>requestAnimationFrame(callback),id=>cancelAnimationFrame(id));
+        this.stripItems=new Map();
     }
     prepare() {
         const a=this.app;
@@ -57,10 +60,19 @@ export class WorkspaceUI {
         this.reorganizeInspector();this.buildPropertyBar();this.buildGlyphStrip();this.buildStatus();
     }
     openGlyph(id) {
-        const a=this.app;a.selectGlyph(id);a.activate('glyph');cancelAnimationFrame(this.fitPending);
-        this.fitPending=requestAnimationFrame(()=>{
-            if(this.disposed||a.editor.glyphId!==id||!a.dock.Find('glyph')?.IsSelected)return;
-            a.renderer.fit();a.renderer.overlay.focus({preventScroll:true});
+        this.app.selectGlyph(id);
+        this.focusGlyph({fit:true});
+    }
+    focusGlyph({fit=false}={}) {
+        if(this.disposed)return;
+        const a=this.app,docId=a.doc.data.id,glyphId=a.editor.glyphId,masterId=a.editor.masterId;
+        // Publish the tab title/strip before Dockyard renders and before focus is
+        // handed off. A later click, key, dialog or document switch cancels it.
+        this.update();a.activate('glyph');
+        this.focusRequest.request(a.renderer.overlay,{
+            valid:()=>!this.disposed&&a.doc.data.id===docId&&a.editor.glyphId===glyphId
+                &&a.editor.masterId===masterId&&a.dock.Find('glyph')?.IsSelected,
+            ready:()=>{if(fit)a.renderer.fit();}
         });
     }
     commandButton(id, label='', icon=commandIcon(id)) {
@@ -123,7 +135,9 @@ export class WorkspaceUI {
     buildGlyphStrip() {
         this.strip=el('div','cf-glyph-strip');this.strip.setAttribute('role','toolbar');this.strip.setAttribute('aria-label','Adjacent glyphs');
         this.app.editorPane.append(this.strip);
-        this.strip.addEventListener('click',e=>{const b=e.target.closest('[data-strip-glyph]');if(b){this.app.selectGlyph(b.dataset.stripGlyph);this.app.renderer.overlay.focus({preventScroll:true});}},{signal:this.signal});
+        this.strip.setAttribute('aria-orientation','horizontal');
+        this.stripLabel=el('span','cf-strip-label','GLYPHS');this.strip.append(this.stripLabel);
+        this.strip.addEventListener('click',e=>{const b=e.target.closest?.('[data-strip-glyph]');if(b&&this.strip.contains(b)){this.app.selectGlyph(b.dataset.stripGlyph);this.focusGlyph();}},{signal:this.signal});
         this.strip.addEventListener('keydown',e=>{
             const buttons=[...this.strip.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);
             if(i<0)return;const n=e.key==='ArrowRight'?Math.min(buttons.length-1,i+1):e.key==='ArrowLeft'?Math.max(0,i-1):e.key==='Home'?0:e.key==='End'?buttons.length-1:-1;
@@ -152,13 +166,13 @@ export class WorkspaceUI {
         a.workHost.append(a.panelRail);this.rovingRail(a.panelRail);
         const options=this.commandButton('workspace.preferences','','settings');a.header.querySelector('.cf-top-actions').prepend(options);
         const paletteToggle=a.header.querySelector('.cf-palette-toggle');paletteToggle.replaceChildren(createIcon('search'));paletteToggle.setAttribute('aria-label','Command palette');
-        for(const id of ['inspector','masters','proof','code']){
-            const command=a.commands.commands.get(id==='code'?'view.output':'view.'+id);command.execute=()=>this.togglePanel(id);command.checked=()=>this.visible(id);
+        for(const id of ['inspector','masters','proof','output']){
+            const command=a.commands.commands.get('view.'+id);command.execute=()=>this.togglePanel(id);command.checked=()=>this.visible(id);
         }
         this.off.push(a.doc.changed.subscribe(()=>this.schedule()),a.editor.changed.subscribe(()=>this.schedule()),a.editor.selectionChanged.subscribe(()=>this.schedule()),a.commands.changed.subscribe(()=>this.schedule()),a.renderer.changed.subscribe(()=>this.updateZoom()),a.state.Changed.subscribe(()=>this.schedule()));
         this.off.push(a.dock.ActiveContentChanged.add(()=>this.schedule()),a.dock.LayoutUpdated.add(()=>{if(this.preferencesLoaded&&!this.focused&&this.preferences.navigator!==this.visible('library')){this.preferences.navigator=this.visible('library');this.persist();}this.schedule();}));
         this.media.addEventListener('change',()=>this.applyTheme(),{signal:this.signal});
-        a.inspector.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.defaultPrevented){e.preventDefault();a.activate('glyph');a.renderer.overlay.focus({preventScroll:true});}},{signal:this.signal});
+        a.inspector.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.defaultPrevented){e.preventDefault();this.focusGlyph();}},{signal:this.signal});
         // Preferences load once. No source mutation and no stored code is evaluated.
         try{this.preferences=normalizeWorkspacePreferences(await a.store.preference(preferenceKey));}catch{ /* storage can be unavailable */ }
         if(this.disposed)return;
@@ -166,6 +180,7 @@ export class WorkspaceUI {
     }
     rovingRail(rail) {
         const buttons=[...rail.querySelectorAll('button')];buttons.forEach((b,i)=>b.tabIndex=i?-1:0);
+        rail.setAttribute('aria-orientation','vertical');
         rail.addEventListener('keydown',e=>{const i=buttons.indexOf(document.activeElement);if(i<0)return;
             const n=e.key==='ArrowDown'?(i+1)%buttons.length:e.key==='ArrowUp'?(i+buttons.length-1)%buttons.length:e.key==='Home'?0:e.key==='End'?buttons.length-1:-1;
             if(n>=0){e.preventDefault();buttons.forEach((b,j)=>b.tabIndex=j===n?0:-1);buttons[n].focus();}
@@ -207,14 +222,14 @@ export class WorkspaceUI {
     }
     toggleFocus() {
         const a=this.app;a.editor.cancel();
-        if(!this.focused){this.focusLayout=a.dock.SaveLayout();this.focused=true;for(const id of ['library','inspector','masters','proof','code'])a.dock.Find(id)?.Hide();}
+        if(!this.focused){this.focusLayout=a.dock.SaveLayout();this.focused=true;for(const id of ['library','inspector','masters','proof','output'])a.dock.Find(id)?.Hide();}
         else {a.dock.LoadLayout(this.focusLayout);a.layout=a.dock.Layout;this.focused=false;}
-        a.host.dataset.focus=String(this.focused);a.activate('glyph');a.renderer.overlay.focus({preventScroll:true});this.schedule();
+        a.host.dataset.focus=String(this.focused);this.focusGlyph();this.schedule();
     }
     resetLayout() {
         const a=this.app;a.editor.cancel();a.dock.LoadLayout(this.defaultLayout);a.layout=a.dock.Layout;
         this.focused=false;a.host.dataset.focus='false';this.preferences.navigator=false;this.applyNavigator();a.activate('glyph');this.persist();
-        requestAnimationFrame(()=>{if(!this.disposed)a.renderer.fit();});this.schedule();
+        this.focusGlyph({fit:true});this.schedule();
     }
     schedule() {if(this.disposed||this.pending)return;this.pending=requestAnimationFrame(()=>{this.pending=0;this.update();});}
     refreshControls(){
@@ -244,7 +259,7 @@ export class WorkspaceUI {
         const a=this.app,cs=a.editor.layer.contours,signature=[a.doc.data.id,a.editor.glyphId,a.editor.masterId,...cs.map(c=>`${c.id}:${c.closed}:${c.nodes.map(n=>n.id).join(',')}`)].join('|');
         if(signature!==this.elementSignature){
             this.elementSignature=signature;this.elements.replaceChildren();
-            cs.forEach((c,i)=>{const b=button('',()=>{a.editor.select(c.nodes.map(n=>n.id));a.activate('glyph');a.renderer.overlay.focus({preventScroll:true});},{className:'cf-element-row',title:`Select contour ${i+1}`});
+            cs.forEach((c,i)=>{const b=button('',()=>{a.editor.select(c.nodes.map(n=>n.id));this.focusGlyph();},{className:'cf-element-row',title:`Select contour ${i+1}`});
                 b.dataset.contour=c.id;b.tabIndex=i===0?0:-1;b.setAttribute('role','option');b.append(createIcon(c.closed?'rectangle':'line'),el('span','',`Contour ${i+1}`),el('small','',`${c.nodes.length} nodes`));this.elements.append(b);
             });
             if(!cs.length)this.elements.append(el('p','cf-empty-small','No contours on this layer.'));
@@ -252,20 +267,52 @@ export class WorkspaceUI {
         for(const b of this.elements.querySelectorAll('[data-contour]')){const c=cs.find(c=>c.id===b.dataset.contour),selected=c?.nodes.length>0&&c.nodes.every(n=>a.editor.selection.has(n.id));b.setAttribute('aria-selected',String(selected));}
     }
     updateStrip() {
-        const a=this.app,gs=a.doc.data.glyphs,i=gs.findIndex(g=>g.id===a.editor.glyphId),lo=Math.max(0,Math.min(gs.length-9,i-4)),items=gs.slice(lo,lo+9);
+        const a=this.app,gs=a.doc.data.glyphs,index=gs.findIndex(g=>g.id===a.editor.glyphId);
+        const lo=Math.max(0,Math.min(gs.length-9,index-4)),items=gs.slice(lo,lo+9);
         const signature=`${a.doc.data.id}:${a.doc.revision}:${a.editor.masterId}:${lo}`;
-        if(signature!==this.stripSignature){this.stripSignature=signature;const active=document.activeElement?.dataset?.stripGlyph;this.strip.replaceChildren();
-            this.strip.append(el('span','cf-strip-label','GLYPHS'));
-            for(const g of items){const b=el('button','cf-strip-glyph');b.type='button';b.dataset.stripGlyph=g.id;b.title=`${g.name} · ${g.unicodes.map(c=>'U+'+c.toString(16).toUpperCase().padStart(4,'0')).join(' ')}`;b.setAttribute('aria-label','Edit '+g.name);
-                const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),path=document.createElementNS(svg.namespaceURI,'path');
-                let cs=[];try{cs=a.doc.resolve(g.id,a.editor.masterId);}catch{/* diagnostics remain in the source editor */}
-                const box=bounds(cs),upm=a.doc.info.unitsPerEm,w=Math.max(upm,a.doc.layer(g.id,a.editor.masterId).advanceWidth,box.width);
-                svg.setAttribute('viewBox',`0 ${-a.doc.info.ascender} ${w} ${upm}`);svg.setAttribute('aria-hidden','true');path.setAttribute('d',toSVG(cs));path.setAttribute('transform','scale(1,-1)');svg.append(path);
-                b.append(svg,el('span','',g.name));this.strip.append(b);
+        const focused=this.strip.contains(document.activeElement)?document.activeElement:null;
+        const focusedId=focused?.dataset?.stripGlyph;
+        if(signature!==this.stripSignature) {
+            this.stripSignature=signature;
+            const keep=new Set(items.map(g=>g.id));
+            // Reconcile by stable glyph ID rather than replacing the toolbar.
+            // Retained pointer targets and keyboard focus survive source refresh.
+            for(const [id,record] of this.stripItems)if(!keep.has(id)) {
+                record.button.remove();this.stripItems.delete(id);
             }
-            if(active)this.strip.querySelector(`[data-strip-glyph="${CSS.escape(active)}"]`)?.focus({preventScroll:true});
+            let previous=this.stripLabel;
+            for(const g of items) {
+                let record=this.stripItems.get(g.id);
+                if(!record) {
+                    const b=el('button','cf-strip-glyph');b.type='button';b.dataset.stripGlyph=g.id;
+                    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+                    const path=document.createElementNS(svg.namespaceURI,'path'),name=el('span');
+                    svg.setAttribute('aria-hidden','true');path.setAttribute('transform','scale(1,-1)');
+                    svg.append(path);b.append(svg,name);record={button:b,svg,path,name};
+                    this.stripItems.set(g.id,record);
+                }
+                const {button:b,svg,path,name}=record;
+                b.title=`${g.name} · ${g.unicodes.map(c=>'U+'+c.toString(16).toUpperCase().padStart(4,'0')).join(' ')}`;
+                b.setAttribute('aria-label','Edit '+g.name);name.textContent=g.name;
+                let cs=[];try{cs=a.doc.resolve(g.id,a.editor.masterId);}catch{/* source diagnostics remain in the editor */}
+                const box=bounds(cs),upm=a.doc.info.unitsPerEm,w=Math.max(upm,a.doc.layer(g.id,a.editor.masterId).advanceWidth,box.width);
+                svg.setAttribute('viewBox',`0 ${-a.doc.info.ascender} ${w} ${upm}`);path.setAttribute('d',toSVG(cs));
+                if(previous.nextSibling!==b)this.strip.insertBefore(b,previous.nextSibling);
+                previous=b;
+            }
         }
-        for(const b of this.strip.querySelectorAll('button')){const selected=b.dataset.stripGlyph===a.editor.glyphId;b.setAttribute('aria-pressed',String(selected));b.classList.toggle('active',selected);b.tabIndex=selected?0:-1;}
+        const tabStop=this.stripItems.has(focusedId)?focusedId:a.editor.glyphId;
+        for(const [id,{button:b}] of this.stripItems) {
+            const selected=id===a.editor.glyphId;
+            b.setAttribute('aria-pressed',String(selected));b.classList.toggle('active',selected);
+            b.tabIndex=id===tabStop?0:-1;
+        }
+        // A removed/reordered toolbar item may lose browser focus. Restore only
+        // focus owned by this toolbar; never take it from the canvas or a field.
+        if(focused&&document.activeElement===document.body) {
+            const b=this.stripItems.get(tabStop)?.button;
+            if(b)b.focus({preventScroll:true});
+        }
     }
     showPreferences() {
         const d=dialog('Workspace preferences',{subtitle:'Appearance and layout are stored on this device, independently of font source and undo history.',className:'cf-workspace-preferences'});
@@ -279,5 +326,5 @@ export class WorkspaceUI {
         fill.input.addEventListener('change',()=>this.setPreference('dimFill',fill.input.value==='dim'));d.body.append(fill.element);
         d.footer.append(button('Reset panel layout',()=>this.resetLayout()),button('Done',d.close,{className:'primary'}));return d;
     }
-    dispose() {if(this.disposed)return;this.disposed=true;this.abort.abort();cancelAnimationFrame(this.pending);cancelAnimationFrame(this.fitPending);for(const off of this.off)typeof off==='function'?off():off?.unsubscribe?.();this.fontTiles.dispose();this.controls.length=0;}
+    dispose() {if(this.disposed)return;this.disposed=true;this.abort.abort();cancelAnimationFrame(this.pending);this.focusRequest.dispose();this.stripItems.clear();for(const off of this.off)typeof off==='function'?off():off?.unsubscribe?.();this.fontTiles.dispose();this.controls.length=0;}
 }

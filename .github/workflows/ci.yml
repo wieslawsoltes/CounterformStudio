@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Archive exact source before verification
+        run: git archive --format=tar.gz HEAD -o CounterformStudio-source.tar.gz
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/setup-python@v5
@@ -28,14 +30,16 @@ jobs:
       - run: npm run test:fonts
       - run: npm run build
       - run: npm run pack:all && npm run test:packages
+      - name: Workspace input and lifetime regressions
+        run: |
+          python tests/workspace-input.py --out-dir test-results/input-source
+          python tests/workspace-input.py --root dist --out-dir test-results/input-distribution
       - name: Browser source and distribution verification
         run: |
           python tests/browser.py --out-dir test-results/source
           python tests/browser.py --root dist --out-dir test-results/distribution
           python tests/workspace-browser.py --out-dir test-results/workspace-source
           python tests/workspace-browser.py --root dist --out-dir test-results/workspace-distribution
-      - name: Archive source
-        run: git archive --format=tar.gz HEAD -o CounterformStudio-source.tar.gz
       - uses: actions/upload-artifact@v4
         if: always()
         with:
