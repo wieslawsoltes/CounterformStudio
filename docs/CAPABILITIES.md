@@ -49,7 +49,7 @@ Version 0.7.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 f
 | CFF / WOFF2 import via Skia | Partial | Actual decoded default-instance outlines; no source hint/layout/color roundtrip |
 | TTF / CFF OTF / WOFF1 export | Working | Actual sfnt binaries accepted by independent fontTools and browser FontFace |
 | WOFF2 export | Working | Single-face null-transform containers; portable stored Brotli blocks, injected compressor or Node compressed subpath; canonical tags, DSIG removal and head normalization |
-| TTC authoring | Missing | Collections are not authored |
+| TTC/OTC authoring and extraction | Working within the container contract | v1/v2 mixed TrueType/CFF/CFF2 collections, identical table sharing, bounded structural/checksum validation, extraction and explicit face selection; opaque table payload preservation is not universal source reconstruction |
 | UFO3 / GLIF import/export | Partial | ZIP, source contours/anchors/components/master layers; custom Counterform metadata retains master locations; GLIF edits authoritative; not complete UFO lib semantics |
 | SVG outline import/export | Partial | Basic supported paths/shapes; arcs, transforms and arbitrary SVG documents are rejected |
 | FontLab VFC / VFB / VFJ | Missing | No proprietary source-format compatibility claimed |
@@ -84,11 +84,13 @@ Open contours are editable source artwork but are excluded from font compilation
 
 ## Remaining acceptance gates
 
-Full FEA grammar and variable/device attachment anchors; avar 2.0/FeatureVariations; TrueType and PostScript hint authoring/debugger; variable COLRv1 parameters and bitmap/SVG color fonts; richer construction and artwork layers; full original source-format adapters; specialized Element/Metrics/Kerning/Text/Magnet/Matchmaker/Fill workflows; exhaustive native shortcuts; large-font incremental journal/worker optimization; CJK stress, hardware WebGPU, Firefox/Safari, touch and assistive technology.
+Full FEA grammar and variable/device attachment anchors; avar 2.0 and newer FeatureVariations condition formats/import reconstruction; TrueType and PostScript hint authoring/debugger; variable COLRv1 parameters and bitmap/SVG color fonts; richer construction and artwork layers; full original source-format adapters; specialized Element/Metrics/Kerning/Text/Magnet/Matchmaker/Fill workflows; exhaustive native shortcuts; large-font incremental journal/worker optimization; CJK stress, hardware WebGPU, Firefox/Safari, touch and assistive technology.
 
 ## Verification and delivery
 
-See [0.5.0 release notes](RELEASE-0.5.0.md), [delivery status](DELIVERY-STATUS.md) and associated verification artifacts. The complete 0.5.0 source is committed on `main` at `12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`. Delivery status links the new verification runs; the original local evidence remains under `docs/verification/0.5.0`. Results from earlier releases do not certify this source, and software-rendered CI does not certify physical GPU performance. No full-parity percentage is asserted.
+Current workflow delivery is recorded in [0.7.0 delivery](WORKFLOWS-DELIVERY.md); its commit-associated CI is authoritative for this source.
+
+Historical evidence: see [0.5.0 release notes](RELEASE-0.5.0.md), [delivery status](DELIVERY-STATUS.md) and associated verification artifacts. The complete 0.5.0 source is committed on `main` at `12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`. Delivery status links the new verification runs; the original local evidence remains under `docs/verification/0.5.0`. Results from earlier releases do not certify this source, and software-rendered CI does not certify physical GPU performance. No full-parity percentage is asserted.
 
 For the 0.5.1 desktop redesign, see [workspace design](WORKSPACE-DESIGN.md) and [0.5.1 release notes](RELEASE-0.5.1.md). The commit-associated CI records the new workspace interaction and deployment results.
 
