@@ -6,3 +6,22 @@
 @import url("./workflows.css");
 
 @import './artwork.css';
+
+/* Bitmap source and compiled proof are deliberately separate surfaces. */
+.cf-dialog.cf-bitmap-dialog{width:min(1260px,96vw);max-width:96vw}
+.cf-bitmap-layout{display:grid;grid-template-columns:220px minmax(280px,1fr) 260px;gap:16px;min-height:530px}
+.cf-bitmap-sidebar,.cf-bitmap-properties{display:flex;flex-direction:column;gap:9px;min-width:0}
+.cf-bitmap-layout h3{font-size:12px;font-weight:650;margin:4px 0 8px;letter-spacing:.02em}
+.cf-bitmap-list{display:flex;flex-direction:column;gap:2px;max-height:215px;overflow:auto;border:1px solid var(--cf-line);padding:4px;border-radius:4px;min-height:50px}
+.cf-bitmap-list button{text-align:left;padding:8px;font-variant-numeric:tabular-nums}
+.cf-bitmap-list [aria-selected=true]{background:#357bf520;box-shadow:inset 3px 0 #357bf5}
+.cf-bitmap-properties .cf-field{margin:0}.cf-bitmap-properties>button{text-align:left}
+.cf-bitmap-preview{border-inline:1px solid var(--cf-line);padding:0 16px;min-width:0}
+.cf-bitmap-source{display:block;max-width:100%;max-height:135px;object-fit:contain;image-rendering:pixelated;background:repeating-conic-gradient(#ddd 0% 25%,#fff 0% 50%) 50%/16px 16px;border:1px solid #ccc;padding:8px;margin:8px auto}
+.cf-bitmap-source[hidden]{display:none}
+.cf-bitmap-proof-box{min-height:260px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;color:#111;border:1px solid #ddd;margin-top:10px}
+.cf-bitmap-proof{white-space:pre;font-synthesis:none;line-height:1;transform-origin:center;visibility:hidden}
+.cf-bitmap-preview .cf-workflow-toolbar{flex-wrap:wrap;gap:6px;margin:10px 0}
+.cf-bitmap-preview .cf-field{flex:1;min-width:90px;margin:0}
+@media(max-width:960px){.cf-bitmap-layout{grid-template-columns:180px 1fr}.cf-bitmap-properties{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.cf-bitmap-preview{border-right:0;padding-right:0}}
+@media(max-width:600px){.cf-bitmap-layout{display:flex;flex-direction:column}.cf-bitmap-properties{grid-template-columns:repeat(2,minmax(0,1fr))}.cf-bitmap-preview{border:0;padding:0}}

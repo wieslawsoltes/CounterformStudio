@@ -1,3 +1,4 @@
+import {compileBitmapTables,readBitmapTables} from '@wieslawsoltes/counterform-bitmap';
 import { compileColorTables, readColorTables, createPaletteNamePlan } from '@wieslawsoltes/counterform-color';
 import { encodeUVS, readCmapUVS, Reader, Writer, sfnt, readDirectory, checksum, utf16be, decodeUTF16BE } from '@wieslawsoltes/counterform-binary';
 import { FontDocument, createFont, createGlyph, validateVariationSequences } from '@wieslawsoltes/counterform-model';
@@ -198,6 +199,7 @@ function baseTables(doc, glyphs, metrics, outlineFormat, masterId, extraNames = 
     if (kern)
         tables.set('kern', kern);
     for (const [tag, bytes] of compileColorTables(doc.data, glyphs,{namePlan:colorNames})) tables.set(tag, bytes);
+    for (const [tag, bytes] of compileBitmapTables(doc.data,glyphs,metrics.map(m=>m.width))) tables.set(tag,bytes);
     return tables;
 }
 export function exportGlyphOrder(doc) { let glyphs = doc.data.glyphs.filter(g => g.export !== false); const notdef = glyphs.find(g => g.name === '.notdef'); if (notdef)
@@ -551,6 +553,9 @@ export function parseTrueType(bytes, { maxGlyphs = 65535, maxPoints = 2000000 } 
             supported.add('COLR'); supported.add('CPAL');
         } catch (error) { colorWarnings.push('Color reconstruction: ' + error.message); }
     }
+    const bitmaps=readBitmapTables(tables,data.glyphs.map(g=>g.id));
+    if(bitmaps.bitmapFont){data.bitmapFont=bitmaps.bitmapFont;for(const g of data.glyphs)if(bitmaps.bitmaps.has(g.id))g.bitmaps=bitmaps.bitmaps.get(g.id);}
+    for(const tag of bitmaps.supported)supported.add(tag);colorWarnings.push(...bitmaps.warnings);
     data.importInfo = { format: 'TrueType', tableTags: [...tables.keys()], notReconstructed: [...tables.keys()].filter(t => !supported.has(t)), warnings: [...colorWarnings, 'Hinting instructions are not retained in rebuilt output.', 'Existing advanced layout and variation tables are inventoried, not decompiled into editable feature source.'] };
     return new FontDocument(data);
 }
@@ -559,7 +564,7 @@ export async function importWithSkia(bytes, S, { signal, onProgress = () => { } 
     const face = S.SKTypeface.FromData(bytes);
     if (!face)
         throw new Error('Skia could not decode this font');
-    let font;
+    let font, outlineFace;
     try {
         const tags = face.GetTableTags().map(t => typeof t === 'string' ? t : String.fromCharCode(t >>> 24, (t >>> 16) & 255, (t >>> 8) & 255, t & 255)), tables = new Map(tags.map(tag => [tag, { bytes: new Uint8Array(face.GetTableData(tag)) }]));
         const data = importMetadata(tables), mapping = tables.has('cmap') ? readCmap(tables.get('cmap').bytes) : new Map(), byId = new Map();
@@ -571,7 +576,18 @@ export async function importWithSkia(bytes, S, { signal, onProgress = () => { } 
         const count = face.GlyphCount;
         if (count > 65535)
             throw new RangeError('Too many glyphs');
-        font = new S.SKFont(face, data.info.unitsPerEm);
+        // Embedded strikes can make GetGlyphPath return null and GetGlyphWidths
+        // use strike metrics. Rebuild an outline-only face for extraction while
+        // retaining the original face/tables for bitmap source reconstruction.
+        // The private table copy never replaces the untouched imported archive.
+        if (tags.some(tag => ['sbix','CBDT','CBLC','EBDT','EBLC','bdat','bloc'].includes(tag)) &&
+            (tables.has('glyf') || tables.has('CFF ') || tables.has('CFF2'))) {
+            const strip = new Set(['sbix','CBDT','CBLC','EBDT','EBLC','EBSC','bdat','bloc','COLR','CPAL','SVG ','DSIG']);
+            const outlineTables = new Map([...tables].filter(([tag]) => !strip.has(tag)).map(([tag, value]) => [tag, value.bytes.slice()]));
+            outlineFace = S.SKTypeface.FromData(sfnt(outlineTables, tables.has('glyf') ? 0x10000 : 0x4f54544f));
+            if (!outlineFace || outlineFace.GlyphCount !== count) throw new Error('Could not extract an outline face independently of bitmap strikes');
+        }
+        font = new S.SKFont(outlineFace || face, data.info.unitsPerEm);
         font.Hinting = S.SKFontHinting?.None ?? 'None';
         font.LinearMetrics = true;
         const gids = Uint16Array.from({ length: count }, (_, i) => i), widths = font.GetGlyphWidths(gids), names = new Set();
@@ -608,12 +624,15 @@ export async function importWithSkia(bytes, S, { signal, onProgress = () => { } 
             for (const k of readKern(tables.get('kern').bytes))
                 if (data.glyphs[k.left] && data.glyphs[k.right])
                     data.kerning.regular[pairKey(data.glyphs[k.left].name, data.glyphs[k.right].name)] = k.value;
-        data.importInfo = { format: face.FontFormat, tableTags: tags, notReconstructed: tags.filter(t => ['GSUB', 'GPOS', 'fvar', 'gvar', 'CFF2', 'COLR', 'CPAL', 'SVG ', 'MATH', 'BASE'].includes(t)), warnings: ['Native import extracts default-instance outlines. Components, hinting, advanced layout and variation programs are not round-tripped.'] };
+        const bitmaps=readBitmapTables(tables,data.glyphs.map(g=>g.id));
+        if(bitmaps.bitmapFont){data.bitmapFont=bitmaps.bitmapFont;for(const g of data.glyphs)if(bitmaps.bitmaps.has(g.id))g.bitmaps=bitmaps.bitmaps.get(g.id);}
+        data.importInfo = { format: face.FontFormat, tableTags: tags, notReconstructed: tags.filter(t => ['GSUB', 'GPOS', 'fvar', 'gvar', 'CFF2', 'COLR', 'CPAL', 'SVG ', 'MATH', 'BASE','sbix','CBDT','CBLC'].includes(t)&&!bitmaps.supported.includes(t)), warnings: [...bitmaps.warnings,'Native import extracts default-instance outlines. Components, hinting, advanced layout and variation programs are not round-tripped.'] };
         onProgress(1);
         return new FontDocument(data);
     }
     finally {
         font?.Dispose();
+        outlineFace?.Dispose();
         face.Dispose();
     }
 }

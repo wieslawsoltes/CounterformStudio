@@ -90,6 +90,16 @@ try {
     const {traceBitmap,fitPolyline}=await import('@wieslawsoltes/counterform-tracing');
     const raster={width:3,height:3,pixels:new Uint8Array(36)};for(let i=3;i<36;i+=4)raster.pixels[i]=255;raster.pixels.set([255,255,255,255],16);
     const traced=await compiler.trace(raster);assert.equal(traced.holes,1);assert.deepEqual(traced,traceBitmap(raster));
+    const {createBitmapGlyph,decodeSbix,decodeCBDT}=await import('@wieslawsoltes/counterform-bitmap');
+    doc.data.bitmapFont={format:'both',overlay:false,strikes:[{id:'s',ppem:64,ppi:72}]};
+    doc.glyph('A').bitmaps=[createBitmapGlyph('s',new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAM0lEQVR4nGN4rezIgIyVM1+jYAY0Bf+VM1/DMIaC/2gK/iMr+A/FyMaDFVFPAUE34PQFAPu/dKVLhz+CAAAAAElFTkSuQmCC','base64')))];
+    const bitmapBytes=(await compiler.compile(doc,{format:'ttf'})).bytes;
+    assert.deepEqual(bitmapBytes,compileTrueType(doc));
+    const bitmapTables=(await import('@wieslawsoltes/counterform-binary')).readDirectory(bitmapBytes).tables;
+    const bitmapOrder=(await import('@wieslawsoltes/counterform-font-io')).exportGlyphOrder(doc).map(g=>g.id);
+    assert.equal(decodeSbix(bitmapTables.get('sbix').bytes,bitmapOrder).bitmaps.size,1);
+    assert.equal(decodeCBDT(bitmapTables.get('CBDT').bytes,bitmapTables.get('CBLC').bytes,bitmapOrder).bitmaps.size,1);
+    delete doc.data.bitmapFont;delete doc.glyph('A').bitmaps;
     const unreferenced=compileTrueType(doc);doc.glyph('A').layers[0].artwork=[createVectorReference(traced.contours)];
     assert.deepEqual(compileTrueType(doc),unreferenced);assert.equal(referenceContours(doc.glyph('A').layers[0].artwork[0]).length,2);
     assert.equal(fitPolyline([{x:0,y:0},{x:1,y:0},{x:2,y:0}]).contour.nodes.length,2);
@@ -121,5 +131,6 @@ console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TT
                   'fresh extracted consumer TTF/CFF/variable TTF compilation',
                   'headless package imports with real vendor dependencies',
                   'real packaged Node-worker entry compiles byte-identical COLRv1/CPALv1 fonts',
-                  'real packaged Node-worker tracing matches synchronous contours; references do not change font output'],
+                  'real packaged Node-worker tracing matches synchronous contours; references do not change font output',
+                  'real packaged Node worker emits byte-identical sbix and CBDT/CBLC PNG fonts'],
         'stdout':result.stdout},indent=2)+'\n')

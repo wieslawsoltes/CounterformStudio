@@ -1,3 +1,4 @@
+import {validateBitmapSource} from '@wieslawsoltes/counterform-bitmap';
 import {validateArtwork,ARTWORK_LIMITS} from '@wieslawsoltes/counterform-artwork';
 import {isVariationSelector} from '@wieslawsoltes/counterform-binary';
 import {normalizeAxisMap} from '@wieslawsoltes/counterform-varstore';
@@ -162,6 +163,7 @@ export function validateDocumentShape(d) {
     }
     validateVariationSequences(d);
     validateColorSource(d);
+    validateBitmapSource(d);
     return d;
 }
 export function duplicateGlyph(g, newName) { const x = structuredClone(g); x.id = uid('g'); x.name = newName; x.unicodes = [];

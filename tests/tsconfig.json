@@ -21,6 +21,7 @@
     "advanced-consumer.ts",
     "workflow-consumer.ts",
     "interchange-consumer.ts",
-    "artwork-consumer.ts"
+    "artwork-consumer.ts",
+    "bitmap-consumer.ts"
   ]
 }

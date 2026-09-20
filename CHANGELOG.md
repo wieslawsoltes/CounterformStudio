@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 — PNG bitmap color fonts
+
+Standalone sbix and CBDT/CBLC codec; all CBLC1–5 indexes and PNG17/18/19 import;
+multiple strikes, duplicates, range/budget checks; staged bitmap editor with native
+Skia outline rasterization and actual compiled FontFace proof; existing font export
+routes and import/source persistence integration; independent fontTools and browser
+pixel tests. Retains all ten vendors; 35 packages and 157 commands.
+
+
 ## 0.9.0 — artwork references, autotrace and bounded curve fitting
 
 Added two independently packable libraries: `counterform-artwork` for validated PNG/vector references, and dependency-free `counterform-tracing` for alpha-aware histogram thresholding, four-connected despeckling, exact counter-preserving pixel boundaries and conservatively bounded cubic fitting. Native Skia reference rendering has per-reference cache ownership and affine/opacity support. The staged artwork/trace editors provide PNG File/Open, SVG masks, reorder/duplicate/lock/visibility, foreground snapshot/exchange, owned worker preview, numeric transforms, preview pan/zoom and transactional Apply/Cancel.

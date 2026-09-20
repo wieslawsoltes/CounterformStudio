@@ -1,12 +1,12 @@
 # Capability contract and parity ledger
 
-Version 0.9.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
+Version 0.10.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
 
 **Working** means implemented and exercised within the documented subset. **Partial** means a narrower implementation exists. **Missing** means no implementation is claimed. An attractive dialog, data field or shader source alone is not counted as feature parity.
 
 | Area | Status | Delivered contract / boundary |
 |---|---|---|
-| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 76 original SVG icons, nine menus covering all 156 current commands; not every native FontLab command |
+| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 76 original SVG icons, nine menus covering all 157 current commands; not every native FontLab command |
 | Glyph library and font inventory | Working | Full virtual Font window and optional navigator; stable grid keyboard focus; reactive keyed projection; retained TreeDataGrid editable widths/export flags |
 | Workspace presentation and preferences | Working | Neutral light/dark chrome, independent paper canvas, collapsible palettes, direct metrics, panel rail, reversible Focus/Reset, device-local preferences; native pixel/behavior parity is not claimed |
 | Unicode mapping | Working | Scalar values and cmap14 default/nondefault variation sequences; indexed source mappings, compiled proofs, source metrics, supported native/TTF reconstruction; not registration or every script workflow |
@@ -45,7 +45,8 @@ Version 0.9.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 f
 | PS hints / autohinting | Missing | Output unhinted; imported programs not reconstructed |
 | COLRv0 / CPALv0 | Working | Ordered monochrome glyph layers, multiple RGBA palettes and foreground color, preserved as optional COLRv1 fallback |
 | Static COLRv1 / CPALv1 | Working within bounded decoder contract | All 18 static paints, 28 composites, gradients, transforms, color references and static clips; named palettes/entries and light/dark flags; tree/property/JSON editor with native compiled proofs; TTF/CFF/CFF2/variable/WOFF/WOFF2 output; static parameters only |
-| Variable paints / SVG / bitmap color | Missing | PaintVar*, variation stores for paint parameters, variable clip boxes, SVG documents, CBDT/CBLC and sbix are not authored or reconstructed |
+| Bitmap color fonts | Working within PNG strike contract | Multi-strike sbix PNG/dupe and CBDT/CBLC PNG17/18 authoring; PNG17/18/19 and CBLC1–5 import; owned compiled proof, native rasterization, undo, all compiler routes; square horizontal PNG strikes, no pixel painting or bitmap interpolation |
+| Variable paints / SVG color | Missing | PaintVar*, variation stores for paint parameters, variable clip boxes and OpenType SVG documents are not authored or reconstructed |
 | TTF import | Partial | Default-instance outlines/metrics/cmap/names/basic kern; simple/composite glyf; supported static COLRv0/1 and CPALv0/1 reconstructed; other advanced tables are not reconstructed |
 | CFF / WOFF2 import via Skia | Partial | Actual decoded default-instance outlines; no source hint/layout/color roundtrip |
 | TTF / CFF OTF / WOFF1 export | Working | Actual sfnt binaries accepted by independent fontTools and browser FontFace |
@@ -59,7 +60,7 @@ Version 0.9.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 f
 | Production QA | Partial | Structural/geometry/encoding/component/master checks; not OTS or FontBakery certification |
 | Python macro API | Missing | Bounded JSON recipes and JS package APIs only; no FontLab Python compatibility |
 | File persistence | Partial | Counterform files, immutable IndexedDB autosave, full-snapshot revision journal with SHA-256 chain, atomic CAS writes, corruption-prefix recovery and restore-as-copy UI; no incremental delta journal, native file watch or git-aware project |
-| Full keyboard parity | Partial | 156-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
+| Full keyboard parity | Partial | 157-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
 | Worker compilation and validation | Working; physical hardware unqualified | Bounded queue, keyed proof replacement, transferable results, hard cancellation and timeout; real Node workers plus the generated relative-URL browser graph exercised in a fresh Node worker host; local isolated browser suite explicitly uses inline mode; source/distribution/Pages CI exercises real browser workers |
 | WebGPU renderer | Unqualified here | Real Skia automatic backend request; local isolated tests exercise native raster; CI also tests WebGL through SwiftShader, not physical GPUs |
 | WebGPU compute | Implemented, GPU unqualified | Independent WGSL interpolation service; CPU numerical path verified |
@@ -85,7 +86,7 @@ Open contours are editable source artwork but are excluded from font compilation
 
 ## Remaining acceptance gates
 
-Full FEA grammar and variable/device attachment anchors; avar 2.0 and newer FeatureVariations condition formats/import reconstruction; TrueType and PostScript hint authoring/debugger; variable COLRv1 parameters and bitmap/SVG color fonts; richer construction and artwork layers; full original source-format adapters; specialized Element/Metrics/Kerning/Text/Magnet/Matchmaker/Fill workflows; exhaustive native shortcuts; large-font incremental journal/worker optimization; CJK stress, hardware WebGPU, Firefox/Safari, touch and assistive technology.
+Full FEA grammar and variable/device attachment anchors; avar 2.0 and newer FeatureVariations condition formats/import reconstruction; TrueType and PostScript hint authoring/debugger; variable COLRv1 parameters and SVG color fonts; non-PNG/vertical-only bitmap families; richer construction and artwork layers; full original source-format adapters; specialized Element/Metrics/Kerning/Text/Magnet/Matchmaker/Fill workflows; exhaustive native shortcuts; large-font incremental journal/worker optimization; CJK stress, hardware WebGPU, Firefox/Safari, touch and assistive technology.
 
 ## Verification and delivery
 
@@ -112,3 +113,7 @@ See [0.7.0 release notes](RELEASE-0.7.0.md) and [API contracts](VARIABLE-FEATURE
 See [artwork/tracing contracts](ARTWORK-TRACING.md) and [release notes](RELEASE-0.9.0.md). The current source contains 34 packages, 156 command-backed actions, 24 pointer tools and 76 original icons. All ten pinned vendors and SkiaSharpWeb-compatible APIs remain unchanged.
 
 PNG references are source-only artwork, **not** sbix, CBDT/CBLC or OpenType-SVG fonts. Fitted outlines have a conservative continuous distance bound against the thresholded pixel boundary in ordinary floating-point arithmetic, not interval certification, guaranteed minimum nodes, optical correctness or guaranteed preservation of near-contact topology. Exact pixel-boundary mode preserves the classified mask's geometry and winding. This ledger does not declare all remaining native workflows complete.
+
+## 0.10.0 bitmap font tables
+
+See [bitmap contracts](BITMAP-COLOR-FONTS.md) and [release notes](RELEASE-0.10.0.md). Current totals: 35 packages, 157 commands, 24 pointer tools and 76 icons. Historical release counts above describe their respective increments. Background PNG artwork remains source-only; explicit glyph bitmap strikes now compile to font tables. No full-parity claim is made.

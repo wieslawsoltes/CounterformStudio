@@ -2,11 +2,11 @@
 
 ### Make every curve count.
 
-**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.9.0.
+**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.10.0.
 
 This is an original implementation targeting the FontLab 8.4 workflow. **It is not a feature-complete FontLab replacement.** The implemented subset includes real outline editing, masters, kerning, OpenType compilation, source interchange and live proofing—not simulated export buttons. Read [the capability contract](docs/CAPABILITIES.md) before editing production fonts. Unreconstructed font tables can be lost on re-export; keep originals.
 
-[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.9.0 artwork and tracing](docs/RELEASE-0.9.0.md)
+[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.10.0 artwork and tracing](docs/RELEASE-0.10.0.md)
 
 ![Compact desktop type-design workspace](docs/images/desktop-workspace.png)
 
@@ -30,7 +30,7 @@ The source archive includes pinned vendor runtime packages. Bootstrap creates lo
 
 The workspace uses real Dockyard docking, a RibbonWeb command ribbon, a virtual glyph library, a TreeDataGridWeb font inventory, a GridWeb kerning matrix and RichTextWeb notes. ReactiveWeb and DynamicDataWeb project the document state. Native Skia paths draw the font; RBushWeb accelerates node/handle picking, and QuikGraphWeb checks component dependency graphs.
 
-Use nine command-backed menus, 156 commands, 24 pointer tools and a ribbon with 76 original SVG icons. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
+Use nine command-backed menus, 157 commands, 24 pointer tools and a ribbon with 76 original SVG icons. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
 
 Export real **TTF, CFF/CFF2 OTF, WOFF1/WOFF2, variable TTF/CFF2, UFO3 archives and Counterform source**. Supported layout compilation includes single, multiple, alternate, ligature, chaining-context and reverse substitutions; single/pair/contextual positioning, named lookups and script/language selection; automatic and explicit mark-to-base, mark-to-ligature, mark-to-mark and cursive attachments, named anchors, mark filtering and GDEF classes. See the explicit [feature-language subset](docs/CONTEXTUAL-LAYOUT.md). Variable export writes `fvar`, `STAT`, optional `avar` 1.0 axis maps, TrueType `gvar` or CFF2 blend programs, `HVAR`, optional `MVAR`, and GDEF/GPOS variations for kerning and mark-to-base anchors. Browser WOFF2 uses stored Brotli blocks; the standalone Node subpath provides size compression. These exports remain unhinted. Color output supports COLRv0 fallback layers, all 18 static COLRv1 paint formats, all 28 compositing modes, and CPALv1 palette/entry labels and light/dark usability flags. OpenType → Color paint graph opens the transactional tree/property/proof editor for gradients, clipping, references and transforms. The compiled font renders in the browser proof and the native Skia source-master canvas; editable geometry remains separate. Variable outlines may carry static paints; PaintVar parameters, variable clip boxes, SVG and bitmap color tables are not supported.
 
@@ -100,3 +100,9 @@ Use **Font → Metrics string editor**, **Font → Conditional OpenType features
 ## 0.8.0 Unicode and SVG interchange
 
 Use **Glyph → Unicode variation sequences** for staged cmap14 editing and compiled proofs. File/Open now imports all SVG path commands, nested transforms/viewports and local references as editable geometry. All ten vendors remain in use. See [release notes](docs/RELEASE-0.8.0.md) and [contracts](docs/UNICODE-SVG-INTERCHANGE.md).
+
+## Bitmap color fonts (0.10.0)
+
+Font → Bitmap color strikes adds embedded PNG strikes, native outline rasterization,
+actual compiled previews, sbix/CBDT export and supported reconstruction. References
+remain source-only. See [contracts](docs/BITMAP-COLOR-FONTS.md) and [release notes](docs/RELEASE-0.10.0.md).

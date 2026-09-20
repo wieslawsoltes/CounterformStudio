@@ -1,7 +1,7 @@
 {
-  "name": "@wieslawsoltes/counterform-tracing",
+  "name": "@wieslawsoltes/counterform-bitmap",
   "version": "0.10.0",
-  "description": "Bounded RGBA autotracing and conservatively bounded cubic fitting",
+  "description": "Bounded PNG sbix and CBDT/CBLC codecs and bitmap color-font source contracts",
   "type": "module",
   "main": "./src/index.js",
   "types": "./types/index.d.ts",
@@ -26,5 +26,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@wieslawsoltes/counterform-binary": "0.10.0",
+    "@wieslawsoltes/counterform-artwork": "0.10.0"
+  }
 }

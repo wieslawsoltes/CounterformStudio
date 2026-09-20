@@ -255,14 +255,14 @@ with sync_playwright() as p:
             js('counterform.history.undo()')
         check('inspector metric editing participates in history',metrics)
         def authoring_surfaces():
-            expect("counterform.commands.commands.size===156 && counterform.menuDefinitions.length===9")
+            expect("counterform.commands.commands.size===157 && counterform.menuDefinitions.length===9")
             expect("(()=>{const covered=new Set(counterform.menuDefinitions.flatMap(m=>m.items));return [...counterform.commands.commands.keys()].every(id=>covered.has(id))})()")
             browser_expect(page.locator('.cf-toolrail [data-tool]')).to_have_count(24)
             expect("[...document.querySelectorAll('.cf-toolrail [data-tool]')].every(b=>b.querySelector('svg path'))")
             page.wait_for_function("[...counterform.ribbon.shadowRoot.querySelectorAll('.ribbon-icon img, img')].length>10 && [...counterform.ribbon.shadowRoot.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth>0)")
             report['authoring']=js("async()=>{const i=await import('@wieslawsoltes/counterform-icons');const e=await import('@wieslawsoltes/counterform-editor');return {commands:[...counterform.commands.commands.values()].map(c=>({id:c.id,label:c.label,keys:counterform.commands.bindings.get(c.id),icon:i.commandIcon(c.id)})),menus:counterform.menuDefinitions,tools:e.tools.map(t=>({id:t.id,label:t.label,key:t.key})),iconCount:i.iconNames.length};}")
             page.screenshot(path=str(out/'authoring-workspace.png'))
-        check('all 156 commands are available through nine menus and 24 vector tool buttons',authoring_surfaces)
+        check('all 157 commands are available through nine menus and 24 vector tool buttons',authoring_surfaces)
         def menu_keyboard():
             page.keyboard.press('F10')
             expect("document.activeElement.textContent==='File' && document.activeElement.getAttribute('role')==='menuitem'")
