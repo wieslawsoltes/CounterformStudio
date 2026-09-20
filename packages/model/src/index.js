@@ -1,3 +1,4 @@
+import {isVariationSelector} from '@wieslawsoltes/counterform-binary';
 import {normalizeAxisMap} from '@wieslawsoltes/counterform-varstore';
 import {validateModifiers,evaluateModifiers} from '@wieslawsoltes/counterform-modifiers';
 import {paintChildren} from '@wieslawsoltes/counterform-colrv1';
@@ -32,6 +33,7 @@ export class FontDocument {
     #byId = new Map();
     #byUnicode = new Map();
     #byName = new Map();
+    #bySequence = new Map();
     constructor(data = createFont()) { this.replace(data, false); }
     replace(data, notify = true) { validateDocumentShape(data); this.data = data; this.reindex(); if (notify)
         this.touch('replace'); }
@@ -40,7 +42,16 @@ export class FontDocument {
         this.#byName.set(g.name, g);
         for (const cp of g.unicodes)
             this.#byUnicode.set(cp, g);
-    } }
+    } this.#bySequence.clear();
+    for (const row of this.data.variationSequences || []) this.#bySequence.set(`${row.unicode}/${row.selector}`, row.glyphId);
+    }
+    /** Unsupported sequences are distinct from an explicitly supported default. */
+    variation(unicode, selector) {
+        const key = `${unicode}/${selector}`;
+        if (!this.#bySequence.has(key)) return undefined;
+        const id = this.#bySequence.get(key);
+        return id === null ? this.char(unicode) : this.glyph(id);
+    }
     glyph(id) { return this.#byId.get(id) || this.#byName.get(id); }
     char(cp) { return this.#byUnicode.get(typeof cp === 'string' ? cp.codePointAt(0) : cp); }
     layer(gid, mid = this.data.masters[0].id) { return this.glyph(gid)?.layers.find(l => l.masterId === mid); }
@@ -146,6 +157,7 @@ export function validateDocumentShape(d) {
             }
         }
     }
+    validateVariationSequences(d);
     validateColorSource(d);
     return d;
 }
@@ -395,3 +407,20 @@ export function createDemoFont() {
     return new FontDocument(d);
 }
 
+
+/** Stable source identities; no implicit variant inferred from glyph names. */
+export function validateVariationSequences(data, glyphs = data.glyphs) {
+    const rows = data.variationSequences;
+    if (rows === undefined) return;
+    if (!Array.isArray(rows) || rows.length > 1_000_000) throw new RangeError('UVS source entry budget exceeded');
+    const ids = new Set(glyphs.map(g=>g.id)), cps = new Set(glyphs.flatMap(g=>g.unicodes)), seen = new Set();
+    for (const r of rows) {
+        if (!r || !Number.isInteger(r.unicode) || r.unicode < 0 || r.unicode > 0x10ffff ||
+            r.unicode >= 0xd800 && r.unicode <= 0xdfff || isVariationSelector(r.unicode) || !isVariationSelector(r.selector)) throw new Error('Invalid Unicode variation sequence');
+        const key = `${r.unicode}/${r.selector}`;
+        if (seen.has(key)) throw new Error('Duplicate Unicode variation sequence');
+        seen.add(key);
+        if (r.glyphId === null) { if (!cps.has(r.unicode)) throw new Error('Default variation sequence needs an encoded base glyph'); }
+        else if (typeof r.glyphId !== 'string' || !ids.has(r.glyphId)) throw new Error('Variation sequence references a missing or non-exported glyph');
+    }
+}

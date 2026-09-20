@@ -68,11 +68,16 @@ import {planMetricEdits,applyMetricPlan} from '@wieslawsoltes/counterform-metric
 const {normalizeWorkspacePreferences}=await import('@wieslawsoltes/counterform-workbench/preferences');
 assert.equal(normalizeWorkspacePreferences({theme:'dark'}).canvas,'paper');
 const doc=createDemoFont(); assert.equal(doc.data.glyphs.length,102);
+const {readSVGOutlines}=await import('@wieslawsoltes/counterform-svg');
+assert.equal(readSVGOutlines('<svg><g transform="translate(10 20)"><path d="M0 0A10 10 0 0 1 20 0Z"/></g></svg>').contours.length,1);
+doc.data.variationSequences=[{unicode:65,selector:65039,glyphId:doc.glyph('V').id}];
+const {readCmapUVS,readDirectory:directory}=await import('@wieslawsoltes/counterform-binary');
+assert.equal(readCmapUVS(directory(compileTrueType(doc)).tables.get('cmap').bytes).length,1);
 for(const compile of [compileTrueType,compileOpenTypeCFF,compileVariableTrueType])assert(compile(doc).byteLength>1000);
 assert(new History(doc));
 const mid=doc.data.masters[0].id;applyMetricPlan(doc,planMetricEdits(doc,mid,[{glyphId:'A',lsb:50,rsb:60}]));assert.equal(doc.metrics('A',mid).lsb,50);
 const faceBytes=compileTrueType(doc),collection=encodeCollection([faceBytes,compileOpenTypeCFF(doc)]);assert.equal(readCollection(collection).faces.length,2);assert(extractCollectionFace(collection,0).length>1000);
-for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction','colrv1','modifiers','journal','preservation','cff2','woff2','varstore'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
+for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction','colrv1','modifiers','journal','preservation','cff2','woff2','varstore','svg'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
 doc.glyph('A').colorLayers=[{glyphId:doc.glyph('O').id,paletteIndex:1}];
 doc.glyph('A').colorPaint={type:'glyph',glyphId:doc.glyph('A').id,paint:{type:'linear',x0:0,y0:0,x1:600,y1:0,x2:0,y2:700,stops:[{offset:0,paletteIndex:0},{offset:1,paletteIndex:1}]}};
 doc.data.paletteLabels=['Day'];doc.data.paletteEntryLabels=doc.data.palettes[0].map((_,i)=>'Color '+i);
@@ -94,7 +99,7 @@ try {
     const {captureOriginal,restoreOriginal}=await import('@wieslawsoltes/counterform-preservation');const archive=await captureOriginal(bytes,doc.data);assert.deepEqual(await restoreOriginal(archive),bytes);
     const {RevisionJournal,MemoryJournalBackend}=await import('@wieslawsoltes/counterform-journal');const j=new RevisionJournal(new MemoryJournalBackend());await j.append(doc.data);assert.equal((await j.recover(doc.data.id)).issue,null);await j.close();
 } finally {compiler.dispose();}
-console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1, CPALv1, GPOS attachments, avar, measurements, real Node compiler worker and headless module imports');
+console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1, CPALv1, GPOS attachments, avar, measurements, cmap14, SVG import, real Node compiler worker and headless module imports');
 ''')
     result = subprocess.run(['node','consumer.mjs'],cwd=base,text=True,capture_output=True)
     print(result.stdout, end='')

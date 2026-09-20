@@ -56,10 +56,10 @@ with sync_playwright() as pw:
         report['environment']=js('({secure:isSecureContext,compiler:counterform.compiler.backend,renderer:counterform.renderer.backend})')
         js('window.initialSource=JSON.stringify(counterform.doc.data)')
         def reachability():
-            condition("counterform.commands.commands.size===151&&counterform.menuDefinitions.length===9")
+            condition("counterform.commands.commands.size===152&&counterform.menuDefinitions.length===9")
             condition("['axis.map','features.attachments','outline.analyze'].every(id=>counterform.menuDefinitions.some(m=>m.items.includes(id)))")
             condition("[...counterform.commands.commands.keys()].every(id=>counterform.menuDefinitions.some(m=>m.items.includes(id)))")
-        check('all 151 commands remain reachable; three authoring tools join existing menus',reachability)
+        check('all 152 commands remain reachable; three authoring tools join existing menus',reachability)
         def validate_only():
             d=attachment();d.get_by_role('button',name='Append attachment',exact=True).click()
             d.get_by_role('button',name='Validate compiled font').click()

@@ -39,7 +39,7 @@ export function showModifiers(app){
    const enabled=button(m.enabled===false?'Enable':'Bypass',()=>change('Toggle modifier',s=>s[i].enabled=s[i].enabled===false));enabled.setAttribute('aria-pressed',String(m.enabled!==false));
    head.append(enabled,button('Edit',()=>edit(i)),button('Duplicate',()=>change('Duplicate modifier',s=>s.splice(i+1,0,structuredClone(s[i])))),button('Remove',()=>change('Remove modifier',s=>s.splice(i,1))));
    const up=button('Move up',()=>change('Reorder modifier',s=>[s[i-1],s[i]]=[s[i],s[i-1]])),down=button('Move down',()=>change('Reorder modifier',s=>[s[i+1],s[i]]=[s[i],s[i+1]]));up.disabled=i===0;down.disabled=i===stack.length-1;head.append(up,down);row.append(head,el('code','cf-muted',JSON.stringify(m)));if(!app.editor.canEdit)row.querySelectorAll('button').forEach(b=>b.disabled=true);list.append(row);});};
- const off=app.doc.changed.subscribe(render);d.element.addEventListener('close',off,{once:true});render();
+ const off=app.doc.changed.subscribe(render);d.onClose(off);render();
  d.footer.append(type.element,button('Add step',()=>change('Add modifier',s=>s.push({type:type.input.value,enabled:true,...structuredClone(defaults[type.input.value])}))),button('Bake result',()=>{bakeModifiers(app);}),button('Done',d.close));return d;
 }
 export async function showRecovery(app){

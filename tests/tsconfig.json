@@ -19,6 +19,7 @@
     "color-consumer.ts",
     "workspace-consumer.ts",
     "advanced-consumer.ts",
-    "workflow-consumer.ts"
+    "workflow-consumer.ts",
+    "interchange-consumer.ts"
   ]
 }

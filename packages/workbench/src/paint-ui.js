@@ -147,6 +147,6 @@ export function showPaintEditor(app){
  layout.append(tree,inspector,preview);d.body.append(toolbar,errors,layout);
  d.footer.append(el('span','cf-muted','Static paints · glyph outlines remain editable'),button('Graph JSON…',editJSON),button('Undo',()=>app.history.undo()),button('Redo',()=>app.history.redo()),button('Done',d.close,{className:'primary'}));
  const off=app.doc.changed.subscribe(e=>{if(e.kind==='saved')return;render();schedule();});const dispose=()=>d.close();app.disposables.push(dispose);
- d.element.addEventListener('close',()=>{closed=true;generation++;clearTimeout(timer);app.compiler.cancelKey(key);off();if(face)document.fonts.delete(face);const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);},{once:true});
+ d.onClose(()=>{closed=true;generation++;clearTimeout(timer);app.compiler.cancelKey(key);off();if(face)document.fonts.delete(face);const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);});
  render();schedule();return d;
 }

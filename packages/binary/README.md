@@ -2,12 +2,12 @@
 
 Bounded sfnt readers/writers, checksums, UTF-16BE and CRC32.
 
-Version **0.6.0**. ES modules with TypeScript declarations. No application-global singleton is required by the pure authoring engines. The renderer/editor/workbench packages require a browser DOM.
+Version **0.8.0**. ES modules with TypeScript declarations. No application-global singleton is required by the pure authoring engines. The renderer/editor/workbench packages require a browser DOM.
 
 ## Install
 
 ```sh
-npm install ./wieslawsoltes-counterform-binary-0.6.0.tgz
+npm install ./wieslawsoltes-counterform-binary-0.8.0.tgz
 ```
 
 Install the companion Counterform tarballs together when using unpublished packages. Package manifests declare the exact source dependencies; no implementation is hidden in the application entry point. `npm run bootstrap` links the supplied workspace and vendor snapshots for offline development.
@@ -19,3 +19,7 @@ The public module is `src/index.js`; declarations are in `types/index.d.ts`. Rea
 ## Licensing
 
 MIT for Counterform code. Dependencies retain their licenses; see `THIRD_PARTY_NOTICES.md`.
+
+## 0.8.0 interchange
+
+Format-14 UVS: encodeUVS, decodeUVS, readCmapUVS and isVariationSelector. See `docs/UNICODE-SVG-INTERCHANGE.md` in the repository for limits and verification.

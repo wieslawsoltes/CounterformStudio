@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-validation",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "Font geometry, encoding, feature, topology and component graph diagnostics.",
   "main": "./src/index.js",
@@ -29,9 +29,9 @@
   "types": "./types/index.d.ts",
   "dependencies": {
     "@wieslawsoltes/quikgraphweb": "0.2.0",
-    "@wieslawsoltes/counterform-geometry": "0.7.0",
-    "@wieslawsoltes/counterform-variations": "0.7.0",
-    "@wieslawsoltes/counterform-opentype": "0.7.0"
+    "@wieslawsoltes/counterform-geometry": "0.8.0",
+    "@wieslawsoltes/counterform-variations": "0.8.0",
+    "@wieslawsoltes/counterform-opentype": "0.8.0"
   },
   "keywords": [
     "font-editor",

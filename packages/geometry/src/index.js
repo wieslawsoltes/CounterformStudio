@@ -273,74 +273,7 @@ export function toSVG(cs, precision = 3) {
     }
     return d;
 }
-/** SVG path parser supports M/L/H/V/C/S/Q/T/Z. Elliptical arcs are rejected, never silently lost. */
-export function fromSVG(d) {
-    const tokens = d.match(/[a-zA-Z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?\d+)?/g) || [];
-    let i = 0, cmd = '', p = point(0, 0), start = p, current = null, previousControl = null, previousCmd = '';
-    const result = [];
-    const number = () => { const v = Number(tokens[i++]); if (!Number.isFinite(v))
-        throw new Error('Malformed SVG path'); return v; };
-    const add = (q, inHandle = null) => { const n = node(q.x, q.y, { in: inHandle }); current.nodes.push(n); p = q; return n; };
-    while (i < tokens.length) {
-        if (/^[a-zA-Z]$/.test(tokens[i]))
-            cmd = tokens[i++];
-        if (!cmd)
-            throw new Error('SVG path needs a command');
-        const relative = cmd === cmd.toLowerCase(), C = cmd.toUpperCase(), old = p, read = () => { const x = number(), y = number(); return point(x + (relative ? old.x : 0), y + (relative ? old.y : 0)); };
-        if (C === 'M') {
-            p = read();
-            start = p;
-            current = contour([node(p.x, p.y)], false);
-            result.push(current);
-            cmd = relative ? 'l' : 'L';
-        }
-        else if (C === 'Z') {
-            if (current) {
-                current.closed = true;
-                if (current.nodes.length > 1 && distance(current.nodes[0], current.nodes.at(-1)) < 1e-6) {
-                    current.nodes[0].in = current.nodes.pop().in;
-                }
-            }
-            p = start;
-            cmd = '';
-        }
-        else {
-            if (!current)
-                throw new Error('SVG path missing move');
-            const last = current.nodes.at(-1);
-            if (C === 'L')
-                add(read());
-            else if (C === 'H')
-                add(point(number() + (relative ? old.x : 0), p.y));
-            else if (C === 'V')
-                add(point(p.x, number() + (relative ? old.y : 0)));
-            else if (C === 'C') {
-                const c1 = read(), c2 = read(), q = read();
-                last.out = c1;
-                add(q, c2);
-                previousControl = c2;
-            }
-            else if (C === 'S') {
-                const c1 = ['C', 'S'].includes(previousCmd) && previousControl ? point(2 * old.x - previousControl.x, 2 * old.y - previousControl.y) : old, c2 = read(), q = read();
-                last.out = c1;
-                add(q, c2);
-                previousControl = c2;
-            }
-            else if (C === 'Q' || C === 'T') {
-                const cp = C === 'Q' ? read() : ['Q', 'T'].includes(previousCmd) && previousControl ? point(2 * old.x - previousControl.x, 2 * old.y - previousControl.y) : old, q = read();
-                last.out = mix(old, cp, 2 / 3);
-                add(q, mix(q, cp, 2 / 3));
-                previousControl = cp;
-            }
-            else
-                throw new Error(`SVG ${C} commands are not supported; convert arcs to cubic paths first.`);
-        }
-        previousCmd = C;
-        if (result.reduce((n, c) => n + c.nodes.length, 0) > 250000)
-            throw new RangeError('SVG point limit exceeded');
-    }
-    return result;
-}
+export {parseSVGPath as fromSVG,parseSVGPath,arcToCubics} from './svg-path.js';
 /** Approximate a cubic with quadratic splines using adaptive error-bounded subdivision. */
 export function cubicToQuadratics(p0, p1, p2, p3, tolerance = .25, depth = 0) {
     const q = point((3 * p1.x - p0.x + 3 * p2.x - p3.x) / 4, (3 * p1.y - p0.y + 3 * p2.y - p3.y) / 4);

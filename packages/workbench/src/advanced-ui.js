@@ -15,7 +15,7 @@ const numeric=(f,min=-32768,max=32767)=>{const text=f.input.value.trim(),n=Numbe
 function session(app,d) {
     const doc=app.doc,id=doc.data.id,revision=doc.revision,masterId=app.editor.masterId,draft=app.featureText.value,abort=new AbortController(),key=uid('authoring');
     const dispose=()=>{if(d.element.open)d.close();abort.abort();app.compiler.cancelKey(key);};app.disposables.push(dispose);
-    d.element.addEventListener('close',()=>{abort.abort();app.compiler.cancelKey(key);const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);},{once:true});
+    d.onClose(()=>{abort.abort();app.compiler.cancelKey(key);const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);});
     return {doc,id,revision,masterId,draft,key,signal:abort.signal,alive:()=>!abort.signal.aborted&&d.element.open&&d.element.isConnected,
         check(){if(abort.signal.aborted||!d.element.open||!d.element.isConnected)throw new DOMException('Editor closed','AbortError');if(app.doc!==doc||doc.data.id!==id||doc.revision!==revision||app.editor.masterId!==masterId||app.editor.readOnly||app.featureText.value!==draft)throw new Error('Source, master or feature draft changed. Reopen this editor before applying.');}};
 }
@@ -40,7 +40,7 @@ export function showAttachmentEditor(app) {
     source.append(el('h3','','Complete feature source'),textarea,el('p','cf-muted','Existing feature text is retained. Named lookups may be called from contextual rules. Use a distinct mark glyph; the compiler infers GDEF classes.'));
     const sample=field('Attachment preview text','AV'),proof=el('div','cf-attachment-proof');proof.setAttribute('aria-label','Compiled attachment proof');proof.setAttribute('role','img');proof.hidden=true;const family='CF_attach_'+s.key.replace(/[^a-zA-Z0-9]/g,'');let previewFace=null;
     proof.style.fontFamily=`"${family}"`;sample.input.addEventListener('input',()=>proof.textContent=sample.input.value,{signal:s.signal});source.append(sample.element,proof);
-    d.element.addEventListener('close',()=>{if(previewFace)document.fonts.delete(previewFace);previewFace=null;},{once:true});
+    d.onClose(()=>{if(previewFace)document.fonts.delete(previewFace);previewFace=null;});
     const update=()=>{components.element.hidden=step.element.hidden=type.input.value!=='ligature';rtl.element.hidden=type.input.value!=='cursive';};type.input.addEventListener('change',update,{signal:s.signal});update();
     function insert(){
         s.check();const t=target.input.value,m=mark.input.value;if(!t||!m||t===m)throw new Error('Choose distinct target and mark / next glyphs');
@@ -124,6 +124,6 @@ export function showOutlineAnalysis(app) {
         chart.append(group);detail.textContent=`Length ${fmt(row.length)} u · area ${fmt(row.signedArea)} u² · ${row.segments.reduce((n,s)=>n+s.inflections.length,0)} analytic inflections. Comb lengths are visualization-clamped; measurements are not.`;
     }
     list.addEventListener('change',render);d.body.append(report,list,chart,detail,el('p','cf-muted','Signed area is the algebraic Green integral, not Boolean-unioned ink area. Open contours have no enclosed area. Arc length uses chord/control-polygon bounds, not flatness sampling. '+(result.converged?'Requested length tolerance met.':'Subdivision budget reached; consult the reported error bound.')));
-    const dispose=()=>d.close();app.disposables.push(dispose);d.element.addEventListener('close',()=>{const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);},{once:true});
+    const dispose=()=>d.close();app.disposables.push(dispose);d.onClose(()=>{const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);});
     d.footer.append(button('Export measurements',()=>download(JSON.stringify(result,null,2),glyphName+'-measurements.json','application/json')),button('Done',d.close,{className:'primary'}));render();return d;
 }

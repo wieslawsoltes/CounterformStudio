@@ -1,3 +1,5 @@
+import {registerEncodingCommands} from './encoding-ui.js';
+import {readSVGOutlines} from '@wieslawsoltes/counterform-svg';
 import {registerWorkflowCommands,showCollectionBuilder} from './workflow-ui.js';
 import {registerAdvancedCommands} from './advanced-ui.js';
 import {WorkspaceUI, registerWorkspaceCommands} from './workspace-ui.js';
@@ -20,7 +22,7 @@ import { ProjectStore, Autosave, download, parseProject, chooseFile } from '@wie
 import { exportGlyphOrder, importFont, compileTrueType, compileOpenTypeCFF, encodeWOFF, inspectFont } from '@wieslawsoltes/counterform-font-io';
 import { compileVariableTrueType, instanceDocument, compatibility } from '@wieslawsoltes/counterform-variations';
 import { validateFont } from '@wieslawsoltes/counterform-validation';
-import { exportUFO, importUFO, parseXML } from '@wieslawsoltes/counterform-ufo';
+import { exportUFO, importUFO } from '@wieslawsoltes/counterform-ufo';
 import { parseFeatures, pairKey, kerningValue } from '@wieslawsoltes/counterform-opentype';
 import { applyRecipe, recipes } from '@wieslawsoltes/counterform-automation';
 import { CoordinateCompute } from '@wieslawsoltes/counterform-compute';
@@ -324,6 +326,7 @@ export class StudioWorkbench {
         registerWorkspaceCommands(this);
         registerAdvancedCommands(this);
         registerWorkflowCommands(this);
+        registerEncodingCommands(this);
     }
     buildMenus() {createStudioMenus(this);}
     buildInspector() {
@@ -495,27 +498,16 @@ export class StudioWorkbench {
         const name = file.name.toLowerCase();
         if(name.endsWith('.ttc')||name.endsWith('.otc')){showCollectionBuilder(this,{files:[file]});return;}
         if (name.endsWith('.svg')) {
-            const text = await file.text(), tree = parseXML(text);
-            if (tree.name !== 'svg')
-                throw new Error('Not an SVG document');
-            const paths = [];
-            const walk = n => { if (n.attrs.transform)
-                throw new Error('Flatten SVG transforms before importing this version'); if (n.name === 'path') {
-                paths.push(...fromSVG(n.attrs.d || ''));
-            }
-            else if (n.name === 'rect')
-                paths.push(rectangle(Number(n.attrs.x || 0), Number(n.attrs.y || 0), Number(n.attrs.width), Number(n.attrs.height)));
-            else if (n.name === 'circle' || n.name === 'ellipse')
-                paths.push(ellipse(Number(n.attrs.cx || 0), Number(n.attrs.cy || 0), Number(n.attrs.rx || n.attrs.r), Number(n.attrs.ry || n.attrs.r)));
-            else if (['text', 'image', 'use'].includes(n.name))
-                throw new Error('Convert SVG text, images and references to outlines first'); for (const c of n.children)
-                walk(c); };
-            walk(tree);
+            if(!this.editor.canEdit)throw new Error('Select an editable source layer before importing SVG');
+            const originalDoc=this.doc,originalRevision=this.doc.revision,glyphId=this.editor.glyphId,masterId=this.editor.masterId;
+            const text=await file.text(), {contours:paths,warnings}=readSVGOutlines(text);
+            if(this.doc!==originalDoc||this.doc.revision!==originalRevision||this.editor.glyphId!==glyphId||this.editor.masterId!==masterId||!this.editor.canEdit)throw new Error('Source changed during SVG import; import again');
             if (!paths.length)
                 throw new Error('No supported SVG outlines');
             const b = bounds(paths), scale = this.doc.info.capHeight / (b.height || 1);
             transformContours(paths, [scale, 0, 0, -scale, 50 - b.minX * scale, b.maxY * scale]);
-            this.editor.transaction('Import SVG outlines', () => this.editor.layer.contours.push(...paths));
+            this.editor.transaction('Import SVG outlines', () => {for(const path of paths)this.editor.layer.contours.push(path);});
+            if(warnings.length)toast(warnings.join(' '));
             this.renderer.fit();
             return;
         }
@@ -620,7 +612,7 @@ export class StudioWorkbench {
         throw new Error('Resolve validation errors before exporting'); if (!name.input.value.trim())
         throw new Error('Choose a file name'); progress.textContent = 'Compiling in worker…';
         const abort = new AbortController();
-        d.element.addEventListener('close', () => abort.abort(), {once:true});
+        d.onClose( () => abort.abort());
         let bytes, extension = format.input.value, mime;
         const exportRevision = this.doc.revision;
         if (extension === 'project') {bytes=JSON.stringify(this.doc.data,null,2);extension='counterform';mime='application/json';}

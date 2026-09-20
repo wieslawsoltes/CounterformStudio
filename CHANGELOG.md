@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0 — Unicode and vector interchange
+
+Added cmap14 UVS authoring, binary/source roundtrips, compiled encoding proofs, source metrics resolution, complete SVG path commands, bounded transformed-document vector extraction and a standalone SVG package. Corrected synchronous modal resource ownership while preserving native cancellation/events. Added codec, fontTools/HarfBuzz and browser regression gates.
+
 ## 0.7.0 — conditional layout, collections and metrics
 
 Real GSUB/GPOS FeatureVariations with avar-aware conditions and static-instance selection; TTC/OTC codecs, table sharing and face chooser; standalone metrics-string/formula engine and transactional UI. Added source/distribution browser gates and independent fontTools/HarfBuzz oracles. Thirty-one packages, 151 commands; pinned vendors and SkiaSharpWeb APIs unchanged. See `docs/RELEASE-0.7.0.md` for qualified subsets and remaining gaps.

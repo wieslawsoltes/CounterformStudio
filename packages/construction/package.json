@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-construction",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "Headless shape, freehand, B\u00e9zier surgery and outline transformation algorithms.",
   "main": "./src/index.js",
@@ -25,6 +25,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@wieslawsoltes/counterform-geometry": "0.7.0"
+    "@wieslawsoltes/counterform-geometry": "0.8.0"
   }
 }

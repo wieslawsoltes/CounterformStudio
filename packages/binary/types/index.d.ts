@@ -62,3 +62,9 @@ export function encodeCollection(fonts:Uint8Array[],options?:{version?:1|2;share
 export function extractCollectionFace(input:Uint8Array,index?:number):Uint8Array;
 
 export function extractCollectionFaces(input:Uint8Array):Uint8Array[];
+/** null selects the normal Unicode cmap; zero is an explicit .notdef mapping. */
+export interface UVSMapping {unicode:number;selector:number;glyphIndex:number|null;}
+export function isVariationSelector(codePoint:number):boolean;
+export function encodeUVS(records:readonly UVSMapping[]):Uint8Array;
+export function decodeUVS(bytes:Uint8Array,options?:{maxEntries?:number;glyphCount?:number}):UVSMapping[];
+export function readCmapUVS(cmap:Uint8Array,options?:{maxEntries?:number;glyphCount?:number}):UVSMapping[];

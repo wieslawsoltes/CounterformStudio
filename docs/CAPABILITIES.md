@@ -1,15 +1,15 @@
 # Capability contract and parity ledger
 
-Version 0.7.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
+Version 0.8.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
 
 **Working** means implemented and exercised within the documented subset. **Partial** means a narrower implementation exists. **Missing** means no implementation is claimed. An attractive dialog, data field or shader source alone is not counted as feature parity.
 
 | Area | Status | Delivered contract / boundary |
 |---|---|---|
-| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 73 original SVG icons, nine menus covering all 151 current commands; not every native FontLab command |
+| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 73 original SVG icons, nine menus covering all 152 current commands; not every native FontLab command |
 | Glyph library and font inventory | Working | Full virtual Font window and optional navigator; stable grid keyboard focus; reactive keyed projection; retained TreeDataGrid editable widths/export flags |
 | Workspace presentation and preferences | Working | Neutral light/dark chrome, independent paper canvas, collapsible palettes, direct metrics, panel rail, reversible Focus/Reset, device-local preferences; native pixel/behavior parity is not claimed |
-| Unicode mapping | Working | Scalar values including supplementary planes; no UVS/cmap14 authoring |
+| Unicode mapping | Working | Scalar values and cmap14 default/nondefault variation sequences; indexed source mappings, compiled proofs, source metrics, supported native/TTF reconstruction; not registration or every script workflow |
 | Pen and outline selection | Working | Endpoints, absolute cubic handles, drag construction, marquee/lasso, insertion, deletion |
 | Shape tools | Working | Rectangle, ellipse, open line, polygon, star and rounded rectangle; constrained drawing and bounded options |
 | Pencil and pressure brush | Partial | Simplified freehand polyline; pressure-sensitive filled outline with bounded miter joins/flat caps; no fitted Rapid curves or editable brush skeleton |
@@ -51,14 +51,14 @@ Version 0.7.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 f
 | WOFF2 export | Working | Single-face null-transform containers; portable stored Brotli blocks, injected compressor or Node compressed subpath; canonical tags, DSIG removal and head normalization |
 | TTC/OTC authoring and extraction | Working within the container contract | v1/v2 mixed TrueType/CFF/CFF2 collections, identical table sharing, bounded structural/checksum validation, extraction and explicit face selection; opaque table payload preservation is not universal source reconstruction |
 | UFO3 / GLIF import/export | Partial | ZIP, source contours/anchors/components/master layers; custom Counterform metadata retains master locations; GLIF edits authoritative; not complete UFO lib semantics |
-| SVG outline import/export | Partial | Basic supported paths/shapes; arcs, transforms and arbitrary SVG documents are rejected |
+| SVG outline import/export | Partial | All path commands including approximated arcs, basic shapes, transforms, viewports and local use; bounded standalone vector extraction; appearance/clipping limitations are explicit, arbitrary artwork still unsupported |
 | FontLab VFC / VFB / VFJ | Missing | No proprietary source-format compatibility claimed |
 | Glyphs / SFD / designspace file support | Missing | No full interchange parsers |
 | Live text proof | Working | Browser shaping of the actual compiled font; kern/liga toggles, waterfall, variable coordinates |
 | Production QA | Partial | Structural/geometry/encoding/component/master checks; not OTS or FontBakery certification |
 | Python macro API | Missing | Bounded JSON recipes and JS package APIs only; no FontLab Python compatibility |
 | File persistence | Partial | Counterform files, immutable IndexedDB autosave, full-snapshot revision journal with SHA-256 chain, atomic CAS writes, corruption-prefix recovery and restore-as-copy UI; no incremental delta journal, native file watch or git-aware project |
-| Full keyboard parity | Partial | 151-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
+| Full keyboard parity | Partial | 152-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
 | Worker compilation and validation | Working; physical hardware unqualified | Bounded queue, keyed proof replacement, transferable results, hard cancellation and timeout; real Node workers plus the generated relative-URL browser graph exercised in a fresh Node worker host; local isolated browser suite explicitly uses inline mode; source/distribution/Pages CI exercises real browser workers |
 | WebGPU renderer | Unqualified here | Real Skia automatic backend request; local isolated tests exercise native raster; CI also tests WebGL through SwiftShader, not physical GPUs |
 | WebGPU compute | Implemented, GPU unqualified | Independent WGSL interpolation service; CPU numerical path verified |
@@ -88,7 +88,7 @@ Full FEA grammar and variable/device attachment anchors; avar 2.0 and newer Feat
 
 ## Verification and delivery
 
-Current workflow delivery is recorded in [0.7.0 delivery](WORKFLOWS-DELIVERY.md); its commit-associated CI is authoritative for this source.
+The 0.8.0 increment is described in [release notes](RELEASE-0.8.0.md) and [contracts](UNICODE-SVG-INTERCHANGE.md). Its commit-associated CI is authoritative; historical 0.7.0 delivery is recorded in [workflow delivery](WORKFLOWS-DELIVERY.md).
 
 Historical evidence: see [0.5.0 release notes](RELEASE-0.5.0.md), [delivery status](DELIVERY-STATUS.md) and associated verification artifacts. The complete 0.5.0 source is committed on `main` at `12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`. Delivery status links the new verification runs; the original local evidence remains under `docs/verification/0.5.0`. Results from earlier releases do not certify this source, and software-rendered CI does not certify physical GPU performance. No full-parity percentage is asserted.
 
@@ -104,4 +104,4 @@ For the 0.6.0 attachment, mapping and analysis increment, see [release notes](RE
 | TTC/OTC collections | Working subset | v1/v2 mixed-flavor packing, table sharing, bounded structural/checksum validation, bulk extraction and face chooser; contained font reconstruction remains format-dependent |
 | Source metrics formulas | Working subset | Source-order Unicode/slash strings, arithmetic sidebearings/advance, dependency-ordered batches and kerning exceptions; no live links or optical kerning |
 
-See [0.7.0 release notes](RELEASE-0.7.0.md) and [API contracts](VARIABLE-FEATURES-COLLECTIONS-METRICS.md). All 31 packages and ten pinned vendors remain independently usable.
+See [0.7.0 release notes](RELEASE-0.7.0.md) and [API contracts](VARIABLE-FEATURES-COLLECTIONS-METRICS.md). All 32 packages and ten pinned vendors remain independently usable.

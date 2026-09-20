@@ -51,7 +51,7 @@ with sync_playwright() as pw:
         report['environment']=js('({secure:isSecureContext,compiler:counterform.compiler.backend,renderer:counterform.renderer.backend})')
         js('window.initialSource=JSON.stringify(counterform.doc.data)')
         def reachability():
-            condition("counterform.commands.commands.size===151&&counterform.menuDefinitions.length===9")
+            condition("counterform.commands.commands.size===152&&counterform.menuDefinitions.length===9")
             condition("['metrics.editor','features.variations','font.collection'].every(id=>counterform.menuDefinitions.some(m=>m.items.includes(id)))")
             condition("[...counterform.commands.commands.keys()].every(id=>counterform.menuDefinitions.some(m=>m.items.includes(id)))")
         check('151 command-backed actions include all three production workflow editors',reachability)

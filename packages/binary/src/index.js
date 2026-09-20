@@ -102,3 +102,4 @@ export function crc32(bytes) { let c = 0xffffffff; for (const b of bytes) {
 
 
 export {encodeCollection,readCollection,extractCollectionFace,extractCollectionFaces} from "./collections.js";
+export {isVariationSelector,encodeUVS,decodeUVS,readCmapUVS} from './uvs.js';

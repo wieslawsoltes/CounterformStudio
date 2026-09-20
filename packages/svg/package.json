@@ -1,0 +1,31 @@
+{
+  "name": "@wieslawsoltes/counterform-svg",
+  "version": "0.8.0",
+  "type": "module",
+  "description": "Bounded SVG vector extraction with full path commands, affine transforms and local references.",
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@wieslawsoltes/counterform-geometry": "0.8.0"
+  }
+}

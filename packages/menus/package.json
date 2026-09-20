@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-menus",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "Keyboard-complete, command-backed accessible menubars and context menus.",
   "main": "./src/index.js",

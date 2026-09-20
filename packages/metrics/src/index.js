@@ -1,3 +1,4 @@
+import {isVariationSelector} from '@wieslawsoltes/counterform-binary';
 import {FontDocument,setSidebearing,validateDocumentShape} from '@wieslawsoltes/counterform-model';
 import {kerningValue,pairKey} from '@wieslawsoltes/counterform-opentype';
 
@@ -16,7 +17,11 @@ export function parseMetricsText(text,doc) {
             const match=/^[A-Za-z0-9_.$-]+/.exec(text.slice(i));
             if(match){i+=match[0].length;add(doc.glyph(match[0]),start,i,match[0]);if(text[i]===' ')i++;continue;}
         }else if(char==='/'&&text[i]==='/')i++;
-        add(doc.char(cp),start,i,`U+${cp.toString(16).toUpperCase()}`);
+        const vs=text.codePointAt(i);
+        if(isVariationSelector(vs)&&!isVariationSelector(cp)) {
+            i+=String.fromCodePoint(vs).length;
+            add(doc.variation(cp,vs)??doc.char(cp),start,i,`U+${cp.toString(16).toUpperCase()} U+${vs.toString(16).toUpperCase()}`);
+        } else add(doc.char(cp),start,i,`U+${cp.toString(16).toUpperCase()}`);
     }
     return result;
 }

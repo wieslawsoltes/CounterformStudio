@@ -80,7 +80,7 @@ export function smoothNode(c: any, index: any): void;
 export function moveHandle(n: any, side: any, p: any, mirror?: boolean): void;
 export function toSVG(cs: any, precision?: number): string;
 /** SVG path parser supports M/L/H/V/C/S/Q/T/Z. Elliptical arcs are rejected, never silently lost. */
-export function fromSVG(d: any): {
+export function fromSVG(d: string,options?:{maxNodes?:number}): {
     id: string;
     closed: boolean;
     nodes: any[];
@@ -129,3 +129,9 @@ export interface OutlineAnalysis {contours:ContourAnalysis[];bounds:AnalysisBoun
 /** Signed, winding-weighted moments (not Boolean-unioned ink area) and bounded arc lengths. */
 export function analyzeContours(contours:AnalysisContour[],options?:AnalysisOptions):OutlineAnalysis;
 export function segmentProperties(segment:OutlineSegment,t:number):CurveProperties;
+
+export function parseSVGPath(source:string,options?:{maxNodes?:number}):SVGContour[];
+export function arcToCubics(start:AnalysisPoint,rx:number,ry:number,rotation:number,largeArc:0|1,sweep:0|1,end:AnalysisPoint):{control1:AnalysisPoint|null;control2:AnalysisPoint|null;end:AnalysisPoint}[];
+
+export interface SVGNode extends AnalysisNode {id:string;x:number;y:number;in:AnalysisPoint|null;out:AnalysisPoint|null;smooth:boolean}
+export interface SVGContour {id:string;closed:boolean;nodes:SVGNode[]}

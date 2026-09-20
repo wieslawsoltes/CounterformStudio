@@ -9,12 +9,53 @@ export function toast(message, kind = 'info') { let host = document.querySelecto
     document.body.append(host);
 } const box = el('div', `cf-toast ${kind}`, message); host.append(box); setTimeout(() => box.remove(), kind === 'error' ? 10000 : 4500); }
 let dialogSequence = 0;
-export function dialog(title, { subtitle = '', className = '', wide = false } = {}) { const d = el('dialog', 'cf-dialog ' + className + (wide ? ' wide' : '')), header = el('header', 'cf-dialog-header'), titleBox = el('div'); const heading=el('h2','',title);heading.id=`cf-dialog-title-${++dialogSequence}`;d.setAttribute('aria-labelledby',heading.id);titleBox.append(heading); if (subtitle)
-    titleBox.append(el('p', 'cf-muted', subtitle)); const closeButton=button('×', () => d.close(), { className: 'cf-close', title: 'Close dialog' });closeButton.setAttribute('aria-label','Close dialog');header.append(titleBox,closeButton); const body = el('div', 'cf-dialog-body'), footer = el('footer', 'cf-dialog-footer'); d.append(header, body, footer); document.body.append(d); d.addEventListener('close', () => d.remove(), { once: true }); d.addEventListener('click', e => { if (e.target === d) {
-    const r = d.getBoundingClientRect();
-    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)
-        d.close();
-} }); d.showModal(); return { element: d, body, footer, close: () => d.close() }; }
+/** One-shot modal. Owned resources are released before close() returns; native
+ * close events remain native and are not synthesized or dispatched twice. */
+export function dialog(title, { subtitle = '', className = '', wide = false } = {}) {
+    const d = el('dialog', 'cf-dialog ' + className + (wide ? ' wide' : ''));
+    const header = el('header', 'cf-dialog-header'), titleBox = el('div');
+    const heading = el('h2', '', title);
+    heading.id = `cf-dialog-title-${++dialogSequence}`;
+    d.setAttribute('aria-labelledby', heading.id);
+    titleBox.append(heading);
+    if (subtitle) titleBox.append(el('p', 'cf-muted', subtitle));
+    const callbacks = new Set();
+    let closed = false;
+    const finish = () => {
+        if (closed) return;
+        closed = true;
+        // Snapshot before invoking callbacks: a disposer may close another modal.
+        const pending = [...callbacks]; callbacks.clear();
+        for (const callback of pending) {
+            try { callback(); } catch (error) { console.error('Dialog cleanup failed', error); }
+        }
+        d.remove();
+    };
+    const nativeClose = d.close.bind(d);
+    d.close = (...args) => { nativeClose(...args); if (!d.open) finish(); };
+    d.addEventListener('close', finish, { once: true });
+    // Escape/form submission can invoke the platform algorithm without calling
+    // the instance method. Preserve cancellation semantics and clean up promptly.
+    d.addEventListener('cancel', () => queueMicrotask(() => { if (!d.open) finish(); }));
+    const closeButton = button('×', () => d.close(), { className: 'cf-close', title: 'Close dialog' });
+    closeButton.setAttribute('aria-label', 'Close dialog');
+    header.append(titleBox, closeButton);
+    const body = el('div', 'cf-dialog-body'), footer = el('footer', 'cf-dialog-footer');
+    d.append(header, body, footer); document.body.append(d);
+    d.addEventListener('click', e => {
+        if (e.target !== d) return;
+        const r = d.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
+    });
+    d.showModal();
+    return { element: d, body, footer, close: () => d.close(),
+        onClose(callback) {
+            if (typeof callback !== 'function') throw new TypeError('A cleanup callback is required');
+            if (closed) callback(); else callbacks.add(callback);
+            return () => callbacks.delete(callback);
+        }
+    };
+}
 export function field(label, value, { type = 'text', min, max, step, placeholder = '', options = null } = {}) { const wrapper = el('label', 'cf-field'), caption = el('span', '', label); let input; if (options) {
     input = el('select');
     for (const option of options) {

@@ -14,7 +14,8 @@ export interface Axis {map?:[number,number][];tag:string;name:string;min:number;
 export interface Master {metrics?:Partial<Pick<FontInfo,"ascender"|"descender"|"lineGap"|"capHeight"|"xHeight">>;id:string;name:string;location:Record<string,number>;}
 export interface Instance {name:string;location:Record<string,number>;}
 export interface FontInfo {familyName:string;styleName:string;unitsPerEm:number;ascender:number;descender:number;capHeight:number;xHeight:number;lineGap:number;italicAngle:number;weightClass:number;widthClass:number;designer:string;manufacturer:string;copyright:string;license:string;versionMajor:number;versionMinor:number;}
-export interface FontSource {featureInstance?:{axes:Axis[];location:Record<string,number>};paletteTypes?:number[];paletteLabels?:string[];paletteEntryLabels?:string[];originalFont?:{format:1;filename:string;bytes:string;sha256:string;sourceSha256:string;structureSha256:string;info:Record<string,unknown>};format:'counterform';version:1;id:string;info:FontInfo;axes:Axis[];masters:Master[];instances:Instance[];glyphs:Glyph[];kerning:Record<string,Record<string,number>>;groups:Record<string,string[]>;features:string;palettes:string[][];notes:string;richNotes?:unknown;importInfo:unknown;}
+export interface VariationSequence {unicode:number;selector:number;glyphId:string|null;}
+export interface FontSource {variationSequences?:VariationSequence[];featureInstance?:{axes:Axis[];location:Record<string,number>};paletteTypes?:number[];paletteLabels?:string[];paletteEntryLabels?:string[];originalFont?:{format:1;filename:string;bytes:string;sha256:string;sourceSha256:string;structureSha256:string;info:Record<string,unknown>};format:'counterform';version:1;id:string;info:FontInfo;axes:Axis[];masters:Master[];instances:Instance[];glyphs:Glyph[];kerning:Record<string,Record<string,number>>;groups:Record<string,string[]>;features:string;palettes:string[][];notes:string;richNotes?:unknown;importInfo:unknown;}
 export interface DocumentChange {kind:string;glyphId?:string|null;revision:number;}
 export declare class Signal<T=any> {subscribe(fn:(value:T)=>void):()=>void;emit(value:T):void;clear():void;}
 export declare function createLayer(masterId:string,contours?:Contour[]):Layer;
@@ -24,6 +25,7 @@ export declare class FontDocument {
  constructor(data?:FontSource);data:FontSource;changed:Signal<DocumentChange>;revision:number;savedRevision:number;
  readonly info:FontInfo;readonly dirty:boolean;
  replace(data:FontSource,notify?:boolean):void;reindex():void;glyph(idOrName:string):Glyph|undefined;char(codePoint:number|string):Glyph|undefined;
+ variation(unicode:number,selector:number):Glyph|undefined;
  layer(glyphId:string,masterId?:string):Layer|undefined;touch(kind?:string,glyphId?:string|null):void;replaceGlyph(id:string,glyph:Glyph):void;addGlyph(glyph:Glyph):Glyph;
  markSaved():void;serialize():string;resolve(glyphId:string,masterId?:string,visited?:Set<string>,depth?:number):Contour[];
  metrics(glyphId:string,masterId?:string):({minX:number;minY:number;maxX:number;maxY:number;width:number;height:number;empty:boolean;advanceWidth:number;lsb:number;rsb:number})|null;
@@ -35,3 +37,5 @@ export declare function setSidebearing(doc:FontDocument,glyphId:string,masterId:
 export declare function addMaster(doc:FontDocument,name:string,location:Record<string,number>,sourceId?:string):string;
 export declare function demoOutlines(character:string,width?:number):Contour[];
 export declare function createDemoFont():FontDocument;
+
+export function validateVariationSequences(data:FontSource,glyphs?:Glyph[]):void;

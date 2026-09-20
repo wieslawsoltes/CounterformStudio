@@ -1,6 +1,6 @@
 import { compileColorTables, readColorTables, createPaletteNamePlan } from '@wieslawsoltes/counterform-color';
-import { Reader, Writer, sfnt, readDirectory, checksum, utf16be, decodeUTF16BE } from '@wieslawsoltes/counterform-binary';
-import { FontDocument, createFont, createGlyph } from '@wieslawsoltes/counterform-model';
+import { encodeUVS, readCmapUVS, Reader, Writer, sfnt, readDirectory, checksum, utf16be, decodeUTF16BE } from '@wieslawsoltes/counterform-binary';
+import { FontDocument, createFont, createGlyph, validateVariationSequences } from '@wieslawsoltes/counterform-model';
 import { bounds, contoursToQuadraticPoints, quadraticPointsToContour, fromSVG, transformContours, segments, uid } from '@wieslawsoltes/counterform-geometry';
 import { compileLayout, compileKern, readKern, pairKey } from '@wieslawsoltes/counterform-opentype';
 const round = Math.round;
@@ -81,7 +81,7 @@ export function readCmap(bytes) {
     }
     return mappings;
 }
-function cmapTable(glyphs) {
+function cmapTable(glyphs, sequences = []) {
     const map = new Map();
     glyphs.forEach((g, i) => g.unicodes.forEach(cp => { if (map.has(cp))
         throw new Error(`Duplicate Unicode U+${cp.toString(16)}`); map.set(cp, i); }));
@@ -119,14 +119,18 @@ function cmapTable(glyphs) {
         w.zeros(n * 2);
         f4 = w.finish();
     }
-    const w = new Writer().u16(0).u16(f4 ? 3 : 2), start = f4 ? 28 : 20;
-    w.u16(0).u16(4).u32(start + (f4?.length || 0));
-    if (f4)
-        w.u16(3).u16(1).u32(start);
-    w.u16(3).u16(10).u32(start + (f4?.length || 0));
-    if (f4)
-        w.raw(f4);
-    return w.raw(f12.finish()).finish();
+    const index = new Map(glyphs.map((g,i)=>[g.id,i]));
+    const f14 = sequences.length ? encodeUVS(sequences.map(r=>({unicode:r.unicode,selector:r.selector,glyphIndex:r.glyphId===null?null:index.get(r.glyphId)}))) : null;
+    const parts = [...(f4 ? [f4] : []),f12.finish(),...(f14 ? [f14] : [])];
+    const records = [{platform:0,encoding:4,part:f4?1:0}];
+    if(f14)records.push({platform:0,encoding:5,part:parts.length-1});
+    if(f4)records.push({platform:3,encoding:1,part:0});
+    records.push({platform:3,encoding:10,part:f4?1:0});
+    const w=new Writer().u16(0).u16(records.length),offsets=[];let offset=4+records.length*8;
+    for(const b of parts){offsets.push(offset);offset+=b.length;}
+    for(const record of records)w.u16(record.platform).u16(record.encoding).u32(offsets[record.part]);
+    for(const b of parts)w.raw(b);
+    return w.finish();
 }
 export function nameTable(info, extra = []) {
     const family = info.familyName || 'Untitled', style = info.styleName || 'Regular', full = family + ' ' + style, ps = safeName(family) + '-' + safeName(style), values = new Map([[0, info.copyright || ''], [1, family], [2, style], [3, `${info.versionMajor || 1}.${info.versionMinor || 0};CFST;${ps}`], [4, full], [5, `Version ${info.versionMajor || 1}.${String(info.versionMinor || 0).padStart(3, '0')}`], [6, ps], [8, info.manufacturer || ''], [9, info.designer || ''], [13, info.license || ''], [16, family], [17, style], ...extra]);
@@ -177,8 +181,9 @@ function baseTables(doc, glyphs, metrics, outlineFormat, masterId, extraNames = 
     const maxp = new Writer().u32(outlineFormat === 'ttf' ? 0x10000 : 0x5000).u16(glyphs.length);
     if (outlineFormat === 'ttf')
         maxp.u16(Math.max(...metrics.map(m => m.points || 0))).u16(Math.max(...metrics.map(m => m.contours || 0))).u16(0).u16(0).u16(2).u16(0).u16(0).u16(0).u16(0).u16(0).u16(0).u16(0).u16(0);
+    validateVariationSequences(doc.data, glyphs);
     const colorNames=createPaletteNamePlan(doc.data,extraNames);
-    const tables = new Map([['head', head.finish()], ['hhea', hhea.finish()], ['hmtx', hm.finish()], ['maxp', maxp.finish()], ['cmap', cmapTable(glyphs)], ['name', nameTable(info, [...extraNames,...colorNames.names])], ['OS/2', os2Table(info, glyphs, metrics)], ['post', postTable(info, glyphs)]]);
+    const tables = new Map([['head', head.finish()], ['hhea', hhea.finish()], ['hmtx', hm.finish()], ['maxp', maxp.finish()], ['cmap', cmapTable(glyphs,doc.data.variationSequences)], ['name', nameTable(info, [...extraNames,...colorNames.names])], ['OS/2', os2Table(info, glyphs, metrics)], ['post', postTable(info, glyphs)]]);
     if (outlineFormat === 'ttf')
         tables.set('gasp', new Writer().u16(1).u16(1).u16(65535).u16(10).finish());
     const layout = compileLayout(doc.data, glyphs, masterId);
@@ -419,6 +424,7 @@ export function parseTrueType(bytes, { maxGlyphs = 65535, maxPoints = 2000000 } 
         g.category = cps.some(cp => /\p{Mark}/u.test(String.fromCodePoint(cp))) ? 'Mark' : 'Letter';
         data.glyphs.push(g);
     }
+    restoreUVS(data, get('cmap'));
     const format = new Reader(get('head')).seek(50).i16(), loc = new Reader(get('loca')), offsets = Array.from({ length: n + 1 }, () => format === 0 ? loc.u16() * 2 : loc.u32()), glyf = new Reader(get('glyf')), cache = new Map();
     let totalPoints = 0;
     const raw = (id, stack = new Set()) => {
@@ -597,6 +603,7 @@ export async function importWithSkia(bytes, S, { signal, onProgress = () => { } 
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
         }
+        restoreUVS(data, tables.get('cmap')?.bytes);
         if (tables.has('kern'))
             for (const k of readKern(tables.get('kern').bytes))
                 if (data.glyphs[k.left] && data.glyphs[k.right])
@@ -620,3 +627,9 @@ export async function importFont(bytes, { skia, ...options } = {}) { bytes = byt
     return parseTrueType(bytes, options); if (!skia)
     throw new Error('CFF import requires SkiaSharpWeb'); return importWithSkia(bytes, skia, options); }
 
+
+function restoreUVS(data,cmap) {
+    if (!cmap) return;
+    const rows = readCmapUVS(cmap,{glyphCount:data.glyphs.length});
+    if (rows.length) data.variationSequences = rows.map(r=>({unicode:r.unicode,selector:r.selector,glyphId:r.glyphIndex===null?null:data.glyphs[r.glyphIndex].id}));
+}

@@ -15,7 +15,7 @@ function lifetime(app,d){
     const doc=app.doc,id=app.doc.data.id,masterId=app.editor.masterId,controller=new AbortController(),key=uid('workflow');
     const dispose=()=>{controller.abort();app.compiler.cancelKey(key);if(d.element.open)d.close();};app.disposables.push(dispose);
     const off=doc.changed.subscribe(()=>{if(doc.data.id!==id)dispose();});
-    d.element.addEventListener('close',()=>{off();controller.abort();app.compiler.cancelKey(key);const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);},{once:true});
+    d.onClose(()=>{off();controller.abort();app.compiler.cancelKey(key);const i=app.disposables.indexOf(dispose);if(i>=0)app.disposables.splice(i,1);});
     return {doc,masterId,key,signal:controller.signal,alive:()=>!controller.signal.aborted&&d.element.open&&d.element.isConnected,
         check(edit=true){if(controller.signal.aborted||!d.element.open||!d.element.isConnected)throw new DOMException('Editor closed','AbortError');if(app.doc!==doc||app.doc.data.id!==id||app.editor.masterId!==masterId||edit&&app.editor.readOnly)throw new Error('Document or source master changed. Reopen this editor.');}};
 }
@@ -62,7 +62,7 @@ export function showMetricsEditor(app){
     const setPair=button('Set pair exception',action(status,()=>editPair(number(kern,-32768,32767)))),removePair=button('Remove pair exception',action(status,()=>editPair(null)));right.append(apply,pair,kern.element,pairStatus,setPair,removePair);
     const ac={signal:s.signal};line.input.addEventListener('input',action(status,refresh),ac);size.input.addEventListener('input',paint,ac);mode.input.addEventListener('change',action(status,refresh),ac);
     choices.addEventListener('keydown',e=>{const next=e.key==='ArrowRight'?index+1:e.key==='ArrowLeft'?index-1:e.key==='Home'?0:e.key==='End'?run.items.length-1:null;if(next!==null){e.preventDefault();choose(next,true);}},ac);
-    const off=s.doc.changed.subscribe(()=>{if(s.alive())action(status,refresh)();});d.element.addEventListener('close',off,{once:true});
+    const off=s.doc.changed.subscribe(()=>{if(s.alive())action(status,refresh)();});d.onClose(off);
     d.body.append(layout,status);d.footer.append(button('Undo',action(status,()=>{s.check();app.history.undo();})),button('Redo',action(status,()=>{s.check();app.history.redo();})),button('Edit selected outline',action(status,()=>{s.check();const item=run.items[index];if(item&&!item.missing){d.close();app.selectGlyph(item.glyphId);app.activate('glyph');}})),button('Done',d.close));refresh();return d;
 }
 
@@ -88,7 +88,7 @@ export function showFeatureVariations(app){
         const family='CF_condition_'+uid().replace(/\W/g,''),next=new FontFace(family,result.bytes,{weight:'1 1000'});await next.load();check();if(n!==generation||textarea.value!==source)return;if(face)document.fonts.delete(face);face=next;document.fonts.add(face);proof.style.fontFamily=`"${family}"`;proof.hidden=false;proof.dataset.ready='true';renderProof();status.textContent='Compiled variable font loaded. Move an axis to test the conditional substitution or positioning.';
     }
     function invalidateProof(){generation++;app.compiler.cancelKey(s.key);proof.hidden=true;delete proof.dataset.ready;if(face)document.fonts.delete(face);face=null;}
-    textarea.addEventListener('input',()=>{invalidateProof();renderProof();},{signal:s.signal});text.input.addEventListener('input',renderProof,{signal:s.signal});d.element.addEventListener('close',invalidateProof,{once:true});
+    textarea.addEventListener('input',()=>{invalidateProof();renderProof();},{signal:s.signal});text.input.addEventListener('input',renderProof,{signal:s.signal});d.onClose(invalidateProof);
     form.append(axis.element,label.element,minimum.element,maximum.element,tag.element,target.element,replacement.element,adjust.element,insert,el('p','cf-muted','The full draft accepts multi-axis AND conditions, named/contextual lookups, script/language selection, and a NULL fallback. Ordinary feature rules remain active; selected variation rules add lookups.'));
     main.append(textarea,text.element,axes,active,proof);layout.append(form,main);d.body.append(layout,status);d.footer.append(button('Cancel',d.close),button('Compile conditional proof',action(status,()=>compile(false))),button('Apply feature source',action(status,()=>compile(true)),{className:'primary'}));renderProof();return d;
 }

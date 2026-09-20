@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-binary",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "Bounded sfnt readers/writers, checksums, UTF-16BE and CRC32.",
   "main": "./src/index.js",

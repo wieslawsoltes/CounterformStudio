@@ -51,5 +51,5 @@ export function showColorEditor(app) {
     }
     d.body.append(stack,paletteHost);
     d.footer.append(button('Undo',()=>{app.history.undo();render();}),button('Close',()=>d.close(),{className:'primary'}));
-    const off=app.doc.changed.subscribe(render);d.element.addEventListener('close',off,{once:true});render(); return d;
+    const off=app.doc.changed.subscribe(render);d.onClose(off);render(); return d;
 }

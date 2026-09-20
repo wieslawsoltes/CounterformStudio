@@ -52,7 +52,7 @@ with sync_playwright() as p:
             page.screenshot(path=str(out/'desktop-workspace.png'))
         check('compact desktop chrome prioritizes a paper-first glyph canvas',density)
         def libraries():
-            condition("counterform.commands.commands.size===151 && counterform.menuDefinitions.length===9 && counterform.toolRail.querySelectorAll('[data-tool]').length===24")
+            condition("counterform.commands.commands.size===152 && counterform.menuDefinitions.length===9 && counterform.toolRail.querySelectorAll('[data-tool]').length===24")
             condition("!!counterform.dock && !!counterform.table.source && !!counterform.kerning.workbook && !!counterform.notes.element.Document && !!counterform.S && !!counterform.editor.index && counterform.workspaceUI.fontTiles.state===counterform.state && !!counterform.state.glyphs")
             condition("[...counterform.commands.commands.keys()].every(id=>counterform.menuDefinitions.some(m=>m.items.includes(id)))")
             condition("counterform.workspaceUI.controls.every(({id})=>counterform.commands.commands.has(id))")
