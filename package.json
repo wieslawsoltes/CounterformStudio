@@ -1,6 +1,6 @@
 {
   "name": "counterform-studio",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -13,13 +13,14 @@
     "test:browser": "python tests/browser.py",
     "build": "node scripts/build.mjs",
     "pack:all": "node scripts/pack.mjs",
-    "verify": "npm test && npm run test:types && npm run test:fonts && npm run test:browser && npm run test:workspace && npm run test:advanced && npm run build && npm run pack:all && npm run test:packages",
-    "test:fonts": "python tests/fonttools.py && python tests/export-fonttools.py && python tests/contextual-fonttools.py && python tests/colrv1-fonttools.py && python tests/attachments-fonttools.py && python tests/axis-map-fonttools.py",
+    "verify": "npm test && npm run test:types && npm run test:fonts && npm run test:browser && npm run test:workspace && npm run test:advanced && npm run test:workflows && npm run build && npm run pack:all && npm run test:packages",
+    "test:fonts": "python tests/fonttools.py && python tests/export-fonttools.py && python tests/contextual-fonttools.py && python tests/colrv1-fonttools.py && python tests/attachments-fonttools.py && python tests/axis-map-fonttools.py && python tests/workflow-fonttools.py",
     "test:types": "tsc -p tests/tsconfig.json",
     "release:zip": "python scripts/archive.py",
     "test:packages": "python tests/package-consumer.py",
     "test:workspace": "python tests/workspace-browser.py",
-    "test:advanced": "python tests/advanced-browser.py"
+    "test:advanced": "python tests/advanced-browser.py",
+    "test:workflows": "python tests/workflows-browser.py"
   },
   "engines": {
     "node": ">=22"

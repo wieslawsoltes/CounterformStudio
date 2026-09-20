@@ -18,6 +18,7 @@
     "editing-consumer.ts",
     "color-consumer.ts",
     "workspace-consumer.ts",
-    "advanced-consumer.ts"
+    "advanced-consumer.ts",
+    "workflow-consumer.ts"
   ]
 }

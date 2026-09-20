@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-journal",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Integrity-checked revision journals with atomic IndexedDB storage",
   "type": "module",
   "sideEffects": false,

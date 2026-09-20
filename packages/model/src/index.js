@@ -100,6 +100,16 @@ export function validateDocumentShape(d) {
         normalizeAxisMap(a.map);
         tags.add(a.tag);
     }
+    if(d.featureInstance!==undefined){
+        const context=d.featureInstance;
+        if(!context||!Array.isArray(context.axes)||context.axes.length>16||!context.location||typeof context.location!=='object'||Array.isArray(context.location))throw new Error('Invalid static feature-instance context');
+        const contextTags=new Set();
+        for(const a of context.axes){
+            if(typeof a.tag!=='string'||!/^[ -~]{4}$/.test(a.tag)||contextTags.has(a.tag)||![a.min,a.default,a.max].every(Number.isFinite)||a.min>a.default||a.default>a.max||a.min===a.max)throw new Error('Invalid static feature-instance axis');
+            normalizeAxisMap(a.map);contextTags.add(a.tag);
+        }
+        for(const [tag,value]of Object.entries(context.location))if(!contextTags.has(tag)||!Number.isFinite(value))throw new Error('Invalid static feature-instance location');
+    }
     for (const values of Object.values(d.kerning))
         if (!values || typeof values !== 'object' || Object.values(values).some(v => !Number.isFinite(v)))
             throw new Error('Invalid kerning values');

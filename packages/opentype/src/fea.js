@@ -1,3 +1,4 @@
+import {encodeFeatureVariations} from './feature-variations.js';
 import {attachmentParser,isAttachment,compileAttachments} from './attachments.js';
 import { Writer } from '@wieslawsoltes/counterform-binary';
 
@@ -5,11 +6,11 @@ import { Writer } from '@wieslawsoltes/counterform-binary';
 export function parseFeatures(source, glyphNames = []) {
     if (typeof source !== 'string' || source.length > 2_000_000) throw new RangeError('Feature source budget exceeded');
     const tokens = [...source.replace(/#[^\n]*/g, s => ' '.repeat(s.length))
-        .matchAll(/\\[\w.$-]+|@[\w.]+|[A-Za-z_.$][\w.$-]*|-?\d+|\S/g)]
+        .matchAll(/\\[\w.$-]+|@[\w.]+|[A-Za-z_.$][\w.$-]*|-?\d+(?:\.\d+)?|\S/g)]
         .map(m => ({ value: m[0], offset: m.index }));
     const classes = new Map(), features = [], lookups = new Map(), languages = [], values = new Map();
     if(tokens.length>300000)throw new RangeError('Feature token budget exceeded');
-    const names = new Set(glyphNames);
+    const names = new Set(glyphNames), conditionSets = new Map(), variations = [];
     let cursor = 0, ruleCount = 0;
     const markFilteringSets = [], markAttachmentClasses = [];
     const peek = () => tokens[cursor]?.value;
@@ -184,18 +185,36 @@ export function parseFeatures(source, glyphNames = []) {
         return rules;
     }
     while (cursor < tokens.length) {
-        const op = take();
+        const order=cursor; const op = take();
         if (attachments.declaration(op)) continue;
         if (op.startsWith('@')) { expect('='); const g = readGroup(); expect(';'); if (classes.has(op)) fail(`Duplicate class ${op}`); classes.set(op, g); }
         else if (op === 'languagesystem') { const script = tag(), language = tag(true); expect(';'); if (!languages.some(s => s.script === script && s.language === language)) languages.push({ script, language }); }
         else if (op === 'valueRecordDef') { const v = value(), name = take(); expect(';'); if (values.has(name)) fail('Duplicate value definition'); values.set(name, v); }
-        else if (op === 'feature') { const name = tag(); expect('{'); const rules = block('}'); expect('}'); expect(name); expect(';'); features.push({ tag: name, rules }); }
+        else if (op === 'conditionset') {
+            const name=take(); if(!/^[A-Za-z_][\w.]*$/.test(name||'')||name==='NULL'||conditionSets.has(name))fail('Duplicate or invalid condition-set label');
+            expect('{');const ranges=Object.create(null);
+            while(peek()!=='}'){
+                const axis=tag(), values=[];
+                for(let i=0;i<2;i++){const t=take(),v=Number(t);if(!/^-?\d+(?:\.\d+)?$/.test(t||'')||!Number.isFinite(v))fail('Expected finite condition coordinate');values.push(v);}
+                if(Object.hasOwn(ranges,axis)||values[0]>values[1])fail('Duplicate axis or reversed condition range');
+                ranges[axis]=values;expect(';');if(Object.keys(ranges).length>16)fail('Condition axis budget exceeded');
+            }
+            expect('}');expect(name);expect(';');conditionSets.set(name,ranges);
+            if(conditionSets.size>256)fail('Condition-set budget exceeded');
+        }
+        else if (op === 'variation') {
+            const name=tag(),conditionSet=take();
+            if(conditionSet!=='NULL'&&!conditionSets.has(conditionSet))fail(`Unknown condition set '${conditionSet}'`);
+            expect('{');const rules=block('}');expect('}');expect(name);expect(';');variations.push({tag:name,conditionSet,rules,order});
+            if(variations.length>512)fail('Variation block budget exceeded');
+        }
+        else if (op === 'feature') { const name = tag(); expect('{'); const rules = block('}'); expect('}'); expect(name); expect(';'); features.push({ tag: name, rules, order }); }
         else if (op === 'lookup') { const name = take(); if (peek() === 'useExtension') take(); expect('{'); const rules = block('}'); expect('}'); expect(name); expect(';'); if (lookups.has(name)) fail(`Duplicate lookup ${name}`); lookups.set(name, rules); }
         else fail(`Unsupported feature syntax '${op}'`);
     }
     if (!languages.length) languages.push({ script: 'DFLT', language: 'dflt' }, { script: 'latn', language: 'dflt' });
     if (languages.length > 256 || lookups.size > 8192) throw new RangeError('Layout declarations exceed budget');
-    return { ...attachments.result(), markFilteringSets, markAttachmentClasses, classes: Object.fromEntries([...classes].map(([k, v]) => [k, v.glyphs])), features, lookups: Object.fromEntries(lookups), languages };
+    return { conditionSets:Object.fromEntries(conditionSets), variations, ...attachments.result(), markFilteringSets, markAttachmentClasses, classes: Object.fromEntries([...classes].map(([k, v]) => [k, v.glyphs])), features, lookups: Object.fromEntries(lookups), languages };
 }
 
 const patch = (w, p, n) => { if (n < 0 || n > 65535) throw new RangeError('Layout subtable offset exceeds uint16'); w.patch16(p, n); };
@@ -318,7 +337,18 @@ export function compileFeatureLookups(parsed, glyphs) {
         }
         flush(); return result;
     }
-    for (const f of parsed.features) {
+    const variants=new Map();
+    // Preserve FEA block order in the global LookupList. Shaping engines apply
+    // the selected lookups in that order, not the order of Feature index arrays.
+    function compileVariation(f) {
+        if(!variants.has(f.conditionSet))variants.set(f.conditionSet,{conditionSet:f.conditionSet,sub:[],pos:[]});
+        for(const ref of compileRules(f.rules)){
+            const fs=ref.which==='sub'?sf:pf;if(!fs.has(f.tag))fs.set(f.tag,[]);
+            variants.get(f.conditionSet)[ref.which].push({tag:f.tag,...ref});
+        }
+    }
+    for (const f of [...parsed.features,...(parsed.variations||[])].sort((a,b)=>(a.order??0)-(b.order??0))) {
+        if(f.conditionSet!==undefined){compileVariation(f);continue;}
         for (const ref of compileRules(f.rules)) {
             const target = ref.which === 'sub' ? sf : pf;
             if (!target.has(f.tag)) target.set(f.tag, []);
@@ -327,15 +357,22 @@ export function compileFeatureLookups(parsed, glyphs) {
         }
     }
     for(const name of Object.keys(parsed.lookups))namedLookup(name);
-    return { sub, pos, sf, pf, selections };
+    const conditionOrder=[...new Set((parsed.variations||[]).map(f=>f.conditionSet))];
+    return { sub, pos, sf, pf, selections, variations:conditionOrder.map(name=>variants.get(name)) };
 }
 
 /** Shared script/language selection and 32-bit extension lookup payload layout. */
 export function buildLayoutTable(features, lookups, plan = null, which = 'sub') {
     if (!lookups.length) return null;
+    const variants=plan?.variations||[];
+    const refsFor=(tag, refs, system)=>{
+        const selected=refs.filter(s=>s.tag===tag),specific=selected.filter(s=>s.scope?.script===system.script && s.scope.language===system.language);
+        const excluded=specific.some(s=>s.scope.exclude);
+        return [...new Set(selected.filter(s=>!s.scope?.script ? !excluded : s.scope.script===system.script && (s.scope.language===system.language || !excluded && s.scope.language==='dflt')).map(s=>s.index))];
+    };
     const systems = new Map();
     for (const s of plan?.languages || [{ script: 'DFLT', language: 'dflt' }, { script: 'latn', language: 'dflt' }]) systems.set(s.script + '/' + s.language, s);
-    for (const s of plan?.selections || []) if (s.scope?.script) {
+    for (const s of [...(plan?.selections||[]),...variants.flatMap(v=>v.selections)]) if (s.scope?.script) {
         systems.set(s.scope.script + '/dflt', { script: s.scope.script, language: 'dflt' });
         systems.set(s.scope.script + '/' + s.scope.language, { script: s.scope.script, language: s.scope.language });
     }
@@ -344,17 +381,18 @@ export function buildLayoutTable(features, lookups, plan = null, which = 'sub') 
     for (const system of systems.values()) {
         const selected = [], required = [];
         for (const [tag, defaults] of [...features].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
-            const refs = (plan?.selections || []).filter(s => s.tag === tag), specific = refs.filter(s => s.scope?.script === system.script && s.scope.language === system.language);
-            const excluded = specific.some(s => s.scope.exclude);
-            const indices = declared.has(tag) ? [...new Set(refs.filter(s => {
-                const scope = s.scope;
-                if (!scope?.script) return !excluded;
-                return scope.script === system.script && (scope.language === system.language || !excluded && scope.language === 'dflt');
-            }).map(s => s.index))] : defaults;
-            if (!indices.length) continue;
-            const key = tag + ':' + indices.join(','); let id = unique.get(key);
-            if (id === undefined) { id = records.length; unique.set(key, id); records.push({ tag, indices }); }
-            selected.push(id); if (specific.some(s => s.scope.required)) required.push(id);
+            const specific=(plan?.selections||[]).filter(s=>s.tag===tag && s.scope?.script===system.script && s.scope.language===system.language);
+            let indices=declared.has(tag)?refsFor(tag,plan.selections,system):defaults;
+            const alternates=variants.map(v=>{
+                const extra=refsFor(tag,v.selections,system);
+                return extra.length?[...new Set(tag==='rvrn'?[...extra,...indices]:[...indices,...extra])]:null;
+            });
+            if(plan?.staticVariation!==undefined){indices=alternates[plan.staticVariation]||indices;}
+            if(!indices.length && !alternates.some(Boolean))continue;
+            // Languages sharing the defaults but differing conditionals require distinct Feature records.
+            const key=tag+':'+JSON.stringify([indices,alternates]);let id=unique.get(key);
+            if(id===undefined){id=records.length;unique.set(key,id);records.push({tag,indices,alternates});}
+            selected.push(id);if(specific.some(s=>s.scope.required))required.push(id);
         }
         if (required.length > 1) throw new Error('Only one required feature is permitted per language system');
         if (!scripts.has(system.script)) scripts.set(system.script, new Map());
@@ -363,10 +401,12 @@ export function buildLayoutTable(features, lookups, plan = null, which = 'sub') 
     // Feature records MUST be lexicographically ordered, including duplicated tags.
     const order = records.map((r, i) => ({ ...r, old: i })).sort((a, b) => a.tag < b.tag ? -1 : a.tag > b.tag ? 1 : a.old - b.old);
     const remap = new Map(order.map((r, i) => [r.old, i]));
-    const w = new Writer().u32(0x10000).u16(10).u16(0).u16(0), sortedScripts = [...scripts].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+    const dynamic=variants.length>0 && plan?.staticVariation===undefined, headerSize=dynamic?14:10;
+    const w = new Writer().u32(dynamic?0x10001:0x10000).u16(headerSize).u16(0).u16(0);if(dynamic)w.u32(0);
+    const sortedScripts = [...scripts].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
     w.u16(sortedScripts.length); for (const [s] of sortedScripts) w.tag(s).u16(0);
     sortedScripts.forEach(([, languages], i) => {
-        patch(w, 16 + i * 6, w.pos - 10); const base = w.pos;
+        patch(w, headerSize+6 + i * 6, w.pos - headerSize); const base = w.pos;
         const other = [...languages].filter(([l]) => l !== 'dflt').sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
         w.u16(0).u16(other.length); for (const [l] of other) w.tag(l).u16(0);
         const lang = selection => { w.u16(0).u16(selection.required === 65535 ? 65535 : remap.get(selection.required)); const indices = selection.selected.filter(i => i !== selection.required).map(i => remap.get(i)).sort((a, b) => a - b); w.u16(indices.length); indices.forEach(i => w.u16(i)); };
@@ -384,5 +424,9 @@ export function buildLayoutTable(features, lookups, plan = null, which = 'sub') 
         tables.forEach((bytes, k) => { patch(w, base + 6 + 2 * k, w.pos - base); if(extension){const ext = w.pos; w.u16(1).u16(l.type).u32(0); payloads.push({ ext, bytes });}else w.raw(bytes); });
     });
     for (const { ext, bytes } of payloads) { w.patch32(ext + 4, w.pos - ext); w.raw(bytes); }
+    if(dynamic){
+        const conditional=variants.map((v,i)=>({conditions:v.conditions,substitutions:order.flatMap((r,featureIndex)=>r.alternates[i]? [{featureIndex,indices:r.alternates[i]}]:[])}));
+        w.patch32(10,w.pos).raw(encodeFeatureVariations(conditional));
+    }
     return w.finish();
 }

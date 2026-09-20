@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0 — conditional layout, collections and metrics
+
+Real GSUB/GPOS FeatureVariations with avar-aware conditions and static-instance selection; TTC/OTC codecs, table sharing and face chooser; standalone metrics-string/formula engine and transactional UI. Added source/distribution browser gates and independent fontTools/HarfBuzz oracles. Thirty-one packages, 151 commands; pinned vendors and SkiaSharpWeb APIs unchanged. See `docs/RELEASE-0.7.0.md` for qualified subsets and remaining gaps.
+
 ## 0.6.0 — attachment layout, axis mapping and curve analysis
 
 Explicit GPOS3/4/5/6 FEA attachments, named anchors, mark classes, mark filtering and attachment flags; shared GDEF variable store preservation; source-aware validation and compiled proof editor. avar 1.0 map codec, source/preview/export integration and staged map UI. Analytic contour moments/inflections, bounded arc-length analysis and curvature comb. Added 24 core tests, 23 independent font/layout checks and 11 browser workflow gates on source/distribution; retained all previous suites. Thirty 0.6.0 packages, 148 commands, 24 pointer tools, 73 icons; no vendor changes. Full FontLab parity remains outstanding; see the release contract.

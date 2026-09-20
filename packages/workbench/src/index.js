@@ -1,3 +1,4 @@
+import {registerWorkflowCommands,showCollectionBuilder} from './workflow-ui.js';
 import {registerAdvancedCommands} from './advanced-ui.js';
 import {WorkspaceUI, registerWorkspaceCommands} from './workspace-ui.js';
 import {captureOriginal} from '@wieslawsoltes/counterform-preservation';
@@ -322,6 +323,7 @@ export class StudioWorkbench {
         registerProductionCommands(this);
         registerWorkspaceCommands(this);
         registerAdvancedCommands(this);
+        registerWorkflowCommands(this);
     }
     buildMenus() {createStudioMenus(this);}
     buildInspector() {
@@ -491,6 +493,7 @@ export class StudioWorkbench {
         if (file.size > 128 * 1024 * 1024)
             throw new Error('Files over 128 MiB are not accepted');
         const name = file.name.toLowerCase();
+        if(name.endsWith('.ttc')||name.endsWith('.otc')){showCollectionBuilder(this,{files:[file]});return;}
         if (name.endsWith('.svg')) {
             const text = await file.text(), tree = parseXML(text);
             if (tree.name !== 'svg')

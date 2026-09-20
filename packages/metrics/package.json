@@ -1,0 +1,32 @@
+{
+  "name": "@wieslawsoltes/counterform-metrics",
+  "version": "0.7.0",
+  "type": "module",
+  "description": "Transactional source metrics, bounded expressions and kerning exceptions",
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@wieslawsoltes/counterform-model": "0.7.0",
+    "@wieslawsoltes/counterform-opentype": "0.7.0"
+  }
+}

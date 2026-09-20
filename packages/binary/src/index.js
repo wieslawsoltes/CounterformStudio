@@ -50,7 +50,13 @@ export class Writer {
 export function checksum(bytes) { let sum = 0; for (let i = 0; i < bytes.length; i += 4)
     sum = (sum + (((bytes[i] || 0) * 0x1000000) + (bytes[i + 1] || 0) * 0x10000 + (bytes[i + 2] || 0) * 0x100 + (bytes[i + 3] || 0))) >>> 0; return sum; }
 export function sfnt(tables, flavor = 0x00010000) {
-    const entries = [...tables].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0), n = entries.length, w = new Writer(), power = 2 ** Math.floor(Math.log2(n));
+    const entries = [...tables].map(([tag, bytes]) => {
+        if(typeof tag!=='string'||!/^[ -~]{4}$/.test(tag)||!(bytes instanceof Uint8Array))throw new TypeError('Invalid sfnt table');
+        if(tag!=='head')return [tag,bytes];
+        if(bytes.length<12)throw new RangeError('Truncated head table');
+        const normalized=bytes.slice();normalized.fill(0,8,12);return [tag,normalized];
+    }).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0), n = entries.length, w = new Writer(), power = 2 ** Math.floor(Math.log2(n));
+    if(!n||n>4095||new Set(entries.map(([tag])=>tag)).size!==n)throw new RangeError('Invalid sfnt table count or duplicate tag');
     w.u32(flavor).u16(n).u16(power * 16).u16(Math.log2(power)).u16(n * 16 - power * 16);
     const offsets = [];
     let offset = 12 + n * 16;
@@ -94,3 +100,5 @@ export function crc32(bytes) { let c = 0xffffffff; for (const b of bytes) {
         c = (c >>> 1) ^ ((c & 1) ? 0xedb88320 : 0);
 } return (c ^ 0xffffffff) >>> 0; }
 
+
+export {encodeCollection,readCollection,extractCollectionFace,extractCollectionFaces} from "./collections.js";

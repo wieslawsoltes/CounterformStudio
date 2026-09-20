@@ -51,3 +51,14 @@ export class Writer {
     finish(): Uint8Array<ArrayBuffer>;
 }
 export function utf16be(s: any): Uint8Array<ArrayBuffer>;
+
+export interface CollectionTable {tag:string;checksum:number;offset:number;length:number;bytes:Uint8Array}
+export interface CollectionFace {flavor:number;offset:number;directoryLength:number;tables:CollectionTable[]}
+export interface FontCollection {version:1|2;faces:CollectionFace[];signature:{offset:number;length:number}|null;byteLength:number}
+/** Bounded TTC/OTC v1/v2; returned table buffers are non-owning views. */
+export function readCollection(input:Uint8Array,options?:{verifyChecksums?:boolean}):FontCollection;
+/** Deterministic table sharing retains glyph indices and drops invalidated signatures. */
+export function encodeCollection(fonts:Uint8Array[],options?:{version?:1|2;shareTables?:boolean}):Uint8Array;
+export function extractCollectionFace(input:Uint8Array,index?:number):Uint8Array;
+
+export function extractCollectionFaces(input:Uint8Array):Uint8Array[];

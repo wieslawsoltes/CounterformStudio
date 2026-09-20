@@ -41,7 +41,7 @@ language selection. No installed fonts are read or redistributed.
 Version 0.6.0 additionally implements anchorDef/markClass, explicit cursive,
 mark-to-base, mark-to-ligature and mark-to-mark statements, NULL anchors,
 MarkAttachmentType and UseMarkFilteringSet. See [advanced authoring](ADVANCED-AUTHORING.md).
-Still outside this grammar: class ranges, feature parameters/variation conditions,
+Still outside this grammar: class ranges, feature parameters,
 full numeric lookup flags, variable/device-anchor values, includes and table blocks.
 Automatic variable mark-to-base and kerning remain supported through the source model.
 
@@ -49,3 +49,7 @@ Primary specifications consulted on 2026-09-17:
 - https://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html
 - https://learn.microsoft.com/en-us/typography/opentype/spec/gsub
 - https://learn.microsoft.com/en-us/typography/opentype/spec/gpos
+
+## Conditional extension (0.7.0)
+
+`conditionset` and `variation` blocks now compile format-1 GSUB/GPOS FeatureVariations. See [the conditional layout contract](VARIABLE-FEATURES-COLLECTIONS-METRICS.md) for first-match precedence, source lookup ordering and static instance behavior. Other unsupported syntax listed above remains unsupported.

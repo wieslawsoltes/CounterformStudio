@@ -1,0 +1,18 @@
+/* Font-unit metrics and conditional-layout editors reuse the desktop workspace tokens. */
+.cf-dialog.cf-workflow-dialog{width:min(1180px,96vw);max-width:96vw}
+.cf-workflow-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,280px);gap:18px}
+.cf-workflow-columns:has(>.cf-workflow-properties:first-child){grid-template-columns:minmax(230px,280px) minmax(0,1fr)}
+.cf-workflow-main,.cf-workflow-properties{display:flex;flex-direction:column;gap:10px;min-width:0}
+.cf-workflow-properties{padding:12px;border:1px solid var(--cf-border,#8885);border-radius:4px;align-self:start}
+.cf-workflow-properties h3{font-size:13px;margin:4px 0}.cf-workflow-properties p{margin:2px 0;font-size:12px;line-height:1.6}
+.cf-workflow-properties .cf-field{gap:3px}.cf-workflow-properties input,.cf-workflow-properties select{min-width:0;width:100%;box-sizing:border-box}
+.cf-workflow-toolbar{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.cf-workflow-toolbar>.cf-field:first-child{flex:1;min-width:180px}
+.cf-workflow-status{min-height:24px;margin:12px 0 0;font-size:12px;white-space:pre-wrap}.cf-workflow-status[data-error=true]{color:#c54b37}
+.cf-metrics-scroll{overflow:auto;min-height:220px;display:flex;align-items:center;background:#fff;color:#1c2026;border:1px solid #8886;border-radius:3px;padding:16px}
+.cf-metrics-scroll svg{flex:none;display:block}.cf-metrics-ink{fill:#20252b}.cf-metrics-baseline{stroke:#999;stroke-width:1;vector-effect:non-scaling-stroke}.cf-metrics-side{stroke:#acbccc;stroke-width:1;stroke-dasharray:3 4;vector-effect:non-scaling-stroke}.cf-metrics-highlight{fill:#d9e8ff}
+.cf-metrics-choices{display:flex;gap:4px;overflow-x:auto;padding:4px}.cf-metrics-choice{min-width:36px;flex:none;padding:7px}.cf-metrics-choice[aria-pressed=true],.cf-collection-select[aria-pressed=true]{box-shadow:inset 0 -3px #337cdb;background:var(--cf-hover,#8882);font-weight:700}
+.cf-workflow-axis-controls{display:flex;gap:12px;flex-wrap:wrap}.cf-workflow-axis-controls>.cf-field{flex:1;min-width:150px}.cf-workflow-axis-controls output{font-size:11px}
+.cf-collection-rows{max-height:440px;overflow:auto;border:1px solid var(--cf-border,#8885)}.cf-collection-row{display:flex;align-items:center;gap:6px;padding:8px;border-bottom:1px solid var(--cf-border,#8884)}.cf-collection-row>.cf-collection-select{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;min-width:80px}.cf-collection-row>.cf-mono{font-size:11px}.cf-collection-row>button{padding:5px 8px}
+@media(max-width:800px){.cf-workflow-columns,.cf-workflow-columns:has(>.cf-workflow-properties:first-child){grid-template-columns:1fr}.cf-workflow-dialog .cf-dialog-footer{flex-wrap:wrap}.cf-collection-row{flex-wrap:wrap}}
+
+.cf-workflow-properties .cf-field{margin:0;gap:3px}.cf-workflow-properties input,.cf-workflow-properties select{padding:4px 7px;min-height:28px;font-size:12px}.cf-metrics-table{max-height:250px;overflow:auto;border:1px solid var(--cf-border,#8885)}.cf-metrics-table table{width:100%;font-variant-numeric:tabular-nums}.cf-metrics-table thead{position:sticky;top:0;background:var(--cf-bg,#fff)}.cf-metrics-table tr.selected{background:var(--cf-hover,#8882);font-weight:600}

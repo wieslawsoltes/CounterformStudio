@@ -1,0 +1,16 @@
+import {createDemoFont} from '@wieslawsoltes/counterform-model';
+import {compileTrueType} from '@wieslawsoltes/counterform-font-io';
+import {encodeCollection,extractCollectionFace,readCollection} from '@wieslawsoltes/counterform-binary';
+import {parseFeatures,normalizeFeatureConditions,matchFeatureCondition,encodeFeatureVariations} from '@wieslawsoltes/counterform-opentype';
+import {parseMetricsText,layoutMetrics,planMetricEdits,applyMetricPlan,parseMetricExpression,evaluateMetricExpression,setKerningException} from '@wieslawsoltes/counterform-metrics';
+import {showMetricsEditor,showFeatureVariations,showCollectionBuilder} from '@wieslawsoltes/counterform-workbench/workflows';
+const doc=createDemoFont(),mid=doc.data.masters[0]!.id;
+const compiled=compileTrueType(doc),ttc=encodeCollection([compiled],{version:2});
+const extracted:Uint8Array=extractCollectionFace(ttc,0);const count:number=readCollection(ttc).faces.length;
+const program=parseFeatures('conditionset H {wght 650 900;} H;variation calt H {sub A by V;} calt;');
+const sets=normalizeFeatureConditions(program.conditionSets,doc.data.axes);const match:boolean=matchFeatureCondition(sets.get('H')!,doc.data.axes,{wght:800});
+const variationBytes:Uint8Array=encodeFeatureVariations([{conditions:[],substitutions:[{featureIndex:0,indices:[1]}]}]);
+const tokens=parseMetricsText('/A/V',doc),line=layoutMetrics(doc,mid,'AV');
+const plan=planMetricEdits(doc,mid,[{glyphId:'A',lsb:'lsb("H")+10',rsb:60}]);applyMetricPlan(doc,plan);setKerningException(doc,mid,'A','V',0);
+const value:number=evaluateMetricExpression(parseMetricExpression('20+5'),()=>0);
+void [extracted,count,match,variationBytes,tokens,line,value,showMetricsEditor,showFeatureVariations,showCollectionBuilder];

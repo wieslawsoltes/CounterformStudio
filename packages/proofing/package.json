@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-proofing",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "description": "Compiled-font live proofing via browser FontFace and OpenType shaping.",
   "main": "./src/index.js",
@@ -28,10 +28,10 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-font-io": "0.6.0",
-    "@wieslawsoltes/counterform-variations": "0.6.0",
-    "@wieslawsoltes/counterform-model": "0.6.0",
-    "@wieslawsoltes/counterform-compiler": "0.6.0"
+    "@wieslawsoltes/counterform-font-io": "0.7.0",
+    "@wieslawsoltes/counterform-variations": "0.7.0",
+    "@wieslawsoltes/counterform-model": "0.7.0",
+    "@wieslawsoltes/counterform-compiler": "0.7.0"
   },
   "keywords": [
     "font-editor",

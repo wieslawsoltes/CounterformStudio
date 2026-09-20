@@ -1,3 +1,5 @@
+export {featureCoordinate,normalizeFeatureConditions,matchFeatureCondition,encodeFeatureVariations} from './feature-variations.js';
+import {normalizeFeatureConditions,matchFeatureCondition} from './feature-variations.js';
 import {buildGDEF} from './attachments.js';
 import {VariationStoreBuilder,variationIndex} from '@wieslawsoltes/counterform-varstore';
 import { Writer, Reader } from '@wieslawsoltes/counterform-binary';
@@ -138,7 +140,15 @@ function markBaseLookup(glyphs, masterId, anchorVariation=()=>null) {
 export function layoutTable(features,lookups,plan=null,which='sub'){return buildLayoutTable(features,lookups,plan,which);}
 export function compileLayout(data, glyphs, masterId, variationModel=null) {
     const parsed=parseFeatures(data.features||'',glyphs.map(g=>g.name));
-    const {sub,pos,sf,pf,selections}=compileFeatureLookups(parsed,glyphs);
+    const {sub,pos,sf,pf,selections,variations}=compileFeatureLookups(parsed,glyphs);
+    const axes=data.axes?.length?data.axes:(data.featureInstance?.axes||[]);
+    const conditions=normalizeFeatureConditions(parsed.conditionSets,axes);
+    const location=(!data.axes?.length?data.featureInstance?.location:null)||data.masters?.find(m=>m.id===masterId)?.location||{};
+    const plan=which=>{
+        const variants=variations.filter(v=>v[which].length).map(v=>({conditions:conditions.get(v.conditionSet),selections:v[which]}));
+        if(variants.length&&!axes.length)throw new Error('Feature variations require axes');
+        return {languages:parsed.languages,selections:selections[which],variations:variants,...(!variationModel?{staticVariation:variants.findIndex(v=>matchFeatureCondition(v.conditions,axes,location))}:{})};
+    };
     const add=(list,fs,tag,type,bytes)=>{if(!bytes)return;const i=list.push({type,bytes})-1;if(!fs.has(tag))fs.set(tag,[]);fs.get(tag).push(i);
         for(const family of ['sub','pos'])if(selections[family].some(s=>s.tag===tag))selections[family].push({tag,index:i,scope:{script:null}});
     };
@@ -157,7 +167,7 @@ export function compileLayout(data, glyphs, masterId, variationModel=null) {
     if (kern.length)
         add(pos, pf, 'kern', 2, pairLookup(kern));
     add(pos, pf, 'mark', 4, markBaseLookup(glyphs, masterId, anchorVariation));
-    const result = new Map(), gsub = layoutTable(sf,sub,{languages:parsed.languages,selections:selections.sub},'sub'), gpos = layoutTable(pf,pos,{languages:parsed.languages,selections:selections.pos},'pos');
+    const result = new Map(), gsub = layoutTable(sf,sub,plan('sub'),'sub'), gpos = layoutTable(pf,pos,plan('pos'),'pos');
     if (gsub)
         result.set('GSUB', gsub);
     if (gpos)

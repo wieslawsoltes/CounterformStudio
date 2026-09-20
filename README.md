@@ -2,11 +2,11 @@
 
 ### Make every curve count.
 
-**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.6.0.
+**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.7.0.
 
 This is an original implementation targeting the FontLab 8.4 workflow. **It is not a feature-complete FontLab replacement.** The implemented subset includes real outline editing, masters, kerning, OpenType compilation, source interchange and live proofing—not simulated export buttons. Read [the capability contract](docs/CAPABILITIES.md) before editing production fonts. Unreconstructed font tables can be lost on re-export; keep originals.
 
-[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.6.0 authoring release](docs/RELEASE-0.6.0.md)
+[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.7.0 production workflows](docs/RELEASE-0.7.0.md)
 
 ![Compact desktop type-design workspace](docs/images/desktop-workspace.png)
 
@@ -30,7 +30,7 @@ The source archive includes pinned vendor runtime packages. Bootstrap creates lo
 
 The workspace uses real Dockyard docking, a RibbonWeb command ribbon, a virtual glyph library, a TreeDataGridWeb font inventory, a GridWeb kerning matrix and RichTextWeb notes. ReactiveWeb and DynamicDataWeb project the document state. Native Skia paths draw the font; RBushWeb accelerates node/handle picking, and QuikGraphWeb checks component dependency graphs.
 
-Use nine command-backed menus, 148 commands, 24 pointer tools and a ribbon with 73 original SVG icons. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
+Use nine command-backed menus, 151 commands, 24 pointer tools and a ribbon with 73 original SVG icons. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
 
 Export real **TTF, CFF/CFF2 OTF, WOFF1/WOFF2, variable TTF/CFF2, UFO3 archives and Counterform source**. Supported layout compilation includes single, multiple, alternate, ligature, chaining-context and reverse substitutions; single/pair/contextual positioning, named lookups and script/language selection; automatic and explicit mark-to-base, mark-to-ligature, mark-to-mark and cursive attachments, named anchors, mark filtering and GDEF classes. See the explicit [feature-language subset](docs/CONTEXTUAL-LAYOUT.md). Variable export writes `fvar`, `STAT`, optional `avar` 1.0 axis maps, TrueType `gvar` or CFF2 blend programs, `HVAR`, optional `MVAR`, and GDEF/GPOS variations for kerning and mark-to-base anchors. Browser WOFF2 uses stored Brotli blocks; the standalone Node subpath provides size compression. These exports remain unhinted. Color output supports COLRv0 fallback layers, all 18 static COLRv1 paint formats, all 28 compositing modes, and CPALv1 palette/entry labels and light/dark usability flags. OpenType → Color paint graph opens the transactional tree/property/proof editor for gradients, clipping, references and transforms. The compiled font renders in the browser proof and the native Skia source-master canvas; editable geometry remains separate. Variable outlines may carry static paints; PaintVar parameters, variable clip boxes, SVG and bitmap color tables are not supported.
 
@@ -42,7 +42,7 @@ Axis mapping has a staged numerical/graph editor shared with the preview and var
 
 ```text
 app/                   Application bootstrap; native browser import map
-packages/              30 independently packable @wieslawsoltes/counterform-* packages
+packages/              31 independently packable @wieslawsoltes/counterform-* packages
 vendor/                Pinned upstream source/runtime inputs
 scripts/               Offline bootstrap, server, static build, npm packing, archiving
 examples/              Headless font compiler example
@@ -61,6 +61,7 @@ npm run test:fonts
 npm run test:browser
 npm run test:workspace
 npm run test:advanced
+npm run test:workflows
 npm run build
 npm run pack:all
 npm run test:packages
@@ -74,7 +75,7 @@ Local opaque-origin browser tests report inline compilation and secure-API skips
 
 ## Modular npm packages
 
-`npm run pack:all` emits 30 `.tgz` packages into `artifacts/npm`, each with source, declarations, license and declared dependencies. They are **packaged, not published to npm**. Root-workspace use is offline; installing a standalone package normally resolves its declared dependencies through your configured registry. Install the Counterform tarballs together while they are unpublished.
+`npm run pack:all` emits 31 `.tgz` packages into `artifacts/npm`, each with source, declarations, license and declared dependencies. They are **packaged, not published to npm**. Root-workspace use is offline; installing a standalone package normally resolves its declared dependencies through your configured registry. Install the Counterform tarballs together while they are unpublished.
 
 See [API examples](docs/API.md), [architecture](docs/ARCHITECTURE.md), [keyboard map](docs/KEYBOARD.md), and [production gaps](docs/CAPABILITIES.md).
 
@@ -89,3 +90,7 @@ The static build uses relative asset and worker URLs and supports a repository s
 ## Licensing
 
 MIT for Counterform's original code. Upstream licenses are retained, including QuikGraphWeb's MS-PL and the fontTools algorithm's BSD-style license. See [third-party notices](THIRD_PARTY_NOTICES.md). No font binaries are bundled in the deliverable.
+
+## 0.7.0 production workflows
+
+Use **Font → Metrics string editor**, **Font → Conditional OpenType features**, and **File → Font collection builder**. All three are also command-palette and ribbon actions. Collections opened through File → Open now present a face chooser. See [release notes](docs/RELEASE-0.7.0.md) and [typed API usage](docs/VARIABLE-FEATURES-COLLECTIONS-METRICS.md). This remains a qualified, incrementally developed application, not exhaustive FontLab parity.
