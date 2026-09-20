@@ -1,3 +1,4 @@
+import {attachmentParser,isAttachment,compileAttachments} from './attachments.js';
 import { Writer } from '@wieslawsoltes/counterform-binary';
 
 /** Source-aware FEA parser. Unsupported constructs fail before a table is emitted. */
@@ -10,6 +11,7 @@ export function parseFeatures(source, glyphNames = []) {
     if(tokens.length>300000)throw new RangeError('Feature token budget exceeded');
     const names = new Set(glyphNames);
     let cursor = 0, ruleCount = 0;
+    const markFilteringSets = [], markAttachmentClasses = [];
     const peek = () => tokens[cursor]?.value;
     const take = () => tokens[cursor++]?.value;
     const fail = (message, token = tokens[cursor - 1]) => {
@@ -51,6 +53,7 @@ export function parseFeatures(source, glyphNames = []) {
         }
         return group();
     }
+    const attachments = attachmentParser({peek,take,expect,number,readGroup,fail,classes});
     function value() {
         if (peek() !== '<') return [0, 0, number(), 0];
         take();
@@ -116,6 +119,7 @@ export function parseFeatures(source, glyphNames = []) {
         return combinations.map(s => ({ type: 'ligature', input: s, output: output[0][0] }));
     }
     function positioning(ignore = false) {
+        if (!ignore) { const rule = attachments.positioning(); if (rule) return rule; }
         const input = sequence(new Set([';'])); expect(';');
         if (input.some(x => x.marked) || ignore) {
             if (ignore && !input.some(x => x.marked)) input.forEach(x => x.marked = true);
@@ -132,19 +136,32 @@ export function parseFeatures(source, glyphNames = []) {
         return left.glyphs.flatMap(l => right.glyphs.map(r => ({ type: 'pairFull', left: l, right: r, value1: v1, value2: v2 })));
     }
     function block(end, inherited = {}) {
-        const rules = []; let flags = 0, script = inherited.script ?? null, language = 'dflt', exclude = false, required = false;
+        const rules = []; let flags = 0, markFilteringSet = null, script = inherited.script ?? null, language = 'dflt', exclude = false, required = false;
         while (peek() !== end) {
             if (!peek()) fail('Unclosed feature/lookup block');
             const token = tokens[cursor], op = take(); let result;
-            if (op === 'script') { script = tag(); language = 'dflt'; exclude = false; required = false; flags = 0; expect(';'); continue; }
+            if (op === 'script') { script = tag(); language = 'dflt'; exclude = false; required = false; flags = 0; markFilteringSet = null; expect(';'); continue; }
             if (op === 'language') {
                 if (!script) script = 'DFLT'; language = tag(true); exclude = false; required = false;
                 while (peek() !== ';') { const option = take(); if (option === 'exclude_dflt') exclude = true; else if (option === 'include_dflt') exclude = false; else if (option === 'required') required = true; else fail('Unsupported language option'); }
                 expect(';'); continue;
             }
+            if (attachments.declaration(op)) continue;
             if (op === 'lookupflag') {
-                flags = 0; const bits = { RightToLeft: 1, IgnoreBaseGlyphs: 2, IgnoreLigatures: 4, IgnoreMarks: 8 };
-                while (peek() !== ';') { const f = take(); if (f === '0') continue; if (!bits[f]) fail(`Unsupported lookup flag '${f}'`); flags |= bits[f]; }
+                flags = 0; markFilteringSet = null;
+                const bits = { RightToLeft: 1, IgnoreBaseGlyphs: 2, IgnoreLigatures: 4, IgnoreMarks: 8 }, seen = new Set();
+                while (peek() !== ';') {
+                    if (!peek()) fail('Unclosed lookupflag');
+                    const f = take(); if (f === '0') continue;
+                    if (seen.has(f)) fail(`Duplicate lookup flag '${f}'`); seen.add(f);
+                    if (Object.hasOwn(bits,f)) { flags |= bits[f]; continue; }
+                    if (f !== 'UseMarkFilteringSet' && f !== 'MarkAttachmentType') fail(`Unsupported lookup flag '${f}'`);
+                    const names = readGroup().glyphs.slice().sort(), list = f === 'UseMarkFilteringSet' ? markFilteringSets : markAttachmentClasses;
+                    let index = list.findIndex(a => JSON.stringify(a) === JSON.stringify(names));
+                    if (index < 0) { if (list.length >= (f === 'UseMarkFilteringSet' ? 256 : 255)) fail('Mark flag class budget exceeded'); index = list.push(names) - 1; }
+                    if (f === 'UseMarkFilteringSet') { flags |= 16; markFilteringSet = index; }
+                    else flags |= (index + 1) << 8;
+                }
                 expect(';'); continue;
             }
             if (op === 'lookup') {
@@ -160,7 +177,7 @@ export function parseFeatures(source, glyphNames = []) {
             else if (op === 'ignore') { const verb = take(); if (['sub', 'substitute'].includes(verb)) result = substitution('sub', true); else if (['pos', 'position'].includes(verb)) result = positioning(true); else fail('Expected sub or pos after ignore'); }
             else fail(`Unsupported feature statement '${op}'`, token);
             for (const r of [result].flat()) {
-                rules.push({ ...r, flags, script, language, exclude, required, offset: token.offset });
+                rules.push({ ...r, flags, markFilteringSet, script, language, exclude, required, offset: token.offset });
                 if (++ruleCount > 100000) fail('Layout rule budget exceeded');
             }
         }
@@ -168,6 +185,7 @@ export function parseFeatures(source, glyphNames = []) {
     }
     while (cursor < tokens.length) {
         const op = take();
+        if (attachments.declaration(op)) continue;
         if (op.startsWith('@')) { expect('='); const g = readGroup(); expect(';'); if (classes.has(op)) fail(`Duplicate class ${op}`); classes.set(op, g); }
         else if (op === 'languagesystem') { const script = tag(), language = tag(true); expect(';'); if (!languages.some(s => s.script === script && s.language === language)) languages.push({ script, language }); }
         else if (op === 'valueRecordDef') { const v = value(), name = take(); expect(';'); if (values.has(name)) fail('Duplicate value definition'); values.set(name, v); }
@@ -177,7 +195,7 @@ export function parseFeatures(source, glyphNames = []) {
     }
     if (!languages.length) languages.push({ script: 'DFLT', language: 'dflt' }, { script: 'latn', language: 'dflt' });
     if (languages.length > 256 || lookups.size > 8192) throw new RangeError('Layout declarations exceed budget');
-    return { classes: Object.fromEntries([...classes].map(([k, v]) => [k, v.glyphs])), features, lookups: Object.fromEntries(lookups), languages };
+    return { ...attachments.result(), markFilteringSets, markAttachmentClasses, classes: Object.fromEntries([...classes].map(([k, v]) => [k, v.glyphs])), features, lookups: Object.fromEntries(lookups), languages };
 }
 
 const patch = (w, p, n) => { if (n < 0 || n > 65535) throw new RangeError('Layout subtable offset exceeds uint16'); w.patch16(p, n); };
@@ -212,7 +230,7 @@ export function compileFeatureLookups(parsed, glyphs) {
     const gid = name => { if (!ids.has(name)) throw new Error(`Unknown exported glyph '${name}'`); return ids.get(name); };
     const sub = [], pos = [], sf = new Map(), pf = new Map(), named = new Map(), visiting = new Set(), selections = { sub: [], pos: [] };
     let totalBytes = 0;
-    const family = r => ['singlePos', 'pair', 'pairFull', 'contextPos'].includes(r.type) ? 'pos' : 'sub';
+    const family = r => (isAttachment(r.type) || ['singlePos', 'pair', 'pairFull', 'contextPos'].includes(r.type)) ? 'pos' : 'sub';
     const lists = { sub, pos };
     function insert(which, lookup) {
         totalBytes += lookup.subtables.reduce((n, b) => n + b.length, 0);
@@ -222,7 +240,7 @@ export function compileFeatureLookups(parsed, glyphs) {
     function namedLookup(name) {
         if (named.has(name)) return named.get(name);
         if (visiting.has(name) || visiting.size > 32) throw new Error(`Cyclic/excessively deep lookup reference '${name}'`);
-        const rules = parsed.lookups[name]; if (!rules) throw new Error(`Unknown lookup '${name}'`);
+        const rules = Object.hasOwn(parsed.lookups,name) ? parsed.lookups[name] : null; if (!rules) throw new Error(`Unknown lookup '${name}'`);
         visiting.add(name); const result = compileRules(rules); visiting.delete(name);
         if (new Set(result.map(x => x.which)).size > 1) throw new Error(`Lookup '${name}' mixes GSUB and GPOS`);
         named.set(name, result); return result;
@@ -248,7 +266,7 @@ export function compileFeatureLookups(parsed, glyphs) {
                 }
                 if (g.value) { if (which !== 'pos') throw new Error('Substitution cannot contain value records');
                     const bytes = g.glyphs.map(n => simple({ type: 'singlePos', glyph: n, value: g.value }, gid).bytes);
-                    actions.push([index, insert('pos', { type: 1, flags: r.flags, subtables: bytes })]);
+                    actions.push([index, insert('pos', { type: 1, flags: r.flags, markFilteringSet: r.markFilteringSet, subtables: bytes })]);
                 }
             });
             if (which === 'sub' && r.replacement) {
@@ -277,13 +295,24 @@ export function compileFeatureLookups(parsed, glyphs) {
     }
     function compileRules(rules) {
         const result = []; let pending = null;
-        const flush = () => { if (pending) { result.push({ which: pending.which, index: insert(pending.which, pending.lookup), scope: pending.scope }); pending = null; } };
+        const flush = () => { if (pending) { if (pending.rules?.length) pending.lookup.subtables.push(compileAttachments(pending.rules,gid,parsed.markClasses).bytes); result.push({ which: pending.which, index: insert(pending.which, pending.lookup), scope: pending.scope }); pending = null; } };
         for (const r of rules) {
-            if (r.type === 'break') { flush(); continue; }
+            if (r.type === 'break') { if (pending?.rules?.length) { pending.lookup.subtables.push(compileAttachments(pending.rules,gid,parsed.markClasses).bytes); pending.rules = []; } continue; }
             if (r.type === 'lookup') { flush(); result.push(...namedLookup(r.name).map(x => ({ ...x, scope: r }))); continue; }
-            const which = family(r), compiled = r.type.startsWith('context') || r.type === 'reverse' ? context(r, which) : simple(r, gid);
-            const key = [which, compiled.type, r.flags, r.script, r.language, r.exclude, r.required].join('/');
-            if (pending?.key !== key) { flush(); pending = { key, which, scope: r, lookup: { type: compiled.type, flags: r.flags || 0, subtables: [] } }; }
+            const which = family(r);
+            if (isAttachment(r.type)) {
+                const key = [r.type,r.flags,r.markFilteringSet,r.script,r.language,r.exclude,r.required].join('/');
+                if (pending?.key !== key) { flush(); pending = {key,which,scope:r,rules:[],lookup:{type:({cursivePos:3,basePos:4,ligaturePos:5,markPos:6})[r.type],flags:r.flags||0,markFilteringSet:r.markFilteringSet,subtables:[]}}; }
+                pending.markClasses ??= new Set();pending.markGlyphs ??= new Map();
+                for(const name of new Set((r.components||[]).flatMap(c=>c.map(a=>a.name)))){
+                    if(pending.markClasses.has(name))continue;pending.markClasses.add(name);
+                    for(const mark of parsed.markClasses[name]||[]){const previous=pending.markGlyphs.get(mark.glyph);if(previous&&previous!==name)throw new Error(`Overlapping mark classes for '${mark.glyph}' in one lookup`);pending.markGlyphs.set(mark.glyph,name);}
+                }
+                pending.rules.push(r); continue;
+            }
+            const compiled = r.type.startsWith('context') || r.type === 'reverse' ? context(r, which) : simple(r, gid);
+            const key = [which, compiled.type, r.flags, r.markFilteringSet, r.script, r.language, r.exclude, r.required].join('/');
+            if (pending?.key !== key) { flush(); pending = { key, which, scope: r, lookup: { type: compiled.type, flags: r.flags || 0, markFilteringSet:r.markFilteringSet, subtables: [] } }; }
             // A single lookup tries subtables in order. Exceptions stop that lookup, not all following lookups.
             pending.lookup.subtables.push(compiled.bytes);
         }
@@ -347,10 +376,11 @@ export function buildLayoutTable(features, lookups, plan = null, which = 'sub') 
     patch(w, 6, w.pos); const fs = w.pos; w.u16(order.length); order.forEach(f => w.tag(f.tag).u16(0));
     order.forEach((f, i) => { patch(w, fs + 6 + i * 6, w.pos - fs); w.u16(0).u16(f.indices.length); f.indices.forEach(n => w.u16(n)); });
     patch(w, 8, w.pos); const ls = w.pos; w.u16(lookups.length).zeros(lookups.length * 2); const payloads = [];
-    const extension = lookups.reduce((n,l)=>n+6+(l.subtables||[l.bytes]).reduce((s,b)=>s+2+b.length,0),0)>60000;
+    const extension = lookups.reduce((n,l)=>n+6+((l.flags&16)?2:0)+(l.subtables||[l.bytes]).reduce((s,b)=>s+2+b.length,0),0)>60000;
     lookups.forEach((l, i) => {
         patch(w, ls + 2 + i * 2, w.pos - ls); const base = w.pos, tables = l.subtables || [l.bytes];
         w.u16(extension ? (which === 'sub' ? 7 : 9) : l.type).u16(l.flags || 0).u16(tables.length).zeros(2 * tables.length);
+        if ((l.flags || 0) & 16) { if (!Number.isInteger(l.markFilteringSet) || l.markFilteringSet < 0 || l.markFilteringSet > 65535) throw new RangeError('Missing MarkFilteringSet index'); w.u16(l.markFilteringSet); }
         tables.forEach((bytes, k) => { patch(w, base + 6 + 2 * k, w.pos - base); if(extension){const ext = w.pos; w.u16(1).u16(l.type).u32(0); payloads.push({ ext, bytes });}else w.raw(bytes); });
     });
     for (const { ext, bytes } of payloads) { w.patch32(ext + 4, w.pos - ext); w.raw(bytes); }

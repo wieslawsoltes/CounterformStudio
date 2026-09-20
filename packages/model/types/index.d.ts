@@ -10,7 +10,7 @@ export interface Guide extends Point {angle:number;}
 export interface Layer {modifiers?:Modifier[];id:string;masterId:string;name:string;contours:Contour[];components:Component[];anchors:Anchor[];guides:Guide[];color:string;visible:boolean;locked:boolean;advanceWidth:number;}
 export interface ColorLayer {glyphId:string;paletteIndex:number;}
 export interface Glyph {colorPaint?:Paint;colorClip?:[number,number,number,number];colorLayers?:ColorLayer[];id:string;name:string;unicodes:number[];category:string;mark:string;export:boolean;note:string;layers:Layer[];}
-export interface Axis {tag:string;name:string;min:number;default:number;max:number;}
+export interface Axis {map?:[number,number][];tag:string;name:string;min:number;default:number;max:number;}
 export interface Master {metrics?:Partial<Pick<FontInfo,"ascender"|"descender"|"lineGap"|"capHeight"|"xHeight">>;id:string;name:string;location:Record<string,number>;}
 export interface Instance {name:string;location:Record<string,number>;}
 export interface FontInfo {familyName:string;styleName:string;unitsPerEm:number;ascender:number;descender:number;capHeight:number;xHeight:number;lineGap:number;italicAngle:number;weightClass:number;widthClass:number;designer:string;manufacturer:string;copyright:string;license:string;versionMajor:number;versionMinor:number;}

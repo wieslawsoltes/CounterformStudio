@@ -3,7 +3,7 @@ import {normalizeWorkspacePreferences, resolvedTheme, WorkspacePreferences, Pale
 const preferences:WorkspacePreferences=normalizeWorkspacePreferences(JSON.parse('{"theme":"system"}'));
 const palette:PaletteId='metrics';
 const theme:'light'|'dark'=resolvedTheme(preferences.theme,true);
-const release:'0.5.1'=version;
+const release:'0.6.0'=version;
 async function setup(host:HTMLDivElement) {
  const studio=await mountStudio(host,{restore:false});
  studio.workspaceUI.setPreference('canvas','paper');

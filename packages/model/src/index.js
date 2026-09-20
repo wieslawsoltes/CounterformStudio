@@ -1,3 +1,4 @@
+import {normalizeAxisMap} from '@wieslawsoltes/counterform-varstore';
 import {validateModifiers,evaluateModifiers} from '@wieslawsoltes/counterform-modifiers';
 import {paintChildren} from '@wieslawsoltes/counterform-colrv1';
 import { validateColorSource } from '@wieslawsoltes/counterform-color';
@@ -96,6 +97,7 @@ export function validateDocumentShape(d) {
     for (const a of d.axes) {
         if (typeof a.tag !== 'string' || !/^[ -~]{4}$/.test(a.tag) || tags.has(a.tag) || ![a.min, a.default, a.max].every(Number.isFinite) || a.min > a.default || a.default > a.max || a.min === a.max)
             throw new Error('Invalid variation axis');
+        normalizeAxisMap(a.map);
         tags.add(a.tag);
     }
     for (const values of Object.values(d.kerning))

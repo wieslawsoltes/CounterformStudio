@@ -5,7 +5,7 @@ export function mountStudio(host: any, { document: initialDocument, skiaOptions,
     compilerOptions?: import("@wieslawsoltes/counterform-compiler").CompilerOptions;
     restore?: boolean;
 }): Promise<StudioWorkbench>;
-export const version: "0.5.1";
+export const version: "0.6.0";
 export class StudioWorkbench {
     workspaceUI: import("./workspace-ui.js").WorkspaceUI;
     fontPane: HTMLDivElement;

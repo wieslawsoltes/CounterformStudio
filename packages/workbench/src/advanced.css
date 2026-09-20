@@ -1,0 +1,19 @@
+/* Scoped authoring dialogs retain the workspace's colors, focus rings and native form controls. */
+.cf-advanced-dialog{width:min(1080px,96vw)}
+.cf-advanced-layout{display:grid;grid-template-columns:minmax(235px,300px) minmax(0,1fr);gap:20px}
+.cf-advanced-fields{display:flex;flex-direction:column;gap:10px;min-width:0}
+.cf-advanced-source{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cf-advanced-source h3{margin:0;font-size:13px}
+.cf-advanced-code{width:100%;min-height:390px;flex:1;resize:vertical;box-sizing:border-box;padding:12px;font:12px/1.6 ui-monospace,monospace;tab-size:2;background:var(--cf-bg);color:inherit;border:1px solid var(--cf-border,#7775);border-radius:3px}
+.cf-advanced-status{min-height:20px;white-space:pre-wrap;font-size:12px}
+.cf-advanced-status[data-error=true]{color:#c64a35}
+.cf-axis-map-table{width:100%;border-collapse:collapse;font-size:12px}
+.cf-axis-map-table td{padding:3px 2px;vertical-align:bottom}.cf-axis-map-table .cf-field>span{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
+.cf-axis-map-table input{width:90px;min-width:0}.cf-axis-map-table input[readonly]{opacity:.6}
+.cf-axis-map-preview svg{width:100%;max-height:410px}.cf-axis-map-preview{align-self:start}
+.cf-analysis-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}.cf-analysis-summary>div{display:flex;flex-direction:column;gap:5px}.cf-analysis-summary strong{font-size:17px}
+.cf-advanced-dialog svg[aria-label="Signed curvature comb"]{display:block;width:100%;height:360px;background:var(--cf-bg,#7771);margin-top:10px}
+@media(max-width:700px){.cf-advanced-layout{grid-template-columns:minmax(0,1fr)}.cf-advanced-code{min-height:240px}.cf-advanced-dialog .cf-dialog-footer{flex-wrap:wrap}.cf-axis-map-preview svg{max-height:230px}}
+
+.cf-attachment-proof{padding:12px;min-height:72px;background:#fff;color:#111;border:1px solid #aaa6;font-size:64px;line-height:1.5;overflow:auto;font-feature-settings:"mark" 1,"mkmk" 1,"curs" 1,"kern" 1}
+.cf-advanced-fields>.cf-field{gap:3px;margin:0}.cf-advanced-fields .cf-field input,.cf-advanced-fields .cf-field select{min-height:26px;padding:3px 6px;font-size:12px}

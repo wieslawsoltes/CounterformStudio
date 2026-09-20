@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-editor",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "type": "module",
   "description": "Pointer and keyboard B\u00e9zier editing with RBush picking and atomic undo transactions.",
   "main": "./src/index.js",
@@ -29,10 +29,10 @@
   "types": "./types/index.d.ts",
   "dependencies": {
     "@wieslawsoltes/rbushweb": "0.1.1",
-    "@wieslawsoltes/counterform-model": "0.5.1",
-    "@wieslawsoltes/counterform-geometry": "0.5.1",
-    "@wieslawsoltes/counterform-renderer": "0.5.1",
-    "@wieslawsoltes/counterform-construction": "0.5.1"
+    "@wieslawsoltes/counterform-model": "0.6.0",
+    "@wieslawsoltes/counterform-geometry": "0.6.0",
+    "@wieslawsoltes/counterform-renderer": "0.6.0",
+    "@wieslawsoltes/counterform-construction": "0.6.0"
   },
   "keywords": [
     "font-editor",

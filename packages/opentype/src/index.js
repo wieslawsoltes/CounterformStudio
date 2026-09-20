@@ -1,3 +1,4 @@
+import {buildGDEF} from './attachments.js';
 import {VariationStoreBuilder,variationIndex} from '@wieslawsoltes/counterform-varstore';
 import { Writer, Reader } from '@wieslawsoltes/counterform-binary';
 export const pairKey = (left, right) => JSON.stringify([left, right]);
@@ -161,11 +162,7 @@ export function compileLayout(data, glyphs, masterId, variationModel=null) {
         result.set('GSUB', gsub);
     if (gpos)
         result.set('GPOS', gpos);
-    const classes = glyphs.map((g, i) => ({ i, class: g.category === 'Mark' ? 3 : g.category === 'Ligature' ? 2 : 1 }));
-    const definition=new Writer().u16(2).u16(classes.length);
-    for(const c of classes)definition.u16(c.i).u16(c.i).u16(c.class);
-    const gdef=store?.rows.length?new Writer().u32(0x10003).u16(18).u16(0).u16(0).u16(0).u16(0).u32(18+definition.pos).raw(definition.finish()).raw(store.encode()):new Writer().u32(0x10000).u16(12).u16(0).u16(0).u16(0).raw(definition.finish());
-    result.set('GDEF',gdef.finish());
+    result.set('GDEF',buildGDEF(glyphs,parsed,store));
     return { tables: result, parsed, kern };
 }
 /** Legacy kern is emitted alongside GPOS for consumers that do not implement layout. */

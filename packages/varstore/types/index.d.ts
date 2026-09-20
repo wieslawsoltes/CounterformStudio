@@ -8,3 +8,9 @@ export class VariationStoreBuilder {
  add(deltas:number[]):VariationIndex|null;encode():Uint8Array;
 }
 export function variationIndex(index:VariationIndex):Uint8Array;
+
+/** Normalized, binary-representable avar 1.0 pairs. Input order is validated, not silently sorted. */
+export function normalizeAxisMap(map?: readonly (readonly [number,number])[] | null): [number,number][];
+export function mapAxisCoordinate(value: number, map?: readonly (readonly [number,number])[] | null): number;
+export function encodeAvar(axes: readonly {map?: readonly (readonly [number,number])[]}[]): Uint8Array | null;
+export function decodeAvar(bytes: Uint8Array, axisCount?: number | null): [number,number][][];

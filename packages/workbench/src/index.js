@@ -1,3 +1,4 @@
+import {registerAdvancedCommands} from './advanced-ui.js';
 import {WorkspaceUI, registerWorkspaceCommands} from './workspace-ui.js';
 import {captureOriginal} from '@wieslawsoltes/counterform-preservation';
 import {RevisionJournal,registerProductionCommands,attachJournal,showModifiers} from './production-ui.js';
@@ -24,7 +25,7 @@ import { applyRecipe, recipes } from '@wieslawsoltes/counterform-automation';
 import { CoordinateCompute } from '@wieslawsoltes/counterform-compute';
 import { fromSVG, toSVG, bounds, transformContours, uid, rectangle, ellipse } from '@wieslawsoltes/counterform-geometry';
 import { el, button, toast, dialog, field, section, setValue, formDialog, escapeHTML } from './ui.js';
-export const version = '0.5.1';
+export const version = '0.6.0';
 const brand = `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M32 9A16 16 0 1 0 32 31L27 25A8 8 0 1 1 27 15Z" fill="currentColor"/><path d="M24 17H36V23H24Z" fill="#91b9ff"/></svg>`;
 /** Mount a complete local-first authoring workspace. Consumers own the returned lifetime. */
 export async function mountStudio(host, { document: initialDocument = null, skiaOptions = {}, compilerOptions = {}, restore = true } = {}) {
@@ -186,7 +187,7 @@ export class StudioWorkbench {
             this.applyFeatures();
         } });
         const ftoolbar = el('div', 'cf-panel-toolbar');
-        ftoolbar.append(el('strong', '', 'OpenType source'), button('Validate', () => this.checkFeatures()), button('Apply & compile', () => this.applyFeatures(), { className: 'primary' }), button('Insert example', () => { this.featureText.value += '\n# Kerning example\nfeature kern {\n  pos A V -85;\n} kern;\n'; }));
+        ftoolbar.append(el('strong', '', 'OpenType source'), button('Validate', () => this.checkFeatures()), button('Apply & compile', () => this.applyFeatures(), { className: 'primary' }), button('Attachments…', () => this.commands.run('features.attachments')), button('Insert example', () => { this.featureText.value += '\n# Kerning example\nfeature kern {\n  pos A V -85;\n} kern;\n'; }));
         this.featuresPane.append(ftoolbar, this.featureMessage, this.featureText);
         this.proofPane = el('div', 'cf-proof-pane');
         const ptoolbar = el('div', 'cf-proof-toolbar'), text = el('input', 'cf-proof-input');
@@ -320,6 +321,7 @@ export class StudioWorkbench {
         registerAuthoringCommands(this);
         registerProductionCommands(this);
         registerWorkspaceCommands(this);
+        registerAdvancedCommands(this);
     }
     buildMenus() {createStudioMenus(this);}
     buildInspector() {
@@ -650,7 +652,7 @@ export class StudioWorkbench {
         row.append(head, input, labels);
         axes.element.append(row);
     } if (!this.doc.data.axes.length)
-        axes.element.append(el('p', 'cf-muted', 'No variation axes defined.')); this.mastersPane.append(axes.element); const actions = el('div', 'cf-button-stack'); actions.append(button('Check master compatibility', () => this.checkCompatibility()), button('Generate static instance', () => this.generateInstance()), button('Export variable font', () => this.showExport())); this.mastersPane.append(actions); }
+        axes.element.append(el('p', 'cf-muted', 'No variation axes defined.')); this.mastersPane.append(axes.element); const actions = el('div', 'cf-button-stack'); actions.append(button('Axis mapping…', () => this.commands.run('axis.map')), button('Check master compatibility', () => this.checkCompatibility()), button('Generate static instance', () => this.generateInstance()), button('Export variable font', () => this.showExport())); this.mastersPane.append(actions); }
     applyInstancePreview() { if (!this.doc.data.axes.length)
         return; const instance = instanceDocument(this.doc, this.location); this.previewInstance = true; this.editor.readOnly = true; this.renderer.setScene({ hasColorPaint:false, colorLayers:(this.editor.glyph.colorLayers || []).map(l=>({contours:instance.resolve(l.glyphId),color:l.paletteIndex===65535?null:this.doc.data.palettes[0][l.paletteIndex]})), contours: instance.resolve(this.editor.glyphId), editable: [], advanceWidth: instance.layer(this.editor.glyphId).advanceWidth, ghost: [] }); this.proof.update({ variable: true, location: this.location }); this.updateStatus(); this.updateInspector(); }
     addMaster() { return formDialog('Add master', [['name', 'Name', 'New Master', {}], ...this.doc.data.axes.map(a => [a.tag, a.name || a.tag, this.location[a.tag] ?? a.default, { type: 'number', min: a.min, max: a.max }])], { subtitle: 'Clones all glyph layers and kerning from the selected master. Use a unique axis location.', onSubmit: v => { const location = Object.fromEntries(this.doc.data.axes.map(a => [a.tag, v[a.tag]])); let id; this.history.execute('Add master', () => id = addMaster(this.doc, v.name, location, this.editor.masterId)); this.selectMaster(id); } }); }

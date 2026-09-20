@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 — attachment layout, axis mapping and curve analysis
+
+Explicit GPOS3/4/5/6 FEA attachments, named anchors, mark classes, mark filtering and attachment flags; shared GDEF variable store preservation; source-aware validation and compiled proof editor. avar 1.0 map codec, source/preview/export integration and staged map UI. Analytic contour moments/inflections, bounded arc-length analysis and curvature comb. Added 24 core tests, 23 independent font/layout checks and 11 browser workflow gates on source/distribution; retained all previous suites. Thirty 0.6.0 packages, 148 commands, 24 pointer tools, 73 icons; no vendor changes. Full FontLab parity remains outstanding; see the release contract.
+
+
 ## 0.5.1 — desktop workspace
 
 Compact neutral chrome, paper-first light/dark editing, full Font window, retained table inventory, collapsible palettes, contour selection, direct metrics, adjacent glyphs, panel rail, Focus/Reset, ordered device preferences, stable virtual-grid keyboard focus, and typed presentation controls. All ten vendors, 30 packages and original font engines are retained. Five new vector icons bring the total to 73; eight new workspace commands bring the total to 145. Added headless preference tests and 15 browser UX gates.

@@ -1,3 +1,4 @@
+export {normalizeAxisMap,mapAxisCoordinate,encodeAvar,decodeAvar} from './axis-map.js';
 import { Writer } from '@wieslawsoltes/counterform-binary';
 
 const integer = (value, min, max, label) => {

@@ -398,3 +398,5 @@ export function quadraticPointsToContour(pts) {
     return c;
 }
 
+
+export {analyzeContours,segmentProperties} from './analysis.js';

@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-automation",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "type": "module",
   "description": "Declarative, bounded font transformation recipes without arbitrary code execution.",
   "main": "./src/index.js",
@@ -28,7 +28,7 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-geometry": "0.5.1"
+    "@wieslawsoltes/counterform-geometry": "0.6.0"
   },
   "keywords": [
     "font-editor",

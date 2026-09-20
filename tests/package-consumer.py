@@ -30,7 +30,7 @@ with tempfile.TemporaryDirectory(prefix='counterform-consumer-') as tmp:
             assert not any(Path(n).suffix.lower() in fonts for n in entries)
             meta = json.load(archive.extractfile('package/package.json'))
             if meta['name'] == '@wieslawsoltes/counterform-workbench':
-                for css in ['styles.css','legacy.css','workspace.css']:
+                for css in ['styles.css','legacy.css','workspace.css','advanced.css']:
                     assert 'package/src/'+css in entries, 'Missing layered workspace style: '+css
                 assert 'package/src/workspace-preferences.js' in entries
                 assert 'package/types/workspace-preferences.d.ts' in entries
@@ -75,6 +75,14 @@ doc.data.paletteLabels=['Day'];doc.data.paletteEntryLabels=doc.data.palettes[0].
 assert.equal(new DataView(compileColorTables(doc.data,doc.data.glyphs).get('COLR').buffer).getUint16(0),1);
 const compiler=new CompilerClient({workerFactory:()=>new Worker(new URL(import.meta.resolve('@wieslawsoltes/counterform-compiler/node-worker')))});
 try {
+    const {analyzeContours}=await import('@wieslawsoltes/counterform-geometry');
+    const {decodeAvar}=await import('@wieslawsoltes/counterform-varstore');
+    const {readDirectory}=await import('@wieslawsoltes/counterform-binary');
+    assert(analyzeContours(doc.resolve(doc.glyph('A').id)).converged);
+    doc.data.axes[0].map=[[-1,-1],[0,0],[.5,.25],[1,1]];
+    doc.data.features='markClass V <anchor 0 0> @TOP;feature mark {pos base A <anchor 300 700> mark @TOP;} mark;';
+    const mapped=await compiler.compile(doc,{format:'variable-cff2'});
+    assert.deepEqual(decodeAvar(readDirectory(mapped.bytes).tables.get('avar').bytes,1)[0],doc.data.axes[0].map);
     const {bytes}=await compiler.compile(doc,{format:'ttf'});
     assert.deepEqual(bytes,compileTrueType(doc));
     assert((await compiler.inspect(doc)).report.tables.some(t=>t.tag==='COLR'));
@@ -82,7 +90,7 @@ try {
     const {captureOriginal,restoreOriginal}=await import('@wieslawsoltes/counterform-preservation');const archive=await captureOriginal(bytes,doc.data);assert.deepEqual(await restoreOriginal(archive),bytes);
     const {RevisionJournal,MemoryJournalBackend}=await import('@wieslawsoltes/counterform-journal');const j=new RevisionJournal(new MemoryJournalBackend());await j.append(doc.data);assert.equal((await j.recover(doc.data.id)).issue,null);await j.close();
 } finally {compiler.dispose();}
-console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1 and CPALv1, real Node compiler worker and headless module imports');
+console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1, CPALv1, GPOS attachments, avar, measurements, real Node compiler worker and headless module imports');
 ''')
     result = subprocess.run(['node','consumer.mjs'],cwd=base,text=True,capture_output=True)
     print(result.stdout, end='')

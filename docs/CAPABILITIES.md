@@ -1,12 +1,12 @@
 # Capability contract and parity ledger
 
-Version 0.5.1, reviewed 2026-09-17. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
+Version 0.6.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
 
 **Working** means implemented and exercised within the documented subset. **Partial** means a narrower implementation exists. **Missing** means no implementation is claimed. An attractive dialog, data field or shader source alone is not counted as feature parity.
 
 | Area | Status | Delivered contract / boundary |
 |---|---|---|
-| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 73 original SVG icons, nine menus covering all 145 current commands; not every native FontLab command |
+| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 73 original SVG icons, nine menus covering all 148 current commands; not every native FontLab command |
 | Glyph library and font inventory | Working | Full virtual Font window and optional navigator; stable grid keyboard focus; reactive keyed projection; retained TreeDataGrid editable widths/export flags |
 | Workspace presentation and preferences | Working | Neutral light/dark chrome, independent paper canvas, collapsible palettes, direct metrics, panel rail, reversible Focus/Reset, device-local preferences; native pixel/behavior parity is not claimed |
 | Unicode mapping | Working | Scalar values including supplementary planes; no UVS/cmap14 authoring |
@@ -28,8 +28,10 @@ Version 0.5.1, reviewed 2026-09-17. The comparison target is the FontLab **8.4 f
 | Skin / Glue / Power Brush / autotrace | Missing | No equivalents claimed |
 | Masks, images and background references | Missing | Source layers are master layers, not a complete arbitrary artwork-layer system |
 | Master editing | Working | Clone master, axis/location editing, topology checks, static interpolation |
+| Axis mapping | Working within avar 1.0 | Normalized, monotonic F2DOT14 maps in source, preview, gvar/CFF2/HVAR/MVAR/GPOS and WOFF2; staged UI; no cross-axis avar 2.0 |
+| Outline measurements & curvature | Working within algebraic contract | Green-integral area/centroid, chord/polygon length bounds, analytic cubic inflections, signed curvature comb and JSON export; not Boolean-unioned ink area or every native measurement tool |
 | Sparse multidimensional interpolation | Working | Support-region model verified against fontTools |
-| Variable TrueType export | Partial | fvar/gvar/STAT, HVAR advance and sidebearings, five MVAR metrics, GDEF/GPOS variable kerning and mark-to-base anchors; no avar/FeatureVariations |
+| Variable TrueType export | Partial | fvar/gvar/STAT, HVAR advance and sidebearings, five MVAR metrics, GDEF/GPOS variable kerning and mark-to-base anchors; avar 1.0 mapping; no FeatureVariations or avar 2.0 |
 | CFF2 static and variable fonts | Working | Cubic blend programs, sparse regions, topology validation, HVAR/MVAR and variable GPOS; no CFF2 hint authoring |
 | Spacing and kerning | Partial | Advance/sidebearings, pairs, group exceptions, fixed common-pair matrix; no optical autokerning, full metrics-text editing, sidebearing expressions or all native gestures |
 | Pair kerning compilation | Working | GPOS PairPos format1 plus legacy kern0; classes expanded to pairs with budget limits |
@@ -37,7 +39,7 @@ Version 0.5.1, reviewed 2026-09-17. The comparison target is the FontLab **8.4 f
 | Single substitution / ligatures | Working | GSUB type1 format2 and type4 format1 |
 | Mark-to-base attachment | Working | Matching named anchors → GPOS4 and GDEF glyph classes |
 | Contextual and script/language layout | Partial | Single/multiple/alternate/ligature/chaining/reverse substitutions, named lookups, contextual single/pair positioning, ordered exceptions, script/language selection and required features; independent FEA/HarfBuzz comparisons; not full complex-script authoring |
-| Cursive / mark-to-ligature / mark-to-mark FEA | Missing | Explicit attachment statements and the broader native script-editing workflow are not implemented |
+| Cursive / mark-to-ligature / mark-to-mark FEA | Working within the static subset | GPOS3/4/5/6, anchorDef, markClass, NULL anchors, contextual calls, ligature components, mark filtering/attachment classes, owned compiled proof and undo UI; variable/device FEA anchors and full native script-editing workflows remain missing |
 | TrueType bytecode editing / hint debugger | Missing | No instruction editor, interpreter, CVT/fpgm/prep production workflow |
 | PS hints / autohinting | Missing | Output unhinted; imported programs not reconstructed |
 | COLRv0 / CPALv0 | Working | Ordered monochrome glyph layers, multiple RGBA palettes and foreground color, preserved as optional COLRv1 fallback |
@@ -56,7 +58,7 @@ Version 0.5.1, reviewed 2026-09-17. The comparison target is the FontLab **8.4 f
 | Production QA | Partial | Structural/geometry/encoding/component/master checks; not OTS or FontBakery certification |
 | Python macro API | Missing | Bounded JSON recipes and JS package APIs only; no FontLab Python compatibility |
 | File persistence | Partial | Counterform files, immutable IndexedDB autosave, full-snapshot revision journal with SHA-256 chain, atomic CAS writes, corruption-prefix recovery and restore-as-copy UI; no incremental delta journal, native file watch or git-aware project |
-| Full keyboard parity | Partial | 145-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
+| Full keyboard parity | Partial | 148-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
 | Worker compilation and validation | Working; physical hardware unqualified | Bounded queue, keyed proof replacement, transferable results, hard cancellation and timeout; real Node workers plus the generated relative-URL browser graph exercised in a fresh Node worker host; local isolated browser suite explicitly uses inline mode; source/distribution/Pages CI exercises real browser workers |
 | WebGPU renderer | Unqualified here | Real Skia automatic backend request; local isolated tests exercise native raster; CI also tests WebGL through SwiftShader, not physical GPUs |
 | WebGPU compute | Implemented, GPU unqualified | Independent WGSL interpolation service; CPU numerical path verified |
@@ -64,7 +66,7 @@ Version 0.5.1, reviewed 2026-09-17. The comparison target is the FontLab **8.4 f
 
 ## Feature-language subset
 
-See [Contextual OpenType authoring](CONTEXTUAL-LAYOUT.md) for accepted syntax, ordered ignore rules, nested lookup validation, extension wrapping and 14 independent fontTools/HarfBuzz scenarios. Arbitrary source is not silently accepted. Includes, table blocks, explicit attachment statements, feature-variation conditions, class ranges and unsupported lookup flags are rejected. Automatic mark-to-base and variable kerning/anchors remain available through the document model.
+See [Contextual OpenType authoring](CONTEXTUAL-LAYOUT.md) for accepted syntax, ordered ignore rules, nested lookup validation, extension wrapping and 14 independent fontTools/HarfBuzz scenarios. Arbitrary source is not silently accepted. Includes, table blocks, variable/device anchor syntax, feature-variation conditions, class ranges and unsupported lookup flags are rejected. Static explicit attachments and mark-filtering flags are implemented in 0.6.0; see [advanced authoring](ADVANCED-AUTHORING.md). Automatic mark-to-base and variable kerning/anchors remain available through the document model.
 
 ## Static color contract
 
@@ -82,10 +84,12 @@ Open contours are editable source artwork but are excluded from font compilation
 
 ## Remaining acceptance gates
 
-Full FEA grammar and additional GPOS attachments; avar/FeatureVariations; TrueType and PostScript hint authoring/debugger; variable COLRv1 parameters and bitmap/SVG color fonts; richer construction and artwork layers; full original source-format adapters; specialized Element/Metrics/Kerning/Text/Magnet/Matchmaker/Fill workflows; exhaustive native shortcuts; large-font incremental journal/worker optimization; CJK stress, hardware WebGPU, Firefox/Safari, touch and assistive technology.
+Full FEA grammar and variable/device attachment anchors; avar 2.0/FeatureVariations; TrueType and PostScript hint authoring/debugger; variable COLRv1 parameters and bitmap/SVG color fonts; richer construction and artwork layers; full original source-format adapters; specialized Element/Metrics/Kerning/Text/Magnet/Matchmaker/Fill workflows; exhaustive native shortcuts; large-font incremental journal/worker optimization; CJK stress, hardware WebGPU, Firefox/Safari, touch and assistive technology.
 
 ## Verification and delivery
 
 See [0.5.0 release notes](RELEASE-0.5.0.md), [delivery status](DELIVERY-STATUS.md) and associated verification artifacts. The complete 0.5.0 source is committed on `main` at `12b9c3aca24d59154d79676ef8b3d6ae96f1f7ed`. Delivery status links the new verification runs; the original local evidence remains under `docs/verification/0.5.0`. Results from earlier releases do not certify this source, and software-rendered CI does not certify physical GPU performance. No full-parity percentage is asserted.
 
 For the 0.5.1 desktop redesign, see [workspace design](WORKSPACE-DESIGN.md) and [0.5.1 release notes](RELEASE-0.5.1.md). The commit-associated CI records the new workspace interaction and deployment results.
+
+For the 0.6.0 attachment, mapping and analysis increment, see [release notes](RELEASE-0.6.0.md). Local and remote verification are explicitly distinguished there; the current GitHub run establishes deployment status.

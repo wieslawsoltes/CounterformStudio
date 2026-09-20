@@ -17,6 +17,7 @@
     "export-consumer.ts",
     "editing-consumer.ts",
     "color-consumer.ts",
-    "workspace-consumer.ts"
+    "workspace-consumer.ts",
+    "advanced-consumer.ts"
   ]
 }

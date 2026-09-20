@@ -38,11 +38,12 @@ compiled with fontTools FEA and shaped with the platform HarfBuzz library. Glyph
 IDs, clusters, both advances and both offsets are compared, including en/tr
 language selection. No installed fonts are read or redistributed.
 
-Still outside this grammar: anchorDef/markClass and explicit cursive/mark-to-mark/
-mark-to-ligature statements; class ranges; feature parameters and feature variation
-conditions; numeric/mark-filtering lookup flags; device tables; includes and table
-blocks. Existing automatic mark-to-base and variable kerning/anchors remain
-available through the document model. These boundaries are not full FEA parity.
+Version 0.6.0 additionally implements anchorDef/markClass, explicit cursive,
+mark-to-base, mark-to-ligature and mark-to-mark statements, NULL anchors,
+MarkAttachmentType and UseMarkFilteringSet. See [advanced authoring](ADVANCED-AUTHORING.md).
+Still outside this grammar: class ranges, feature parameters/variation conditions,
+full numeric lookup flags, variable/device-anchor values, includes and table blocks.
+Automatic variable mark-to-base and kerning remain supported through the source model.
 
 Primary specifications consulted on 2026-09-17:
 - https://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html

@@ -8,8 +8,9 @@ export function toast(message, kind = 'info') { let host = document.querySelecto
     host.setAttribute('aria-live', 'polite');
     document.body.append(host);
 } const box = el('div', `cf-toast ${kind}`, message); host.append(box); setTimeout(() => box.remove(), kind === 'error' ? 10000 : 4500); }
-export function dialog(title, { subtitle = '', className = '', wide = false } = {}) { const d = el('dialog', 'cf-dialog ' + className + (wide ? ' wide' : '')), header = el('header', 'cf-dialog-header'), titleBox = el('div'); titleBox.append(el('h2', '', title)); if (subtitle)
-    titleBox.append(el('p', 'cf-muted', subtitle)); header.append(titleBox, button('×', () => d.close(), { className: 'cf-close', title: 'Close dialog' })); const body = el('div', 'cf-dialog-body'), footer = el('footer', 'cf-dialog-footer'); d.append(header, body, footer); document.body.append(d); d.addEventListener('close', () => d.remove(), { once: true }); d.addEventListener('click', e => { if (e.target === d) {
+let dialogSequence = 0;
+export function dialog(title, { subtitle = '', className = '', wide = false } = {}) { const d = el('dialog', 'cf-dialog ' + className + (wide ? ' wide' : '')), header = el('header', 'cf-dialog-header'), titleBox = el('div'); const heading=el('h2','',title);heading.id=`cf-dialog-title-${++dialogSequence}`;d.setAttribute('aria-labelledby',heading.id);titleBox.append(heading); if (subtitle)
+    titleBox.append(el('p', 'cf-muted', subtitle)); const closeButton=button('×', () => d.close(), { className: 'cf-close', title: 'Close dialog' });closeButton.setAttribute('aria-label','Close dialog');header.append(titleBox,closeButton); const body = el('div', 'cf-dialog-body'), footer = el('footer', 'cf-dialog-footer'); d.append(header, body, footer); document.body.append(d); d.addEventListener('close', () => d.remove(), { once: true }); d.addEventListener('click', e => { if (e.target === d) {
     const r = d.getBoundingClientRect();
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)
         d.close();

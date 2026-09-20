@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-woff2",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Portable WOFF2 container encoding",
   "type": "module",
   "sideEffects": false,
@@ -27,6 +27,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@wieslawsoltes/counterform-binary": "0.5.1"
+    "@wieslawsoltes/counterform-binary": "0.6.0"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-history",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "type": "module",
   "description": "Atomic glyph-scoped and font-scoped undo/redo transactions with bounded history.",
   "main": "./src/index.js",
@@ -28,7 +28,7 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-model": "0.5.1"
+    "@wieslawsoltes/counterform-model": "0.6.0"
   },
   "keywords": [
     "font-editor",

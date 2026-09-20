@@ -1,3 +1,4 @@
+import {mapAxisCoordinate,encodeAvar} from '@wieslawsoltes/counterform-varstore';
 import {compileLayout} from '@wieslawsoltes/counterform-opentype';
 import { compileMetricVariations, masterInfo, metricTags } from './metrics.js';
 export { compileMetricVariations, masterInfo } from './metrics.js';
@@ -7,7 +8,7 @@ import { FontDocument } from '@wieslawsoltes/counterform-model';
 import { compileTrueType, exportGlyphOrder } from '@wieslawsoltes/counterform-font-io';
 export function normalizeLocation(location, axes) { const out = {}; for (const a of axes) {
     const v = clamp(location[a.tag] ?? a.default, a.min, a.max), d = v - a.default;
-    out[a.tag] = d === 0 ? 0 : d / (d < 0 ? a.default - a.min : a.max - a.default);
+    out[a.tag] = mapAxisCoordinate(d === 0 ? 0 : d / (d < 0 ? a.default - a.min : a.max - a.default),a.map);
 } return out; }
 export function supportScalar(location, support) { let scalar = 1; for (const [axis, [lo, peak, hi]] of Object.entries(support)) {
     if (!peak)
@@ -205,6 +206,7 @@ export function compileVariableTrueType(doc, { tolerance = .25 } = {}) {
     for (const b of glyphBlocks)
         w.raw(b);
     const names = [], tables = new Map([['gvar', w.finish()], ['fvar', fvar(doc.data, names)], ['STAT', stat(doc.data)]]);
+    const avar=encodeAvar(doc.data.axes); if(avar) tables.set('avar',avar);
     for (const [tag, bytes] of compileMetricVariations(doc,model,glyphs)) tables.set(tag,bytes);
     for(const [tag,bytes] of compileLayout(doc.data,glyphs,baseId,model).tables)tables.set(tag,bytes);
     const compiled = new FontDocument({...doc.data,info:masterInfo(doc,masters[baseIndex])});
@@ -212,4 +214,4 @@ export function compileVariableTrueType(doc, { tolerance = .25 } = {}) {
 }
 
 
-export function variationMetadata(data) { const names=[]; return {tables:new Map([['fvar',fvar(data,names)],['STAT',stat(data)]]), names}; }
+export function variationMetadata(data) { const names=[],tables=new Map([['fvar',fvar(data,names)],['STAT',stat(data)]]),avar=encodeAvar(data.axes); if(avar)tables.set('avar',avar); return {tables,names}; }

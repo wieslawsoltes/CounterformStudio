@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-renderer",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "type": "module",
   "description": "SkiaSharpWeb outline rendering, layered rulers/overlays, camera and native Boolean paths.",
   "main": "./src/index.js",
@@ -29,8 +29,8 @@
   "types": "./types/index.d.ts",
   "dependencies": {
     "@wieslawsoltes/skiasharpweb": "0.5.0",
-    "@wieslawsoltes/counterform-geometry": "0.5.1",
-    "@wieslawsoltes/counterform-model": "0.5.1"
+    "@wieslawsoltes/counterform-geometry": "0.6.0",
+    "@wieslawsoltes/counterform-model": "0.6.0"
   },
   "keywords": [
     "font-editor",

@@ -182,6 +182,11 @@ function baseTables(doc, glyphs, metrics, outlineFormat, masterId, extraNames = 
     if (outlineFormat === 'ttf')
         tables.set('gasp', new Writer().u16(1).u16(1).u16(65535).u16(10).finish());
     const layout = compileLayout(doc.data, glyphs, masterId);
+    if (outlineFormat !== 'ttf' && layout.parsed.hasContourPoints) throw new Error('Contour-point attachment anchors require TrueType outlines');
+    if (layout.parsed.pointReferences?.length) {
+        const points=new Map(glyphs.map((g,i)=>[g.name,metrics[i].points||0]));
+        for(const r of layout.parsed.pointReferences)if(r.point>= (points.get(r.glyph)||0))throw new RangeError(`Attachment point ${r.point} is outside the compiled outline of '${r.glyph}'`);
+    }
     for (const [k, v] of layout.tables)
         tables.set(k, v);
     const kern = compileKern(layout.kern);

@@ -115,3 +115,17 @@ export function contour(nodes?: any[], closed?: boolean): {
     closed: boolean;
     nodes: any[];
 };
+
+export interface AnalysisPoint {x:number;y:number}
+export interface AnalysisNode extends AnalysisPoint {in?:AnalysisPoint|null;out?:AnalysisPoint|null}
+export interface AnalysisContour {id?:string;closed:boolean;nodes:AnalysisNode[]}
+export interface OutlineSegment {p0:AnalysisPoint;p1?:AnalysisPoint;p2?:AnalysisPoint;p3:AnalysisPoint;curve:boolean}
+export interface AnalysisOptions {tolerance?:number;maxDepth?:number;maxSubdivisions?:number;maxSegments?:number}
+export interface CurveProperties {position:AnalysisPoint;speed:number;tangent:AnalysisPoint|null;curvature:number|null;radius:number|null}
+export interface AnalysisBounds {minX:number;minY:number;maxX:number;maxY:number;width:number;height:number;empty:boolean}
+export interface SegmentAnalysis {index:number;curve:boolean;length:number;lengthBounds:[number,number];inflections:number[]}
+export interface ContourAnalysis {id?:string;closed:boolean;bounds:AnalysisBounds;signedArea:number|null;centroid:AnalysisPoint|null;orientation:'open'|'degenerate'|'clockwise'|'counterclockwise';length:number;lengthBounds:[number,number];segments:SegmentAnalysis[]}
+export interface OutlineAnalysis {contours:ContourAnalysis[];bounds:AnalysisBounds;segmentCount:number;signedArea:number;centroid:AnalysisPoint|null;length:number;lengthBounds:[number,number];lengthErrorBound:number;converged:boolean;subdivisions:number}
+/** Signed, winding-weighted moments (not Boolean-unioned ink area) and bounded arc lengths. */
+export function analyzeContours(contours:AnalysisContour[],options?:AnalysisOptions):OutlineAnalysis;
+export function segmentProperties(segment:OutlineSegment,t:number):CurveProperties;

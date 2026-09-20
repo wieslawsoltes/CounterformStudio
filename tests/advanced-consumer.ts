@@ -1,0 +1,15 @@
+import {createDemoFont,Axis} from '@wieslawsoltes/counterform-model';
+import {normalizeAxisMap,mapAxisCoordinate,encodeAvar,decodeAvar} from '@wieslawsoltes/counterform-varstore';
+import {analyzeContours,segmentProperties,OutlineAnalysis,CurveProperties} from '@wieslawsoltes/counterform-geometry';
+import {parseFeatures,AttachmentAnchor,FeatureProgram} from '@wieslawsoltes/counterform-opentype';
+import {showAxisMapping,showAttachmentEditor,showOutlineAnalysis,AuthoringDialog} from '@wieslawsoltes/counterform-workbench/advanced';
+import {StudioWorkbench} from '@wieslawsoltes/counterform-workbench';
+const axis:Axis={tag:'wght',name:'Weight',min:100,default:400,max:900,map:normalizeAxisMap([[-1,-1],[0,0],[.5,.25],[1,1]])};
+const mapped:number=mapAxisCoordinate(.5,axis.map),bytes:Uint8Array|null=encodeAvar([axis]);
+const maps:[number,number][][]=decodeAvar(bytes!,1);
+const doc=createDemoFont(),report:OutlineAnalysis=analyzeContours(doc.resolve(doc.glyph('A')!.id));
+const value:CurveProperties=segmentProperties({p0:{x:0,y:0},p3:{x:10,y:0},curve:false},.5);
+const anchor:AttachmentAnchor={x:20,y:30,point:0};
+const parsed:FeatureProgram=parseFeatures('anchorDef 20 30 top;');
+declare const app:StudioWorkbench;
+const dialogs:AuthoringDialog[]=[showAxisMapping(app),showAttachmentEditor(app),showOutlineAnalysis(app)];
