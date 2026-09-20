@@ -1,3 +1,4 @@
+import {validateArtwork,ARTWORK_LIMITS} from '@wieslawsoltes/counterform-artwork';
 import {isVariationSelector} from '@wieslawsoltes/counterform-binary';
 import {normalizeAxisMap} from '@wieslawsoltes/counterform-varstore';
 import {validateModifiers,evaluateModifiers} from '@wieslawsoltes/counterform-modifiers';
@@ -125,7 +126,7 @@ export function validateDocumentShape(d) {
         if (!values || typeof values !== 'object' || Object.values(values).some(v => !Number.isFinite(v)))
             throw new Error('Invalid kerning values');
     const ids = new Set();
-    let count = 0;
+    let count = 0, artworkBytes = 0, artworkPoints = 0, artworkPixels = 0;
     for (const g of d.glyphs) {
         if (!safeId(g.id) || ids.has(g.id))
             throw new Error('Duplicate/missing glyph identity');
@@ -136,6 +137,8 @@ export function validateDocumentShape(d) {
             throw new Error('Invalid glyph layers');
         for (const l of g.layers) {
             validateModifiers(l.modifiers);
+            const art = validateArtwork(l.artwork); artworkBytes += art.bytes; artworkPoints += art.points; artworkPixels += art.pixels;
+            if (artworkBytes > ARTWORK_LIMITS.maxDocumentBytes || artworkPoints > 2000000 || artworkPixels > ARTWORK_LIMITS.maxPixels * 16) throw new RangeError('Document artwork budget exceeded');
             if (!masterIds.has(l.masterId) || !Array.isArray(l.guides) || !Array.isArray(l.contours) || !Array.isArray(l.components) || !Array.isArray(l.anchors) || !Number.isFinite(l.advanceWidth))
                 throw new Error('Invalid layer');
             if (l.anchors.some(a => !finite(a) || typeof a.name !== 'string') || l.guides.some(a => !finite(a) || !Number.isFinite(a.angle ?? 0)))
@@ -166,6 +169,7 @@ export function duplicateGlyph(g, newName) { const x = structuredClone(g); x.id 
     function remap(p){if(!p)return;if(p.glyphId===g.id)p.glyphId=x.id;for(const c of paintChildren(p))remap(c);}remap(x.colorPaint);
     for (const l of x.layers) {
     l.id = uid('layer');
+    for(const r of l.artwork||[])r.id=uid('art');
     for (const c of l.contours) {
         c.id = uid('c');
         for (const n of c.nodes)

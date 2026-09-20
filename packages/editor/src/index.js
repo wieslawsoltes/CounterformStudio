@@ -87,7 +87,7 @@ export class GlyphEditor {
                 this.selection.delete(id);
         this.renderer.selection = this.selection;
         const colorLayers = (this.glyph.colorLayers || []).map(layer => ({contours:this.doc.resolve(layer.glyphId,this.masterId),color:layer.paletteIndex===65535?null:this.doc.data.palettes[0][layer.paletteIndex]}));
-        this.renderer.setScene({ colorGlyphId:this.glyphId,hasColorPaint:!!this.glyph.colorPaint,documentId:this.doc.data.id,revision:this.doc.revision,masterId:this.masterId,colorLayers, contours: this.doc.resolve(this.glyphId, this.masterId), editable: l.contours, advanceWidth: l.advanceWidth, metrics: {...this.doc.info,...this.doc.data.masters.find(m=>m.id===this.masterId)?.metrics}, anchors: l.anchors, guides: l.guides });
+        this.renderer.setScene({ artwork:l.artwork||[], colorGlyphId:this.glyphId,hasColorPaint:!!this.glyph.colorPaint,documentId:this.doc.data.id,revision:this.doc.revision,masterId:this.masterId,colorLayers, contours: this.doc.resolve(this.glyphId, this.masterId), editable: l.contours, advanceWidth: l.advanceWidth, metrics: {...this.doc.info,...this.doc.data.masters.find(m=>m.id===this.masterId)?.metrics}, anchors: l.anchors, guides: l.guides });
         this.reindex();
         this.changed.emit({ kind: 'geometry', glyphId: this.glyphId, masterId: this.masterId });
     }

@@ -77,5 +77,25 @@ test('generated browser worker graph executes in a fresh directory without npm o
   client=new CompilerClient({workerFactory:()=>new Worker(url.pathToFileURL(path.join(folder,'host.mjs')))});
   const d=createDemoFont();d.glyph('A').colorLayers=[{glyphId:d.glyph('O').id,paletteIndex:1}];
   assert.deepEqual((await client.compile(d,{format:'variable'})).bytes,compileVariableTrueType(d));
+  assert.equal((await client.trace({width:1,height:1,pixels:Uint8Array.of(0,0,0,255)})).contours.length,1);
  } finally {client?.dispose();await fs.rm(folder,{recursive:true,force:true});}
+});
+
+test('trace snapshots only the validated RGBA view and transfers its owned buffer, not caller storage', async()=>{
+ const w=new FakeWorker();w.postMessage=function(message,transfer){this.message=message;this.transfer=transfer;};
+ const c=new CompilerClient({workerFactory:()=>w}),buffer=new Uint8Array(1024),pixels=buffer.subarray(400,416);pixels.fill(255);
+ const job=c.trace({width:2,height:2,pixels,data:'not a font source',ignored:()=>{}});
+ await tick();assert.equal(w.message.source.pixels.byteLength,16);assert.equal(w.message.source.pixels.buffer.byteLength,16);
+ assert.notEqual(w.message.source.pixels.buffer,buffer.buffer);assert.deepEqual(Object.keys(w.message.source),['width','height','pixels']);
+ assert.deepEqual(w.transfer,[w.message.source.pixels.buffer]);pixels.fill(0);assert.equal(w.message.source.pixels[0],255);
+ w.result({contours:[]});await job;c.dispose();assert.equal(buffer.byteLength,1024);
+});
+test('trace queue bounds active plus queued raster bytes and releases accounting on cancellation',async()=>{
+ const w=new FakeWorker(),c=new CompilerClient({workerFactory:()=>w}),image={width:4096,height:1024,pixels:new Uint8Array(4096*1024*4)};
+ const failures=[];
+ try{for(let i=0;i<4;i++)failures.push(assert.rejects(c.trace(image,{}, {key:'raster-'+i}),{name:'AbortError'}));
+  await tick();await assert.rejects(c.trace(image),/raster byte budget/);
+  c.cancelKey('raster-2');failures.push(assert.rejects(c.trace(image,{}, {key:'replacement'}),{name:'AbortError'}));
+  assert.equal(c.queue.length,3);assert.equal(c.active.rasterBytes,16*1024*1024);
+ }finally{c.dispose();await Promise.all(failures);}
 });

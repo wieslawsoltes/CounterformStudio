@@ -1,0 +1,14 @@
+import {traceBitmap,traceMask,fitPolyline,Raster,TraceResult} from '@wieslawsoltes/counterform-tracing';
+import {createVectorReference,createBitmapReference,validateArtwork,referenceContours,inspectPNG,ArtworkReference,Affine} from '@wieslawsoltes/counterform-artwork';
+import {CompilerClient} from '@wieslawsoltes/counterform-compiler';
+import {createDemoFont} from '@wieslawsoltes/counterform-model';
+const image:Raster={width:2,height:2,pixels:new Uint8Array(16)};
+const result:TraceResult=traceBitmap(image,{curves:true,tolerance:.25});
+const a:ArtworkReference=createVectorReference(result.contours);
+const matrix:Affine=[1,0,0,-1,0,100];
+const b:ArtworkReference=createBitmapReference(new Uint8Array(0),{transform:matrix});
+validateArtwork([a,b]);inspectPNG(new Uint8Array(0));
+const doc=createDemoFont();doc.data.glyphs[0].layers[0].artwork=[a,b];
+referenceContours(a);traceMask({width:2,height:2,mask:new Uint8Array(4)});
+fitPolyline([{x:0,y:0},{x:1,y:1}],{tolerance:.1});
+const worker=new CompilerClient();worker.trace(image,{invert:false},{key:'trace'}).then(r=>r.threshold);worker.dispose();

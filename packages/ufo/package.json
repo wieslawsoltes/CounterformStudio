@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/counterform-ufo",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "type": "module",
   "description": "UFO3/GLIF source interchange, plist XML and bounded ZIP archives.",
   "main": "./src/index.js",
@@ -28,10 +28,10 @@
   },
   "types": "./types/index.d.ts",
   "dependencies": {
-    "@wieslawsoltes/counterform-binary": "0.8.0",
-    "@wieslawsoltes/counterform-model": "0.8.0",
-    "@wieslawsoltes/counterform-geometry": "0.8.0",
-    "@wieslawsoltes/counterform-opentype": "0.8.0"
+    "@wieslawsoltes/counterform-binary": "0.9.0",
+    "@wieslawsoltes/counterform-model": "0.9.0",
+    "@wieslawsoltes/counterform-geometry": "0.9.0",
+    "@wieslawsoltes/counterform-opentype": "0.9.0"
   },
   "keywords": [
     "font-editor",

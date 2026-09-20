@@ -1,3 +1,4 @@
+import type {ArtworkReference} from '@wieslawsoltes/counterform-artwork';
 import type {Paint} from '@wieslawsoltes/counterform-colrv1';
 import type {Modifier} from '@wieslawsoltes/counterform-modifiers';
 export interface Point {x:number;y:number;}
@@ -7,7 +8,7 @@ export type Affine = [number,number,number,number,number,number];
 export interface Component {id?:string;glyphId?:string;glyphName?:string;transform:Affine;}
 export interface Anchor extends Point {name:string;}
 export interface Guide extends Point {angle:number;}
-export interface Layer {modifiers?:Modifier[];id:string;masterId:string;name:string;contours:Contour[];components:Component[];anchors:Anchor[];guides:Guide[];color:string;visible:boolean;locked:boolean;advanceWidth:number;}
+export interface Layer {artwork?:ArtworkReference[];modifiers?:Modifier[];id:string;masterId:string;name:string;contours:Contour[];components:Component[];anchors:Anchor[];guides:Guide[];color:string;visible:boolean;locked:boolean;advanceWidth:number;}
 export interface ColorLayer {glyphId:string;paletteIndex:number;}
 export interface Glyph {colorPaint?:Paint;colorClip?:[number,number,number,number];colorLayers?:ColorLayer[];id:string;name:string;unicodes:number[];category:string;mark:string;export:boolean;note:string;layers:Layer[];}
 export interface Axis {map?:[number,number][];tag:string;name:string;min:number;default:number;max:number;}

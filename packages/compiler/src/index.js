@@ -1,3 +1,4 @@
+import {validateRaster} from '@wieslawsoltes/counterform-tracing';
 const aborted = message => Object.assign(new Error(message || 'Compiler task cancelled'), {name:'AbortError'});
 
 /** One reusable worker, bounded queue, transfer results, hard cancellation, deterministic ownership. */
@@ -19,11 +20,22 @@ export class CompilerClient {
         if (key !== null) this.cancelKey(key);
         if (this.queue.length + (this.active ? 1 : 0) >= this.maxQueue)
             return Promise.reject(new RangeError('Compiler queue budget exceeded'));
-        let snapshot, settings;
-        try { snapshot = structuredClone(source?.data ?? source); settings = structuredClone(options); }
+        let snapshot, settings, rasterBytes=0;
+        try {
+            if (kind === 'trace') {
+                validateRaster(source);
+                rasterBytes = source.pixels.byteLength;
+                const retained = [...this.queue, this.active].filter(Boolean).reduce((n,j) => n + (j.rasterBytes || 0), 0);
+                if (rasterBytes + retained > 64 * 1024 * 1024) throw new RangeError('Queued raster byte budget exceeded');
+                // Copy only the validated view, not a potentially much larger backing buffer
+                // or arbitrary properties. The caller's bytes remain attached and immutable.
+                snapshot = {width:source.width, height:source.height, pixels:Uint8Array.from(source.pixels)};
+            } else snapshot = structuredClone(source?.data ?? source);
+            settings = structuredClone(options);
+        }
         catch (error) { return Promise.reject(error); }
         return new Promise((resolve, reject) => {
-            const job = {id:++this.sequence,kind,source:snapshot,options:settings,key,priority,timeout,resolve,reject,signal,settled:false};
+            const job = {id:++this.sequence,kind,source:snapshot,rasterBytes,options:settings,key,priority,timeout,resolve,reject,signal,settled:false};
             job.abort = () => this._cancel(job);
             signal?.addEventListener('abort', job.abort, {once:true});
             this.queue.push(job);
@@ -34,6 +46,7 @@ export class CompilerClient {
     }
     compile(source, options = {}, request = {}) { return this.run('compile', source, options, request); }
     validate(source, options = {}, request = {}) { return this.run('validate', source, options, request); }
+    trace(image, options = {}, request = {}) { return this.run('trace', image, options, request); }
     inspect(source, options = {}, request = {}) { return this.run('inspect', source, options, request); }
     cancelKey(key) {
         for (const job of [...this.queue, this.active].filter(Boolean)) if (job.key === key) this._cancel(job);
@@ -116,7 +129,7 @@ export class CompilerClient {
                 if (this.active !== job || job.settled) return;
                 this._finish(null,executeTask(job.kind,job.source,job.options));
             } else {
-                this._ensureWorker().postMessage({protocol:1,id:job.id,kind:job.kind,source:job.source,options:job.options});
+                this._ensureWorker().postMessage({protocol:1,id:job.id,kind:job.kind,source:job.source,options:job.options}, job.kind === 'trace' ? [job.source.pixels.buffer] : []);
                 job.source = null; job.options = null;
             }
         } catch (error) { if (this.active === job) this._finish(error); }

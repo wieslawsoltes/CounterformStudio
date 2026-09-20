@@ -1,3 +1,4 @@
+import {ArtworkRenderer} from './artwork.js';
 import { RegisterWebComponent } from '@wieslawsoltes/skiasharpweb/browser';
 import { bounds, clamp, segments, fromSVG, toSVG } from '@wieslawsoltes/counterform-geometry';
 import { Signal } from '@wieslawsoltes/counterform-model';
@@ -87,6 +88,7 @@ export class GlyphRenderer {
     constructor(host, { S = null, backend = 'auto' } = {}) {
         this.host = host;
         this.S = S;
+        this.artworkRenderer = S ? new ArtworkRenderer(S,makePath) : null;
         this.camera = new Camera();
         this.scene = { contours: [], editable: [], advanceWidth: 640, metrics: { unitsPerEm: 1000, ascender: 800, descender: -200, capHeight: 700, xHeight: 520 }, anchors: [], guides: [], ghost: [] };
         this.selection = new Set();
@@ -132,7 +134,7 @@ export class GlyphRenderer {
         this.resizeObserver.observe(host);
         this.invalidate();
     }
-    setScene(scene) { this.scene = { ...this.scene, ...scene }; this.needsPaths = true; this.invalidate(); }
+    setScene(scene) { if(Object.hasOwn(scene,'artwork'))this.artworkRenderer?.update(scene.artwork); this.scene = { ...this.scene, ...scene }; this.needsPaths = true; this.invalidate(); }
     /** Cache one actual compiled font. Revision/master guards prevent stale color artwork. */
     setCompiledColorFont(bytes, {documentId,revision,masterId,glyphOrder,unitsPerEm}) {
         if(this.disposed||!this.S)return;
@@ -187,6 +189,7 @@ export class GlyphRenderer {
             c.Scale(dpr, dpr);
             c.Translate(this.camera.x, this.camera.y);
             c.Scale(this.camera.scale, -this.camera.scale);
+            this.native.dataset.artworkCount=String(!this.preview ? this.artworkRenderer?.draw(c) || 0 : 0);
             if (this.scene.ghost?.length && !this.preview) {
                 paint.Color = S.SKColor.Parse('#92a5cc');
                 paint.Style = S.SKPaintStyle.Stroke;
@@ -409,6 +412,6 @@ export class GlyphRenderer {
         }
     }
     toSVG() { const m = this.scene.metrics; return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${-m.ascender} ${this.scene.advanceWidth} ${m.ascender - m.descender}"><path transform="scale(1,-1)" d="${toSVG(this.scene.contours)}"/></svg>`; }
-    dispose() { this.colorFont?.font?.Dispose();this.colorFont?.face?.Dispose();this.colorFont=null;this.disposed = true; cancelAnimationFrame(this.pending); this.resizeObserver.disconnect(); this.native.removeEventListener('paintsurface', this.onPaint); this.native.removeEventListener('surfaceerror', this.onError); this.native.removeEventListener('devicelost', this.onLoss); for (const p of this.paths)
+    dispose() { this.artworkRenderer?.dispose();this.colorFont?.font?.Dispose();this.colorFont?.face?.Dispose();this.colorFont=null;this.disposed = true; cancelAnimationFrame(this.pending); this.resizeObserver.disconnect(); this.native.removeEventListener('paintsurface', this.onPaint); this.native.removeEventListener('surfaceerror', this.onError); this.native.removeEventListener('devicelost', this.onLoss); for (const p of this.paths)
         p.Dispose(); this.host.replaceChildren(); this.changed.clear(); this.error.clear(); this.frame.clear(); }
 }

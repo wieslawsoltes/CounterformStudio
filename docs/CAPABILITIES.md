@@ -1,18 +1,18 @@
 # Capability contract and parity ledger
 
-Version 0.8.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
+Version 0.9.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 family**; the reference snapshot on 2026-09-16 listed 8.4.2.8950 first. This ledger is not an exhaustive verification of every undocumented native behavior. Sources: https://www.fontlab.com/ and https://help.fontlab.com/fontlab/8/ .
 
 **Working** means implemented and exercised within the documented subset. **Partial** means a narrower implementation exists. **Missing** means no implementation is claimed. An attractive dialog, data field or shader source alone is not counted as feature parity.
 
 | Area | Status | Delivered contract / boundary |
 |---|---|---|
-| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 73 original SVG icons, nine menus covering all 152 current commands; not every native FontLab command |
+| Docked workbench, light/dark, command ribbon | Working | Actual Dockyard/RibbonWeb; six compact/expanded ribbon tabs, 76 original SVG icons, nine menus covering all 156 current commands; not every native FontLab command |
 | Glyph library and font inventory | Working | Full virtual Font window and optional navigator; stable grid keyboard focus; reactive keyed projection; retained TreeDataGrid editable widths/export flags |
 | Workspace presentation and preferences | Working | Neutral light/dark chrome, independent paper canvas, collapsible palettes, direct metrics, panel rail, reversible Focus/Reset, device-local preferences; native pixel/behavior parity is not claimed |
 | Unicode mapping | Working | Scalar values and cmap14 default/nondefault variation sequences; indexed source mappings, compiled proofs, source metrics, supported native/TTF reconstruction; not registration or every script workflow |
 | Pen and outline selection | Working | Endpoints, absolute cubic handles, drag construction, marquee/lasso, insertion, deletion |
 | Shape tools | Working | Rectangle, ellipse, open line, polygon, star and rounded rectangle; constrained drawing and bounded options |
-| Pencil and pressure brush | Partial | Simplified freehand polyline; pressure-sensitive filled outline with bounded miter joins/flat caps; no fitted Rapid curves or editable brush skeleton |
+| Pencil and pressure brush | Partial | Freehand polyline plus explicit bounded Bézier fitting command; pressure-sensitive filled outline with bounded miter joins/flat caps; no proprietary Rapid curves or editable brush skeleton |
 | Knife and Scissors | Partial | Cubic-preserving opening/splitting; Knife requires exactly two transverse crossings, rejects ambiguous geometry |
 | Contour surgery | Working | Open/join endpoints, start point, line/cubic conversion, coincident line-node removal and distribution |
 | Anchors and guides | Working | Pointer editing, per-master numerical guide editor, undo and locked-layer gating |
@@ -25,8 +25,9 @@ Version 0.8.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 f
 | Non-destructive outline filters | Partial | Ordered translate, scale, rotate, slant, matrix, round, reverse and repeat; live evaluated outlines, retained editable source, undoable baking; not proprietary Delta/Power Brush semantics |
 | Reusable components | Working | Live source references, affine transforms, decomposition, cycle rejection |
 | Smart / variable components | Partial | Per-master component transforms interpolate; no parameterized glyph replacement or independent component-axis locations |
-| Skin / Glue / Power Brush / autotrace | Missing | No equivalents claimed |
-| Masks, images and background references | Missing | Source layers are master layers, not a complete arbitrary artwork-layer system |
+| Bitmap autotrace and polyline fitting | Working within documented geometry bounds | Alpha-aware RGBA threshold/Otsu, component despeckling, exact four-connected pixel boundaries and hole winding; optional conservatively bounded cubics, private worker preview, transactional apply and independent fitter; no proprietary trace/optical behavior or fitted-topology guarantee |
+| Skin / Glue / Power Brush | Missing | No equivalents claimed |
+| Masks, images and background references | Partial | Per-master source-only PNG references and vector masks; native Skia affine/opacity preview, visibility/lock/reorder/duplicate, snapshot/exchange/insert; JSON and custom UFO preservation; not arbitrary nested artwork, JPG/TIFF, linked external images, or color-font strikes |
 | Master editing | Working | Clone master, axis/location editing, topology checks, static interpolation |
 | Axis mapping | Working within avar 1.0 | Normalized, monotonic F2DOT14 maps in source, preview, gvar/CFF2/HVAR/MVAR/GPOS and WOFF2; staged UI; no cross-axis avar 2.0 |
 | Outline measurements & curvature | Working within algebraic contract | Green-integral area/centroid, chord/polygon length bounds, analytic cubic inflections, signed curvature comb and JSON export; not Boolean-unioned ink area or every native measurement tool |
@@ -58,7 +59,7 @@ Version 0.8.0, reviewed 2026-09-20. The comparison target is the FontLab **8.4 f
 | Production QA | Partial | Structural/geometry/encoding/component/master checks; not OTS or FontBakery certification |
 | Python macro API | Missing | Bounded JSON recipes and JS package APIs only; no FontLab Python compatibility |
 | File persistence | Partial | Counterform files, immutable IndexedDB autosave, full-snapshot revision journal with SHA-256 chain, atomic CAS writes, corruption-prefix recovery and restore-as-copy UI; no incremental delta journal, native file watch or git-aware project |
-| Full keyboard parity | Partial | 152-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
+| Full keyboard parity | Partial | 156-command registry, 24 tools, menu/toolbar keyboard navigation and core shortcut remapping; not a verified exhaustive FontLab key map |
 | Worker compilation and validation | Working; physical hardware unqualified | Bounded queue, keyed proof replacement, transferable results, hard cancellation and timeout; real Node workers plus the generated relative-URL browser graph exercised in a fresh Node worker host; local isolated browser suite explicitly uses inline mode; source/distribution/Pages CI exercises real browser workers |
 | WebGPU renderer | Unqualified here | Real Skia automatic backend request; local isolated tests exercise native raster; CI also tests WebGL through SwiftShader, not physical GPUs |
 | WebGPU compute | Implemented, GPU unqualified | Independent WGSL interpolation service; CPU numerical path verified |
@@ -105,3 +106,9 @@ For the 0.6.0 attachment, mapping and analysis increment, see [release notes](RE
 | Source metrics formulas | Working subset | Source-order Unicode/slash strings, arithmetic sidebearings/advance, dependency-ordered batches and kerning exceptions; no live links or optical kerning |
 
 See [0.7.0 release notes](RELEASE-0.7.0.md) and [API contracts](VARIABLE-FEATURES-COLLECTIONS-METRICS.md). All 32 packages and ten pinned vendors remain independently usable.
+
+## 0.9.0 artwork and tracing
+
+See [artwork/tracing contracts](ARTWORK-TRACING.md) and [release notes](RELEASE-0.9.0.md). The current source contains 34 packages, 156 command-backed actions, 24 pointer tools and 76 original icons. All ten pinned vendors and SkiaSharpWeb-compatible APIs remain unchanged.
+
+PNG references are source-only artwork, **not** sbix, CBDT/CBLC or OpenType-SVG fonts. Fitted outlines have a conservative continuous distance bound against the thresholded pixel boundary in ordinary floating-point arithmetic, not interval certification, guaranteed minimum nodes, optical correctness or guaranteed preservation of near-contact topology. Exact pixel-boundary mode preserves the classified mask's geometry and winding. This ledger does not declare all remaining native workflows complete.

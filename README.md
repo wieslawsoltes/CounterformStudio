@@ -2,11 +2,11 @@
 
 ### Make every curve count.
 
-**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.8.0.
+**A working, modular browser font editor built with HTML, JavaScript and SkiaSharpWeb, with an optional WebGPU compute package.** Version 0.9.0.
 
 This is an original implementation targeting the FontLab 8.4 workflow. **It is not a feature-complete FontLab replacement.** The implemented subset includes real outline editing, masters, kerning, OpenType compilation, source interchange and live proofing—not simulated export buttons. Read [the capability contract](docs/CAPABILITIES.md) before editing production fonts. Unreconstructed font tables can be lost on re-export; keep originals.
 
-[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.7.0 production workflows](docs/RELEASE-0.7.0.md)
+[Open the live authoring studio](https://wieslawsoltes.github.io/CounterformStudio/) · [0.9.0 artwork and tracing](docs/RELEASE-0.9.0.md)
 
 ![Compact desktop type-design workspace](docs/images/desktop-workspace.png)
 
@@ -30,7 +30,7 @@ The source archive includes pinned vendor runtime packages. Bootstrap creates lo
 
 The workspace uses real Dockyard docking, a RibbonWeb command ribbon, a virtual glyph library, a TreeDataGridWeb font inventory, a GridWeb kerning matrix and RichTextWeb notes. ReactiveWeb and DynamicDataWeb project the document state. Native Skia paths draw the font; RBushWeb accelerates node/handle picking, and QuikGraphWeb checks component dependency graphs.
 
-Use nine command-backed menus, 152 commands, 24 pointer tools and a ribbon with 73 original SVG icons. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
+Use nine command-backed menus, 156 commands, 24 pointer tools and a ribbon with 76 original SVG icons. Draw and edit Bézier contours, move handles, insert points, add rectangles/ellipses, measure, zoom and pan. Use snapping, 1/10/0.1-unit keyboard nudges, undo/redo, copy/paste, affine transforms, sidebearings, anchors, reusable components, overlap removal, Boolean operations and stroke expansion. Edit compatible masters and inspect read-only interpolated instances. Proof text uses a newly compiled `FontFace`, not a substitute preview typeface.
 
 Export real **TTF, CFF/CFF2 OTF, WOFF1/WOFF2, variable TTF/CFF2, UFO3 archives and Counterform source**. Supported layout compilation includes single, multiple, alternate, ligature, chaining-context and reverse substitutions; single/pair/contextual positioning, named lookups and script/language selection; automatic and explicit mark-to-base, mark-to-ligature, mark-to-mark and cursive attachments, named anchors, mark filtering and GDEF classes. See the explicit [feature-language subset](docs/CONTEXTUAL-LAYOUT.md). Variable export writes `fvar`, `STAT`, optional `avar` 1.0 axis maps, TrueType `gvar` or CFF2 blend programs, `HVAR`, optional `MVAR`, and GDEF/GPOS variations for kerning and mark-to-base anchors. Browser WOFF2 uses stored Brotli blocks; the standalone Node subpath provides size compression. These exports remain unhinted. Color output supports COLRv0 fallback layers, all 18 static COLRv1 paint formats, all 28 compositing modes, and CPALv1 palette/entry labels and light/dark usability flags. OpenType → Color paint graph opens the transactional tree/property/proof editor for gradients, clipping, references and transforms. The compiled font renders in the browser proof and the native Skia source-master canvas; editable geometry remains separate. Variable outlines may carry static paints; PaintVar parameters, variable clip boxes, SVG and bitmap color tables are not supported.
 
@@ -38,11 +38,13 @@ Non-destructive outline stacks preserve editable contours through ordered affine
 
 Axis mapping has a staged numerical/graph editor shared with the preview and variable compilers. The attachment editor validates actual compiled fonts, displays a FontFace proof and commits once with undo. Outline analysis reports analytic area/centroid/inflections, bounded arc length and a signed curvature comb without changing source. See [advanced authoring and headless APIs](docs/ADVANCED-AUTHORING.md).
 
+**Artwork references and autotrace:** Glyph → Artwork references and masks adds per-master PNG references and vector masks, independent opacity/visibility/locking and numeric transforms. Import PNG through File/Open or the dialog. Autotrace builds exact oriented pixel boundaries with counters or conservatively bounded cubic fits in the authoring worker; staged results apply as one undo transaction. Snapshot/exchange masks and Fit polylines preserve existing source until explicitly applied. References themselves never change compiled font bytes. See [workflow and algorithm contracts](docs/ARTWORK-TRACING.md). This does not implement bitmap color-font formats or a full arbitrary-artwork layer system.
+
 ## Repository structure
 
 ```text
 app/                   Application bootstrap; native browser import map
-packages/              32 independently packable @wieslawsoltes/counterform-* packages
+packages/              34 independently packable @wieslawsoltes/counterform-* packages
 vendor/                Pinned upstream source/runtime inputs
 scripts/               Offline bootstrap, server, static build, npm packing, archiving
 examples/              Headless font compiler example

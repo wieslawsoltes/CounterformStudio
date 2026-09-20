@@ -20,6 +20,7 @@
     "workspace-consumer.ts",
     "advanced-consumer.ts",
     "workflow-consumer.ts",
-    "interchange-consumer.ts"
+    "interchange-consumer.ts",
+    "artwork-consumer.ts"
   ]
 }

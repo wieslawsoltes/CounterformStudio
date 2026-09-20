@@ -1,5 +1,9 @@
 /** Original vector paths. No icon fonts, inline scripts, remote URLs or external artwork. */
 export const iconPaths = Object.freeze({
+  "artwork": "M3 4h18v16H3Z M5 17l5-6 4 4 3-3 3 5 M8 7h1v1H8Z",
+  "autotrace": "M2 3h7v7H2Z M3 4h2v2H3Z M6 7h2v2H6Z M12 5h8 M17 2l3 3-3 3 M3 17C8 4 16 28 21 12 M2 16h3v3H2Z M19 11h3v3h-3Z",
+  "fitCurve": "M3 19C3 2 20 22 21 5 M2 18h3v3H2Z M19 3h3v3h-3Z M5 7h2v2H5Z M16 15h2v2h-2Z",
+
     "search": "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z M15 15l6 6",
     "minus": "M5 12h14",
     "plus": "M12 5v14M5 12h14",
@@ -76,6 +80,10 @@ export const iconPaths = Object.freeze({
 });
 export const iconNames = Object.freeze(Object.keys(iconPaths));
 const iconURLs = Object.freeze({
+  "artwork": new URL("./assets/artwork.svg", import.meta.url).href,
+  "autotrace": new URL("./assets/autotrace.svg", import.meta.url).href,
+  "fitCurve": new URL("./assets/fitCurve.svg", import.meta.url).href,
+
     "search": new URL("./assets/search.svg", import.meta.url).href,
     "minus": new URL("./assets/minus.svg", import.meta.url).href,
     "plus": new URL("./assets/plus.svg", import.meta.url).href,
@@ -158,6 +166,7 @@ export function createIcon(name, doc = document) {
     const path = doc.createElementNS(svg.namespaceURI,'path'); path.setAttribute('d',iconPaths[name]);svg.append(path);return svg;
 }
 const commandIcons = Object.freeze({
+ 'glyph.artwork':'artwork','glyph.autotrace':'autotrace','glyph.mask':'layers','outline.fit':'fitCurve',
  'glyph.variations':'font','metrics.editor':'kern','features.variations':'axes','font.collection':'layers',
  'view.font':'font','view.library':'grid','view.ribbon':'layers','view.paper':'preview','view.trueFill':'fill','workspace.focus':'fullscreen','workspace.reset':'history','workspace.preferences':'settings',
  'file.original':'open','file.metadataExport':'export',

@@ -30,9 +30,11 @@ with tempfile.TemporaryDirectory(prefix='counterform-consumer-') as tmp:
             assert not any(Path(n).suffix.lower() in fonts for n in entries)
             meta = json.load(archive.extractfile('package/package.json'))
             if meta['name'] == '@wieslawsoltes/counterform-workbench':
-                for css in ['styles.css','legacy.css','workspace.css','advanced.css']:
+                for css in ['styles.css','legacy.css','workspace.css','advanced.css','artwork.css']:
                     assert 'package/src/'+css in entries, 'Missing layered workspace style: '+css
                 assert 'package/src/workspace-preferences.js' in entries
+                workbench_source=archive.extractfile('package/src/index.js').read().decode('utf-8')
+                assert f"export const version = '{version}';" in workbench_source, 'Workbench runtime version differs from release'
                 assert 'package/types/workspace-preferences.d.ts' in entries
             record = records[file.name]
             assert meta['name'] == record['name'] and meta['version'] == version, 'Archive metadata mismatch.'
@@ -77,13 +79,20 @@ for(const compile of [compileTrueType,compileOpenTypeCFF,compileVariableTrueType
 assert(new History(doc));
 const mid=doc.data.masters[0].id;applyMetricPlan(doc,planMetricEdits(doc,mid,[{glyphId:'A',lsb:50,rsb:60}]));assert.equal(doc.metrics('A',mid).lsb,50);
 const faceBytes=compileTrueType(doc),collection=encodeCollection([faceBytes,compileOpenTypeCFF(doc)]);assert.equal(readCollection(collection).faces.length,2);assert(extractCollectionFace(collection,0).length>1000);
-for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction','colrv1','modifiers','journal','preservation','cff2','woff2','varstore','svg'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
+for(const p of ['geometry','binary','commands','compute','storage','automation','ufo','validation','opentype','icons','menus','construction','colrv1','modifiers','journal','preservation','cff2','woff2','varstore','svg','artwork','tracing'])assert(Object.keys(await import('@wieslawsoltes/counterform-'+p)).length);
 doc.glyph('A').colorLayers=[{glyphId:doc.glyph('O').id,paletteIndex:1}];
 doc.glyph('A').colorPaint={type:'glyph',glyphId:doc.glyph('A').id,paint:{type:'linear',x0:0,y0:0,x1:600,y1:0,x2:0,y2:700,stops:[{offset:0,paletteIndex:0},{offset:1,paletteIndex:1}]}};
 doc.data.paletteLabels=['Day'];doc.data.paletteEntryLabels=doc.data.palettes[0].map((_,i)=>'Color '+i);
 assert.equal(new DataView(compileColorTables(doc.data,doc.data.glyphs).get('COLR').buffer).getUint16(0),1);
 const compiler=new CompilerClient({workerFactory:()=>new Worker(new URL(import.meta.resolve('@wieslawsoltes/counterform-compiler/node-worker')))});
 try {
+    const {createVectorReference,referenceContours}=await import('@wieslawsoltes/counterform-artwork');
+    const {traceBitmap,fitPolyline}=await import('@wieslawsoltes/counterform-tracing');
+    const raster={width:3,height:3,pixels:new Uint8Array(36)};for(let i=3;i<36;i+=4)raster.pixels[i]=255;raster.pixels.set([255,255,255,255],16);
+    const traced=await compiler.trace(raster);assert.equal(traced.holes,1);assert.deepEqual(traced,traceBitmap(raster));
+    const unreferenced=compileTrueType(doc);doc.glyph('A').layers[0].artwork=[createVectorReference(traced.contours)];
+    assert.deepEqual(compileTrueType(doc),unreferenced);assert.equal(referenceContours(doc.glyph('A').layers[0].artwork[0]).length,2);
+    assert.equal(fitPolyline([{x:0,y:0},{x:1,y:0},{x:2,y:0}]).contour.nodes.length,2);
     const {analyzeContours}=await import('@wieslawsoltes/counterform-geometry');
     const {decodeAvar}=await import('@wieslawsoltes/counterform-varstore');
     const {readDirectory}=await import('@wieslawsoltes/counterform-binary');
@@ -99,7 +108,7 @@ try {
     const {captureOriginal,restoreOriginal}=await import('@wieslawsoltes/counterform-preservation');const archive=await captureOriginal(bytes,doc.data);assert.deepEqual(await restoreOriginal(archive),bytes);
     const {RevisionJournal,MemoryJournalBackend}=await import('@wieslawsoltes/counterform-journal');const j=new RevisionJournal(new MemoryJournalBackend());await j.append(doc.data);assert.equal((await j.recover(doc.data.id)).issue,null);await j.close();
 } finally {compiler.dispose();}
-console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1, CPALv1, GPOS attachments, avar, measurements, cmap14, SVG import, real Node compiler worker and headless module imports');
+console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TTF, COLRv0/v1, CPALv1, GPOS attachments, avar, measurements, cmap14, SVG import, source-only artwork, bounded tracing/fitting, real Node compiler worker and headless module imports');
 ''')
     result = subprocess.run(['node','consumer.mjs'],cwd=base,text=True,capture_output=True)
     print(result.stdout, end='')
@@ -111,5 +120,6 @@ console.log('PASS fresh extracted package consumer: static TTF, CFF, variable TT
         'checks':['Release version, archive inventory, SHA-256/SRI, dependencies, declarations, entrypoints and font-file exclusion',
                   'fresh extracted consumer TTF/CFF/variable TTF compilation',
                   'headless package imports with real vendor dependencies',
-                  'real packaged Node-worker entry compiles byte-identical COLRv1/CPALv1 fonts'],
+                  'real packaged Node-worker entry compiles byte-identical COLRv1/CPALv1 fonts',
+                  'real packaged Node-worker tracing matches synchronous contours; references do not change font output'],
         'stdout':result.stdout},indent=2)+'\n')

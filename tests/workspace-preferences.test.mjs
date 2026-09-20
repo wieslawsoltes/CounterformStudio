@@ -24,7 +24,7 @@ test('system appearance resolution is explicit and deterministic',()=>{
  assert.equal(resolvedTheme('system',true),'dark');assert.equal(resolvedTheme('system',false),'light');assert.equal(resolvedTheme('dark',false),'dark');assert.equal(resolvedTheme('light',true),'light');
 });
 test('new workspace actions map to shipped original vector icons',()=>{
- assert.equal(iconNames.length,73);
- for(const id of ['view.font','view.library','view.ribbon','view.paper','view.trueFill','workspace.focus','workspace.reset','workspace.preferences','glyph.previous','glyph.next','view.zoomIn','view.zoomOut'])assert.ok(iconPaths[commandIcon(id)],id);
+ assert.equal(iconNames.length,76);
+ for(const id of ['view.font','view.library','view.ribbon','view.paper','view.trueFill','workspace.focus','workspace.reset','workspace.preferences','glyph.previous','glyph.next','view.zoomIn','view.zoomOut','glyph.artwork','glyph.autotrace','glyph.mask','outline.fit'])assert.ok(iconPaths[commandIcon(id)],id);
  for(const id of ['chevronLeft','chevronRight','plus','minus'])assert.ok(iconPaths[id]);
 });

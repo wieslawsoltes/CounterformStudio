@@ -58,7 +58,7 @@ def main() -> None:
             environment = page.evaluate("({secure:isSecureContext,compiler:counterform.compiler.backend,renderer:counterform.renderer.backend,skia:!!counterform.S,commands:counterform.commands.commands.size,tools:counterform.toolRail.querySelectorAll('[data-tool]').length,menus:counterform.menuDefinitions.length,userAgent:navigator.userAgent})")
             report['environment'] = environment
             check('HTTPS startup uses the actual compiler worker and Skia', environment['secure'] and environment['compiler']=='worker' and environment['skia'])
-            check('deployed authoring surface contains 24 tools, nine menus and 152 commands', environment['tools']==24 and environment['menus']==9 and environment['commands']==152)
+            check('deployed authoring surface contains 24 tools, nine menus and 156 commands', environment['tools']==24 and environment['menus']==9 and environment['commands']==156)
             page.wait_for_function("(()=>{const images=[...counterform.ribbon.shadowRoot.querySelectorAll('img')];return images.length>10&&images.every(i=>i.complete&&i.naturalWidth>0)})()", timeout=30000)
             check('ribbon vector icon assets load from the repository subpath')
             page.keyboard.press('F10')

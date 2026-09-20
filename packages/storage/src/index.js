@@ -71,5 +71,5 @@ export class Autosave {
 export function download(data, name, type = 'application/octet-stream') { const blob = data instanceof Blob ? data : new Blob([data], { type }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; a.style.display = 'none'; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000); }
 export function parseProject(text) { if (text.length > 128 * 1024 * 1024)
     throw new RangeError('Project exceeds 128 MiB'); return validateDocumentShape(JSON.parse(text)); }
-export async function chooseFile({ accept = '.counterform,.json,.ttf,.otf,.woff,.woff2,.ufoz,.svg' } = {}) { return new Promise(resolve => { const input = document.createElement('input'); input.type = 'file'; input.accept = accept; input.onchange = () => resolve(input.files[0] || null); input.oncancel = () => resolve(null); input.click(); }); }
+export async function chooseFile({ accept = '.counterform,.json,.ttf,.otf,.woff,.woff2,.ufoz,.svg,.png' } = {}) { return new Promise(resolve => { const input = document.createElement('input'); input.type = 'file'; input.accept = accept; input.onchange = () => resolve(input.files[0] || null); input.oncancel = () => resolve(null); input.click(); }); }
 

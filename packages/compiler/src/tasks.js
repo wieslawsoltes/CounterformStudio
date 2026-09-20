@@ -1,3 +1,4 @@
+import {traceBitmap} from '@wieslawsoltes/counterform-tracing';
 import { compileOpenTypeCFF2 } from '@wieslawsoltes/counterform-cff2';
 import { encodeWOFF2 } from '@wieslawsoltes/counterform-woff2';
 import { FontDocument } from '@wieslawsoltes/counterform-model';
@@ -8,6 +9,7 @@ import { exportUFO } from '@wieslawsoltes/counterform-ufo';
 
 /** Pure task dispatcher shared by browser workers, Node workers, and explicit inline mode. */
 export function executeTask(kind, source, options = {}, progress = () => {}) {
+    if (kind === 'trace') { progress({stage:'trace',fraction:0}); const result=traceBitmap(source,options); progress({stage:'complete',fraction:1}); return result; }
     if (!['compile', 'validate', 'inspect'].includes(kind)) throw new TypeError(`Unknown compiler task: ${kind}`);
     progress({stage: 'validate', fraction: 0});
     const doc = new FontDocument(source);

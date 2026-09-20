@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0 — artwork references, autotrace and bounded curve fitting
+
+Added two independently packable libraries: `counterform-artwork` for validated PNG/vector references, and dependency-free `counterform-tracing` for alpha-aware histogram thresholding, four-connected despeckling, exact counter-preserving pixel boundaries and conservatively bounded cubic fitting. Native Skia reference rendering has per-reference cache ownership and affine/opacity support. The staged artwork/trace editors provide PNG File/Open, SVG masks, reorder/duplicate/lock/visibility, foreground snapshot/exchange, owned worker preview, numeric transforms, preview pan/zoom and transactional Apply/Cancel.
+
+References survive source/history/UFO custom metadata without entering binary fonts or invalidating metadata-only preservation. Raster queue inputs have a 64 MiB active-inclusive cap and copy only the validated pixel view before transferring the owned buffer. Four commands and three original icons bring the inventory to 156 commands, 24 pointer tools, 76 icons and 34 packages. The workbench's exported version now matches the release manifest.
+
+New headless tests exhaust all 512 three-by-three masks, compare independently rasterized output/area, bound curve error, verify PNG framing, worker snapshots/cancellation/budgets, native cache lifetime and source-only font output. Browser tests exercise actual native pixels, modal ownership, traced exports, masks and undo. This is not full FontLab parity; fitted topology, proprietary tracing behavior, arbitrary image formats, persistent metric links, hinting and variable/bitmap color-font authoring remain explicit boundaries.
+
+
 ## 0.8.0 — Unicode and vector interchange
 
 Added cmap14 UVS authoring, binary/source roundtrips, compiled encoding proofs, source metrics resolution, complete SVG path commands, bounded transformed-document vector extraction and a standalone SVG package. Corrected synchronous modal resource ownership while preserving native cancellation/events. Added codec, fontTools/HarfBuzz and browser regression gates.
