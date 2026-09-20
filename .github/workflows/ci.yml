@@ -30,6 +30,10 @@ jobs:
       - run: npm run test:fonts
       - run: npm run build
       - run: npm run pack:all && npm run test:packages
+      - name: Attachment, axis-map and outline-analysis workflows
+        run: |
+          python tests/advanced-browser.py --out-dir test-results/advanced-source
+          python tests/advanced-browser.py --root dist --out-dir test-results/advanced-distribution
       - name: Workspace input and lifetime regressions
         run: |
           python tests/workspace-input.py --out-dir test-results/input-source
