@@ -30,6 +30,10 @@ jobs:
       - run: npm run test:fonts
       - run: npm run build
       - run: npm run pack:all && npm run test:packages
+      - name: Unicode, SVG and modal ownership workflows
+        run: |
+          python tests/interchange-browser.py --out-dir test-results/interchange-source
+          python tests/interchange-browser.py --root dist --out-dir test-results/interchange-distribution
       - name: Conditional layout, collection and metrics workflows
         run: |
           python tests/workflows-browser.py --out-dir test-results/workflows-source
