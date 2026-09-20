@@ -13,7 +13,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Archive exact source before verification
@@ -30,6 +30,10 @@ jobs:
       - run: npm run test:fonts
       - run: npm run build
       - run: npm run pack:all && npm run test:packages
+      - name: Artwork references, tracing and curve-fitting workflows
+        run: |
+          python tests/artwork-browser.py --out-dir test-results/artwork-source
+          python tests/artwork-browser.py --root dist --out-dir test-results/artwork-distribution
       - name: Unicode, SVG and modal ownership workflows
         run: |
           python tests/interchange-browser.py --out-dir test-results/interchange-source
