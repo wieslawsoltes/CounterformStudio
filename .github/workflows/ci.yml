@@ -13,7 +13,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Archive exact source before verification
@@ -24,38 +24,10 @@ jobs:
         with: {python-version: '3.13'}
       - run: npm test
       - run: python -m pip install -r tests/requirements.txt
-      - run: python -m playwright install --with-deps chromium
-      - run: python -m unittest discover -s tests -p 'test_browser_ready.py' -v
       - run: npx --yes --package=typescript@5.9.3 tsc -p tests/tsconfig.json
       - run: npm run test:fonts
       - run: npm run build
       - run: npm run pack:all && npm run test:packages
-      - name: Artwork references, tracing and curve-fitting workflows
-        run: |
-          python tests/artwork-browser.py --out-dir test-results/artwork-source
-          python tests/artwork-browser.py --root dist --out-dir test-results/artwork-distribution
-      - name: Unicode, SVG and modal ownership workflows
-        run: |
-          python tests/interchange-browser.py --out-dir test-results/interchange-source
-          python tests/interchange-browser.py --root dist --out-dir test-results/interchange-distribution
-      - name: Conditional layout, collection and metrics workflows
-        run: |
-          python tests/workflows-browser.py --out-dir test-results/workflows-source
-          python tests/workflows-browser.py --root dist --out-dir test-results/workflows-distribution
-      - name: Attachment, axis-map and outline-analysis workflows
-        run: |
-          python tests/advanced-browser.py --out-dir test-results/advanced-source
-          python tests/advanced-browser.py --root dist --out-dir test-results/advanced-distribution
-      - name: Workspace input and lifetime regressions
-        run: |
-          python tests/workspace-input.py --out-dir test-results/input-source
-          python tests/workspace-input.py --root dist --out-dir test-results/input-distribution
-      - name: Browser source and distribution verification
-        run: |
-          python tests/browser.py --out-dir test-results/source
-          python tests/browser.py --root dist --out-dir test-results/distribution
-          python tests/workspace-browser.py --out-dir test-results/workspace-source
-          python tests/workspace-browser.py --root dist --out-dir test-results/workspace-distribution
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -64,12 +36,62 @@ jobs:
             test-results
             artifacts/npm
             CounterformStudio-source.tar.gz
+      - name: Share the exact built distribution with all browser gates
+        uses: actions/upload-artifact@v4
+        with:
+          name: counterform-runtime
+          path: dist
+          include-hidden-files: true
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with: {path: dist}
+  browser:
+    name: Browser / ${{ matrix.suite }}
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {suite: bitmap, script: bitmap-browser.py}
+          - {suite: artwork, script: artwork-browser.py}
+          - {suite: interchange, script: interchange-browser.py}
+          - {suite: workflows, script: workflows-browser.py}
+          - {suite: advanced, script: advanced-browser.py}
+          - {suite: input, script: workspace-input.py}
+          - {suite: editor, script: browser.py}
+          - {suite: workspace, script: workspace-browser.py}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: npm run bootstrap
+      - uses: actions/download-artifact@v4
+        with:
+          name: counterform-runtime
+          path: dist
+      - run: python -m pip install playwright==1.56.0
+      - run: python -m playwright install --with-deps chromium
+      - name: Independent native-renderer readiness regressions
+        if: matrix.suite == 'workspace'
+        run: python -m unittest discover -s tests -p 'test_browser_ready.py' -v
+      - name: Source browser gate with real workers and secure storage
+        run: python tests/${{ matrix.script }} --out-dir test-results/${{ matrix.suite }}-source
+      - name: Exact built-distribution browser gate
+        run: python tests/${{ matrix.script }} --root dist --out-dir test-results/${{ matrix.suite }}-distribution
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: counterform-browser-${{ matrix.suite }}
+          path: |
+            test-results/${{ matrix.suite }}-source
+            test-results/${{ matrix.suite }}-distribution
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: verify
+    needs: [verify, browser]
     runs-on: ubuntu-latest
     permissions:
       pages: write
