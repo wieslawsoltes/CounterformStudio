@@ -30,6 +30,10 @@ jobs:
       - run: npm run test:fonts
       - run: npm run build
       - run: npm run pack:all && npm run test:packages
+      - name: Conditional layout, collection and metrics workflows
+        run: |
+          python tests/workflows-browser.py --out-dir test-results/workflows-source
+          python tests/workflows-browser.py --root dist --out-dir test-results/workflows-distribution
       - name: Attachment, axis-map and outline-analysis workflows
         run: |
           python tests/advanced-browser.py --out-dir test-results/advanced-source
